@@ -1,0 +1,544 @@
+---
+title: "IRIDA Baseline paper"
+author: "Report by Alpha Oumar Diallo, MPH"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: vignette
+    toc: true
+    fig_caption: yes
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Preliminary Results
+
+```{r data, echo=FALSE, message=FALSE, warning=FALSE}
+#.......................................
+# Load packages ####
+#.......................................
+library(tidyverse)  # data management
+library(here)       # data import
+ library(readxl)   # import data files
+library(tableone)   # table one summary statistics
+library(epiR)       # summary statistics including testing/diagnostics
+library(gridExtra)  # graphics 
+library(ggthemes)   # graphics 
+library(knitr)
+library(eulerr)
+library(DT)         # data organization
+library(kableExtra)
+library(gee)
+
+#devtools::install_github("haozhu233/kableExtra")
+#This function replicates the SAS proc freq function with the '/ list missing statement'. 
+  #Source: https://github.com/asnr/sas-to-r
+  pfreq = function(...) {
+    group_by(...) %>%
+      summarise(n = n()) %>%
+      mutate(pct = round(100 * n/sum(n), 1)) 
+      #mutate(Percent=paste0(round(100 * n/sum(n), 1), "%")) 
+  }
+#.......................................
+# Read in data ####
+#.......................................
+
+  analysis <- here("data","analysis-irida_2020-10-14.rds") %>% read_rds %>%
+    arrange(hrevhid, pid)
+
+   # Consent list
+  tbl1 <- read_excel("manuscript/Table shells.xlsx",
+                                    sheet = 3)  
+
+```
+### _Summary of Storyline_ ###
+
+We designed a study to include sites with variable transmission intensity, which allowed us to assess diagnostic performance. Our results have important implications for modelers and implementers. We also used these data to classify *Plasmodium* spp infection status. 
+
+### _Introduction_ ###
+**Why should you care?**  
+1. Democratic Republic of the Congo (DRC) has the second highest malaria burden accounting for 12% and 11% of all global malaria cases and deaths, respectively.  
+
+2. Malaria imposes substantial health, social and economic costs to the individuals, families, communities and governments
+ 
+
+**What is the issue then?**  
+
+1. There is a high degree of variation in malaria prevalence across age groups and ecological heterogeneity including the urban/rural gradient. 
+
+    a. Older children (5-9 years) and adolescents (10-14) have the highest malaria prevalence in the Kinshasa province, and yet they are excluded from national surveys. 
+
+2. Different malaria diagnostic assays are known to perform differently under different transmission intensities.  
+
+3. There is an increasing reliance on RDTs for the surveillance and diagnosis of malaria, and thus are used to measure the burden of the disease and inform planning and implementation of malaria preventative strategies. 
+
+    a. The DRC recently changed its recommended RDTs used in public clinic from XXX to YYY. However, the performance of YYY as not been evaluated relative to other malaria diagnostic assays.
+
+4. Multiplex bead-based immunoassay (Luminex/MBA) to identify serological markers for malaria are potentially useful tools to generate point estimates for malaria transmission to monitor the progress of malaria control programs. As a result, there is an increasing investment in these platforms in Sub-Saharan Africa. However, there is limited data on the performance of Luminex in varying malaria transmission densities.
+
+**How will your study address these issues?**  
+
+1. Overall, we designed a longitudinal study that include sites in Kinshasa Province with variable malaria transmission intensity to assess diagnostic performance across four assays (microscopy, RDT, PCR and Luminex) and their effect on malaria prevalence in Kinshasa Province. Specifically, we will:
+
+    a. Describe the epidemiology of malaria in the enrollment cohort of the longitudinal study using the different malaria diagnostic assays.
+    b. Evaluate the performance of the diagnostic assays based on their sensitivity, specificity, and Kappa statistic relative to each other, and considering using laten class analysis.
+    c. Estimate age-sex stratified prevalence estimates of Malaria in Kinshasa Province by diagnostic assay using WorldPop population estimates.
+    d. Describe malaria infection profiles created based on three different antigens.
+
+### _Participant characteristics and prevalence by diagnostic assay_ ###
+
+Among the 1,596 individuals enrolled from 239 households, data were available for 1,582 (99.1%). Participants of all ages were enrolled, with a median age of 15 years (Interquartile Range [IQR]: 7.0, 33.0), and 55% of them were female. The majority of these participants resided in rural health areas (Bu and Kimpoko) (72.7%) consisting of six villages and in households with 6-10 members (58.3%).
+
+In the overall sample, malaria prevalence by RDT (32.9%) was lower by 10% points or more than the other three diagnostic assays with the highest prevalence generated by Luminex assay (48.7%). For all diagnostic assays, participants aged 5-9 and 10-14 years old had the highest prevalence for all tests, which is consistent with previous findings in the DRC (DHS surveys and first longitudinal study conducted in same sites). When we compare the diagnostic assays within age groups, the RDT and Luminex produced the lowest and highest prevalence, respectively. We observe smaller discordance between RDT and microscopy prevalence results (~3%) among the 'high transmission intensity' age groups (5-9 & 10-14 yrs old) compared to the other age groups (~10-15%). The largest discordance between PCR and Luminex (~16%) was among those <1 years age groups, which led us to suspect that this may be due to false positive from Luminex as result of the assay detecting maternal antibodies. However, further assessment of this hypothesis yielded inconclusive answers as there were a few individuals (N = 52) who were in <1 years (see the next section).
+
+
+```{r summary_tab1, echo=FALSE, warning=FALSE}
+tbl1 %>% kable() %>%
+  kableExtra::kable_styling(c("condensed", "responsive"), full_width = T) %>%
+  pack_rows("Age Group*", 2, 7) %>% 
+  pack_rows("Sex", 8, 8) %>% 
+  pack_rows("Fever in previous week", 9, 9) %>% 
+  pack_rows("Household population size*", 10, 13)%>% 
+  pack_rows("Health Areas", 14, 16) %>% 
+  pack_rows("Villages", 17, 23) %>%
+  footnote(symbol = c("Median age was 15.0 years (Interquartile Range [IQR: 7.0, 33.0) and median household size was 8 members (IQR: 6, 10)"))
+
+```
+
+
+### _Prevalence by diagnostic test: Microscopy, RDT, PCR and Luminex_ ###
+
+```{r venn-diagram, echo=FALSE, warning=FALSE}
+
+fit <- euler(c("A" = 607, "B" = 484, "C" = 688, "D" = 761,
+               "A&B&C&D" = 347,
+               "A&B" = 393, "A&C" = 468, "A&D" = 470,
+               "B&C" = 416, "B&D" = 443,
+               "C&D" = 560,
+               "A&B&C" = 367, "A&B&D" = 366, "A&C&D" = 423,
+               "B&C&D" = 389), shape = "circle" )
+plot(fit, labels = c("Micro", "RDT", "PCR", "Luminex"), 
+     quantities = T,
+     lty = 1:4)
+
+```
+
+### _Prevalence estimates using Generalized Estimating Equations (GEE):_ ###
+
+**Why use GEE?** Generalized estimating equations (GEE) are a nonparametric way to estimates population-averaged model parameters and their standard errors where data are clustered (e.g., correlated at household-level). "The idea of GEE is to average over all subjects and make a good guess on the within-subject [or household] covariance structure. Instead of assuming that data were generated from a certain distribution, uses moment assumptions to iteratively choose the best β to describe the relationship between covariates and response." This will allow us to also estimate appropriate 95% CIs for our prevalence estimates. [Source: Johnny Hong and Kellie Ottoboni 2017](https://rlbarter.github.io/Practical-Statistics/2017/05/10/generalized-estimating-equations-gee/)
+
+```{r gee_age, echo=FALSE, warning=FALSE}
+m1 <- gee(pcr_pos ~ agegroup6,
+        data   = analysis,
+        family = binomial(link = "log"),
+        id     = hrevhid,
+        corstr = "unstructured")
+
+round(exp(m1$coefficients[1]),3); round(exp(m1$coefficients[1] - 1.96*0.37675505),3); round(exp(m1$coefficients[1] + 1.96*0.37675505),3)
+exp(m1$coefficients[1] + m1$coefficients[2])
+exp(m1$coefficients[1] + m1$coefficients[3])
+exp(m1$coefficients[1] + m1$coefficients[4])
+exp(m1$coefficients[1] + m1$coefficients[5])
+exp(m1$coefficients[1] + m1$coefficients[6])
+
+```
+
+
+```{r prev_age_pcr, echo=FALSE, warning=FALSE}
+vars_strata <- c("pcr_pos")
+
+strata <- c("agegroup6")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+### _Comparing Malaria Diagnostic Methods: IRIDA Baseline Results_ ###
+
+
+**RDTs were 65% sensitive and 89% specific when compared to microscopy testing (not antigen specific).** There was moderate agreement between the tests (kappa = 0.56). 
+
+```{r sens_spec_micro, echo=FALSE, message=FALSE, warning=FALSE}
+
+rdt_p_micrordt_p <- nrow(analysis[analysis$kin_rdt_pos==1 & !is.na(analysis$micro_pos) & analysis$micro_pos==1,])
+rdt_p_micrordt_n <- nrow(analysis[analysis$kin_rdt_pos==1 & !is.na(analysis$micro_pos) & analysis$micro_pos==0,])
+rdt_n_micrordt_p <- nrow(analysis[analysis$kin_rdt_pos==0 & !is.na(analysis$micro_pos) & analysis$micro_pos==1,])
+rdt_n_micrordt_n <- nrow(analysis[analysis$kin_rdt_pos==0 & !is.na(analysis$micro_pos) & analysis$micro_pos==0,])
+
+rdt_micrordt_grid <- c(rdt_p_micrordt_p, rdt_p_micrordt_n, rdt_n_micrordt_p, rdt_n_micrordt_n)
+
+dat_micrordt <- as.table(matrix(rdt_micrordt_grid, nrow = 2, byrow = TRUE))
+colnames(dat_micrordt ) <- c("Micro+","Micro-")
+rownames(dat_micrordt ) <- c("RDT+","RDT-")
+rval_rdt_micro  <- epiR::epi.tests(dat_micrordt, conf.level = 0.95)
+kap_rdt_micro  <- epiR::epi.kappa(dat_micrordt, conf.level = 0.95)
+
+
+kableExtra::kable(dat_micrordt )
+print(rval_rdt_micro); #summary(rval_rdt_micro )
+print(kap_rdt_micro$kappa)
+
+```
+
+
+**RDTs were 63% sensitive and 88% specific when compared to PCR testing for *pfldh*.** There was moderate agreement between the tests (kappa = 0.52).False positive (or prevalence of subpatent malaria [RDT-/PCR+]) was 38%. 
+
+```{r sens_spec_pcr, echo=FALSE, message=FALSE, warning=FALSE}
+
+rdt_p_pcrhrp2_p <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2+" & !is.na(analysis$pcr_pos) & analysis$pcr_pos==1,])
+rdt_p_pcrhrp2_n <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2+" & !is.na(analysis$pcr_pos) & analysis$pcr_pos==0,])
+rdt_n_pcrhrp2_p <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2-" & !is.na(analysis$pcr_pos) & analysis$pcr_pos==1,])
+rdt_n_pcrhrp2_n <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2-" & !is.na(analysis$pcr_pos) & analysis$pcr_pos==0,])
+
+rdt_pcrhrp2_grid <- c(rdt_p_pcrhrp2_p, rdt_p_pcrhrp2_n, rdt_n_pcrhrp2_p, rdt_n_pcrhrp2_n)
+
+dat_pcrhrp2 <- as.table(matrix(rdt_pcrhrp2_grid, nrow = 2, byrow = TRUE))
+colnames(dat_pcrhrp2 ) <- c("PCR+","PCR-")
+rownames(dat_pcrhrp2 ) <- c("RDT PfHRP2+","RDT PfHRP2-")
+rval_hrp2_pcr  <- epiR::epi.tests(dat_pcrhrp2, conf.level = 0.95)
+kap_hrp2_pcr  <- epiR::epi.kappa(dat_pcrhrp2, conf.level = 0.95)
+
+
+kableExtra::kable(dat_pcrhrp2 )
+print(rval_hrp2_pcr); summary(rval_hrp2_pcr )
+print(kap_hrp2_pcr$kappa)
+
+```
+
+
+**RDTs were 63% sensitive and 90% specific when compared to Luminex antigen testing for PfHRP2.** There was moderate agreement between the tests (kappa = 0.54).
+
+```{r sens_spec, echo=FALSE, message=FALSE, warning=FALSE}
+
+rdt_p_lumhrp2_p <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2+" & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==1,])
+rdt_p_lumhrp2_n <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2+" & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==0,])
+rdt_n_lumhrp2_p <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2-" & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==1,])
+rdt_n_lumhrp2_n <- nrow(analysis[analysis$kin_rdt_hrp2=="RDT PfHRP2-" & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==0,])
+
+rdt_lumhrp2_grid <- c(rdt_p_lumhrp2_p, rdt_p_lumhrp2_n, rdt_n_lumhrp2_p, rdt_n_lumhrp2_n)
+
+dat_hrp2 <- as.table(matrix(rdt_lumhrp2_grid, nrow = 2, byrow = TRUE))
+colnames(dat_hrp2 ) <- c("Luminex PfHRP2+","Luminex PfHRP2-")
+rownames(dat_hrp2 ) <- c("RDT PfHRP2+","RDT PfHRP2-")
+rval_hrp2  <- epiR::epi.tests(dat_hrp2, conf.level = 0.95)
+kap_hrp2  <- epiR::epi.kappa(dat_hrp2, conf.level = 0.95)
+
+
+kableExtra::kable(dat_hrp2 )
+print(rval_hrp2 ); summary(rval_hrp2 )
+print(kap_hrp2$kappa)
+
+
+```
+
+**RDTs were 14% sensitive and 94% specific when compared to Luminex antigen testing for pan-LDH.** There was poor agreement between the tests (kappa = 0.09).
+
+```{r sens_spec_pldh, echo=FALSE, message=FALSE, warning=FALSE}
+
+rdt_p_lumpldh_p <- nrow(analysis[analysis$kin_rdt_ldh=="RDT pLDH+" & !is.na(analysis$pldh_pos) & analysis$pldh_pos==1,])
+rdt_p_lumpldh_n <- nrow(analysis[analysis$kin_rdt_ldh=="RDT pLDH+" & !is.na(analysis$pldh_pos) & analysis$pldh_pos==0,])
+rdt_n_lumpldh_p <- nrow(analysis[analysis$kin_rdt_ldh=="RDT pLDH-" & !is.na(analysis$pldh_pos) & analysis$pldh_pos==1,])
+rdt_n_lumpldh_n <- nrow(analysis[analysis$kin_rdt_ldh=="RDT pLDH-" & !is.na(analysis$pldh_pos) & analysis$pldh_pos==0,])
+
+rdt_lumpldh_grid <- c(rdt_p_lumpldh_p, rdt_p_lumpldh_n, rdt_n_lumpldh_p, rdt_n_lumpldh_n)
+
+dat_pldh <- as.table(matrix(rdt_lumpldh_grid, nrow = 2, byrow = TRUE))
+colnames(dat_pldh) <- c("Luminex pLDH+","Luminex pLDH-")
+rownames(dat_pldh) <- c("RDT pLDH+","RDT pLDH-")
+rval_pldh <- epiR::epi.tests(dat_pldh, conf.level = 0.95)
+kap_pldh <- epiR::epi.kappa(dat_pldh, conf.level = 0.95)
+
+kableExtra::kable(dat_pldh)
+print(rval_pldh); #summary(rval_pldh)
+print(kap_pldh$kappa)
+
+```
+
+**PCR testing for *pfldh* was 76% sensitive and 83% specific when compared to Luminex antigen testing for PfHRP2.** There was good agreement between the tests (kappa = 0.59).
+
+```{r sens_spec_pcr_lum, echo=FALSE, message=FALSE, warning=FALSE}
+
+pcr_p_lumhrp2_p <- nrow(analysis[analysis$pcr_pos==1 & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==1,])
+pcr_p_lumhrp2_n <- nrow(analysis[analysis$pcr_pos==1 & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==0,])
+pcr_n_lumhrp2_p <- nrow(analysis[analysis$pcr_pos==0 & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==1,])
+pcr_n_lumhrp2_n <- nrow(analysis[analysis$pcr_pos==0 & !is.na(analysis$hrp2_pos) & analysis$hrp2_pos==0,])
+
+pcr_lumhrp2_grid <- c(pcr_p_lumhrp2_p, pcr_p_lumhrp2_n, pcr_n_lumhrp2_p, pcr_n_lumhrp2_n)
+
+dat_hrp2 <- as.table(matrix(pcr_lumhrp2_grid, nrow = 2, byrow = TRUE))
+colnames(dat_hrp2 ) <- c("Luminex PfHRP2+","Luminex PfHRP2-")
+rownames(dat_hrp2 ) <- c("PCR+","PCR-")
+rval_hrp2  <- epiR::epi.tests(dat_hrp2, conf.level = 0.95)
+kap_hrp2  <- epiR::epi.kappa(dat_hrp2, conf.level = 0.95)
+
+kableExtra::kable(dat_hrp2 )
+print(rval_hrp2 ); summary(rval_hrp2 )
+print(kap_hrp2$kappa)
+
+```
+**As expected, false-negative RDTs (RDT-/micro+) were more common at lower parasitemia** Comparison of microscopy parasitemia for RDT- (red) vs. RDT+ (blue) isolates.
+
+```{r falsenegRDT_histogram, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Create labels for micro/RDT results
+analysis$micropos.rdtpos <- ifelse((analysis$micro_pos==1 & analysis$kin_rdt_pos==1),1,0)
+analysis$micropos.rdtneg <- ifelse((analysis$micro_pos==1 & analysis$kin_rdt_pos==0),1,0)
+analysis$microneg.rdtpos <- ifelse((analysis$micro_pos==0 & analysis$kin_rdt_pos==1),1,0)
+analysis$microneg.rdtneg <- ifelse((analysis$micro_pos==0 & analysis$kin_rdt_pos==0),1,0)
+
+analysis$micropos.rdtneg_f <- factor(analysis$micropos.rdtneg, levels = 0:1, labels = c("Not applicable", "RDT-negative, Microscopy-positive"))
+
+#Make datasets for later
+micropos.rdtpos <- subset(analysis, micropos.rdtpos==1)
+micropos.rdtneg <- subset(analysis, micropos.rdtneg==1)
+microneg.rdtpos <- subset(analysis, microneg.rdtpos==1)
+microneg.rdtneg <- subset(analysis, microneg.rdtneg==1)
+
+histo_breaks <- c(0, 10, 100, 1000, 10000, 100000, 1000000, 10000000)
+histo_labs <- c('0', '10', '100', '1,000', '10,000', '100,000', '1,000,000', '10,000,000')
+
+ggplot(data=analysis, aes(micro_density)) +
+  geom_histogram(data=micropos.rdtneg, fill="red", alpha=0.4) +
+  geom_histogram(data=micropos.rdtpos, fill="blue", alpha=0.4) +
+  scale_x_log10(breaks = histo_breaks, labels = histo_labs) +
+  xlab("parasites/uL by microscopy") +
+  theme_hc()
+
+```
+
+
+**Parasite densities determined by microscopy and PfHRP2 from Luminex**
+
+```{r micro_luminex_scatterplot, echo=FALSE, warning=FALSE}
+histo_breaks2 <- c(0, 10, 100, 1000, 10000, 100000, 1000000, 10000000)
+histo_labs2 <- c('0', '10', '100', '1,000', '10,000', '100,000', '1,000,000', "10,000,000")
+
+ggplot(data=analysis, aes(x=micro_density, y=hrp2_pgml)) + geom_point() +
+  scale_x_log10(breaks = histo_breaks2, labels = histo_labs2) +
+  scale_y_log10(breaks = histo_breaks2, labels = histo_labs2) +
+  xlab("microscopy (p/uL)") +
+  ylab("PfHRP2 (pg/ml)") +
+  theme_hc()
+
+```
+
+**Parasite densities determined by PCR (*pfldh*) and PfHRP2 from Luminex**
+
+```{r pcr_luminex_scatterplot, echo=FALSE, warning=FALSE}
+histo_breaks3 <- c(0, 10, 100, 1000, 10000, 100000, 1000000, 10000000)
+histo_labs3 <- c('0', '10', '100', '1,000', '10,000', '100,000', '1,000,000', "10,000,000")
+
+ggplot(data=analysis, aes(x=pcr_pfdensity, y=hrp2_pgml)) + geom_point() +
+  scale_x_log10(breaks = histo_breaks3, labels = histo_labs3) +
+  scale_y_log10(breaks = histo_breaks3, labels = histo_labs3) +
+  xlab("pfldh (p/uL)") +
+  ylab("PfHRP2 (pg/ml)") +
+  theme_hc()
+
+```
+### _Malaria Infection Status Profile Based on Luminex Antigen Test_  ###
+
+We grouped study participant into malaria infection profiles according to the following Luminex antigen test results: 
+
+1. PfHRP2+/pLDH+/aldolase+ OR PfHRP2+/pLDH+/aldolase- OR OR PfHRP2+/pLDH-/aldolase+ -- Active/acute Pf infection  
+
+    a. Infected, probably acutely/actively infected 
+    b. Pf is present, but possible that non-Pf species co-infection could occur  
+    c. The parasitemia is high-ish, >1000p/ul  
+  
+2. PfHRP2+/pLDH-/aldolase- -- Low-density OR recently cleared Pf infection
+
+    a. Low-density Pf infection (chronic infection or infection that’s in the process of being cleared) OR 
+    b. Recently cleared infection (HRP2 antigenemia can persist for weeks to even months – Markwalter et al AJTMH ~2018)
+
+3. PfHRP2-/pLDH+/Aldolase+ OR Single pLDH+ or Single Aldolase+ -- non-Pf infection OR *pfhrp2/3*-deleted Pf
+
+4. PfHRP2-/pLDH-/aldolase- -- Uninfected
+
+    a. Caveat, you could have very low parasite density infection that gives this profile
+
+**Overall:** 40% of participants had an acute/active pf infection while 6% had a low density infection. The majority of participants (51%) were not uninfected.
+
+```{r summary_profile, echo=FALSE, warning=FALSE}
+vars <- c("inf_profiles")
+
+CreateTableOne(vars = vars, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+
+**By Health Area:** The prevalence of acute/active pf infections was high in the two rural health areas (Bu - 65%; Kimpoko - 42%) but in the urban one (Voix du Peuple 5%).
+
+```{r summary_profile_sites, echo=FALSE, warning=FALSE}
+vars_strata <- c("inf_profiles")
+
+strata <- c("area")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+**By Age (years) Groups:** The prevalence of acute/active Pf infection was ~56% among children aged 5-14 years old.
+
+```{r summary_profile_age, echo=FALSE, warning=FALSE}
+vars_strata <- c("inf_profiles")
+
+strata <- c("agegroup6")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+**By Fever in the Last Week:** 58% of those who experienced fever in the last week had an active/acute Pf infection.
+
+```{r summary_profile_fever, echo=FALSE, warning=FALSE}
+vars_strata <- c("inf_profiles")
+
+strata <- c("fever_lastwk")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+**Reminder-Distribution of Household Size by Health Area:** The median household size was 8.
+
+```{r hhsize_area2, echo=FALSE, warning=FALSE}
+vars_strata <- c("hh_size_group") 
+
+strata <- c("area")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+**By Household Size:** The higher prevalence of active/acute Pf infection was in the households with 1-5 members (43.9%) and 6-10 members (42.2%).
+
+```{r summary_profile_hh_size_group, echo=FALSE, warning=FALSE}
+vars_strata <- c("inf_profiles")
+
+strata <- c("hh_size_group")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+
+### _Subpatent Analysis_: ###
+
+How should we define subpatent malaria if we are going to pursue this for this paper? (RDT-negative but polymerase chain reaction [PCR]–positive)?
+
+
+**Overall gametocyte prevalence was 8.6%.** 
+
+```{r prev_gam_overall, echo=FALSE, warning=FALSE}
+vars_strata <- c("gametocytes_pos")
+
+CreateTableOne(vars = vars_strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+
+**Gametocyte prevalence by health area:** Gametocyte prevalence tracked with transmission levels in health areas. 
+```{r prev_gam_are, echo=FALSE, warning=FALSE}
+vars_strata <- c("gametocytes_pos")
+
+strata <- c("area")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+```
+
+
+**Gametocyte prevalence by age group:** Gametocyte prevalence (>10%) was higher among the same age groups with high overall malaria burden. 
+
+```{r prev_gam_age, echo=FALSE, warning=FALSE}
+vars_strata <- c("gametocytes_pos")
+
+strata <- c("agegroup6")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+
+**Gametocyte positivity vs RDT posivitity**
+```{r gam_vs_RDT, echo=FALSE, message=FALSE, warning=FALSE}
+
+analysis %>% filter((gametocytes_pos == 1) == T) %>%  pfreq(gametocytes_pos, kin_rdt_pos)
+
+```
+
+**Gametocyte positivity vs PCR posivitity**
+```{r gam_vs_PCR, echo=FALSE, message=FALSE, warning=FALSE}
+
+analysis %>% filter((gametocytes_pos == 1 & !is.na(pcr_pos) == T)) %>%  pfreq(gametocytes_pos, pcr_pos)
+
+```
+
+
+**Gametocyte positivity vs Luminex posivitity**: 17.1% were gametocyte+/luminex-. 
+```{r gam_vs_lum, echo=FALSE, message=FALSE, warning=FALSE}
+
+gametocytes <- analysis %>% filter((gametocytes_pos ==1) == T) 
+
+gametocytes %>%
+  group_by(gametocytes_pos, lum_pos, hrp2_pos, pldh_pos, paldo_pos) %>%
+  summarise(n=n())
+  
+
+```
+**Discordance between PCR and Luminex among <1 age group:** There were only 9 people under the age of 1 years who were PCR-/Luminex+ and 4/8 were 6 months or younger. 
+
+```{r prev_pcr_lum_discordance, echo=FALSE, warning=FALSE}
+
+ analysis %>% 
+  filter((agegroup6 == "<1")==T) %>% 
+   filter(is.na(pcrneg_lumpos) == F)%>% 
+   pfreq(age_under6mo, pcrneg_lumpos)
+ 
+```
+
+
+**Distribution of household Size by Health Area:** The median household size was 8.
+
+```{r hhsize_area, echo=FALSE, warning=FALSE}
+vars_strata <- c("hh_size_group") 
+
+strata <- c("area")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+
+```
+
+**Prevalence by Household Size--Prevalence higher in households with fewer members:** THe prevalence was highest among household with 1-5 members. 
+```{r prev_hhsize, echo=FALSE, warning=FALSE}
+vars_strata <- c("micro_pos","kin_rdt_pos", "pcr_pos", "lum_pos")
+
+strata <- c("hh_size_group")
+
+CreateTableOne(vars = vars_strata, strata = strata, data = analysis, smd = TRUE, test = FALSE)
+```
+
+<!-- **A common explanation for RDT-/PCR+ results is low parasite density (beneath the RDT's limit of detection), but the health area-level data does not clearly support this.** The expected threshold for conventional HRP2-based RDT detection is 200 p/uL (solid blue line).  Infections with >=1000 p/uL (dotted blue line) should be reliably detected.   -->
+
+<!-- ```{r falseneg_area_chart, echo=FALSE, message=FALSE, warning=FALSE} -->
+
+<!-- ds_falsenegs <- subset(analysis, subset = kin_rdt_pos==0 & pcr_pos==1) -->
+
+<!-- rdt_boxplot <- ggplot(data = ds_falsenegs, aes(x=area, y=micro_density)) + -->
+<!--   scale_color_hc() + -->
+<!--   geom_boxplot(aes(fill=area), notch = FALSE) + -->
+<!--   geom_hline(aes(yintercept=200), size=0.5, colour="blue") + -->
+<!--     geom_hline(aes(yintercept=1000), size=0.5, colour="blue", linetype="dotted") + -->
+<!-- #  geom_dotplot(binaxis='y', stackdir='center', bins=100) + -->
+<!--   labs(x="RDT-/PCR+ results by health area", y="Parasites/uL by microscopy") + -->
+<!--   scale_y_log10(breaks = histo_breaks, labels = histo_labs) + -->
+<!--   theme_hc()  -->
+<!-- rdt_boxplot + theme(legend.position = "none")  -->
+
+
+<!-- ``` -->
