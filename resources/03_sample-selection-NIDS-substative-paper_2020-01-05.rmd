@@ -1,0 +1,575 @@
+---
+title: "RSA-BP parametric g-formula projet: substantive paper sample selection assignment"
+#subtitle: " Population-level Impact of Improving Blood Pressure Control on Adult Mortality in South Africa"
+author: "Alpha Oumar Diallo"
+date: "`r format(Sys.time(), '%d %B %Y')`" 
+output:
+  html_document:
+    code_folding: hide
+    highlight: tango
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+    editor_options:
+      chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+
+## **Overall Research objective**
+Assess the population-level mortality benefits of population strategies to improve blood pressure control in South Africa among adults 30 years and older using the parametric g-formula. 
+
+## **Main Population Level Outcomes**
+1. Total person-years lived over the 8-year period   
+
+2. Projected life expectancy for each 10-year cohort (30 year-olds, 40 year-olds, etc)  
+
+## **Main Exposure**
+
+Systolic blood pressure
+
+## **Data Source** 
+National Income Dynamics Study (South Africa). Visit the NIDS website http://www.nids.uct.ac.za/ for more detail.
+
+## **Google Drive Link**
+Link to Google Drive folder: https://drive.google.com/open?id=1B4Rjsm9crLOTweq3uyDr0DOdY_eQAzLg   
+The materials including data, codes and tables produced for this "assignment" are housed in the "substative_paper" folder.
+
+## **Tasks list from Nikkil | 2019-12-19**
+1. Pull in all the confounders we discussed earlier.
+
+2. How many total age eligible individuals (successfully interviewed) are there at baseline? 
+
+3. For each wave we then need info on:       
+    a. How many are missing info on the covariates for that wave? 3a.
+    b. How many died between waves? 
+    c. How many were lost between waves? 
+    d. for the later waves, how many were re-found in later waves? 
+    e. How many are missing follow-up wave information?    
+			
+4. Table 1: Descriptive statistics of the sample at baseline 
+
+5. Time varying variables: Graph age-trajectories of BP, BMI, smoking, and the other time varying variables we have. We should do this within individuals, not across individuals. I’m not a huge fan but maybe a spaghetti plot?
+
+
+### Load packages and read in data
+```{r libraries, message = FALSE, warning = FALSE}
+# data wrangling
+library(tidyverse)
+library(tidyselect)
+
+
+# table outputs
+library(Hmisc)
+library(knitr) 
+library(kableExtra)
+library(gridExtra)
+library(tableone)
+
+# fancy outputs
+library(DT)
+library(broom)
+library(stargazer)
+library(plotly)
+library(plotly)
+library(networkD3)
+library(visdat)
+library(naniar)
+
+```
+
+
+
+```{r, message = FALSE, warning = FALSE}
+
+#.........................................................
+# Read data  ####
+#........................................................
+
+# "nids" is an age (30+ yrs) eligible dataset with all the covariates identified in Spring 2019
+# for our substantive paper including descriptive factor variables and lagged variables 
+
+nids = readRDS("data/nids_substantive_2019-12-26.rds")
+
+#..........................................................................................
+# Create a NIDS dataset ####
+#..........................................................................................
+
+# "na" is the dataset I use to explore missingess. I excluded all waves after individual is reported as dead and lagged variables
+na <- nids %>% 
+  dplyr::filter(wave_after_death == 0 | is.na(wave_after_death)) %>% 
+  dplyr::select(interviewed_f, survey_wave_f, pid, died, bpsys_min, bmi_avg,
+                age, sex_f, race_f, edlevel_f, married_f, urbanicity_f, province_f,
+                 diabetes, stroke, heart, smoke, exercise_3cat_f, alcohol_3cat_f)
+```
+
+### Task 1: Pull in all the confounders we discussed earlier
+
+I performed this task in a script named "02_tidy-data-substantive-manscript_2019-12-19". You can access it using the link to the project google drive folder provided above following this path: NIDS parametric g-formula project/substantive_paper/codes
+
+To see the list of covariates included in the dataset, click on the "code" botton to the righ.
+
+```{r, message = FALSE, warning = FALSE}
+#..........................................................................................
+# Identify relavent variables ####
+#..........................................................................................
+
+#Variables
+  # Age: w*_best_age_yrs
+	# Sex: w*_best_gen
+  # Marital status: w*_a_marstt (Survey Waves 1-3), W*_best_marstt (Survey Waves 4-5)
+	# Urban/rural (geography type): w*_geo2011 (this is based on the 2011 census there is one for 2001 as well)
+	# Province: w*_prov2011 (based on 2011 census)
+	# Schooling: w*_best_edu
+	# Population group/race: w*_best_race
+	# HH expenditure: w*_expenditure
+  # Montly HH income/capita quintiles: w*_hhquint 
+	# Self-rated health: w*_a_hldes
+	# Reported diagnosis of other conditions (not BP)
+			# TB: w*_a_hltb
+			# Diabetes: w*_a_hldia
+			# Stroke: w*_a_hlstrk
+			# Asthma: w*_a_hlast
+			# Heart problem: w*_a_hlhrt
+			# Cancer: w*_a_hlcan
+	# Height: w*_a_height_1/2/3 (third measure is only used if discrepancy between first and second measurements)
+	# Weight: w*_a_weight_1/2/3 (third measure only for discrepancies larger than 1 kg)
+	# Physical activity: w*_a_hllfexer
+  # Alcohol: w*_a_hllfalc
+	# Smoking: w*a_hllfsmk
+	# BP variables
+			# Ever diagnosed: w*_a_hlbp
+			# Taking meds: w*_a_hlbp_med
+			# Sys bp: w*_a_bpsys_1/2
+			# Dia bp: w*_a_bpdia_1/2
+	# Survey design variables
+			#  Person id: pid
+			# 2008 or 2017 refresher sample: sample
+			# Continuing sample member or temporary sample member: csm (tsm's are only in for one wave should be dropped)
+			# Sample weights (were selecting people around the cutoff so this doesn't seem necessary)
+			# Died: wave_died   
+```
+
+### Task 2: How many total age eligible individuals (successfully interviewed) are there at baseline? 
+
+I identified the numbers in the figure below using the original dataset Nikkil shared with in March 2019 while preparing the age eligible cohort in the "02_tidy-data-substantive-manscript_2019-12-19" script. The numbers are based on the the w1_best_age_years and w1_ind_outcome variables.   
+
+```{r, message = FALSE, warning = FALSE}
+knitr::include_graphics("NIDS-Sample-Selection-Figure_2019-12-29.png")
+
+```
+Figure 1. Summary of sample selection. 28,226 individuals from 7,300 randomly selected households using a two-staged cluster sampling design were identified as potential NIDS participants at baseline (2008).Among these 28,226 potential participants, 1,450 (5%) refused to participate or were unavailable for an interview. Among the 26,776 successfully interviewed at baseline, 10,246 (38%) were age eligible (>= 30 years).
+
+In case you were curious, 636 (44%) would have been age eligible among the 1,450 individuals who refused to participate or were unavailable.
+
+
+### Task 3: For each wave we then need info on:
+
+#### 3a-01. How many are missing info on the covariates for that wave?
+
+##### This first table is grouped by interview status and survey wave.   
+```{r, message = FALSE, warning = FALSE}
+
+na %>%
+  group_by(interviewed_f, survey_wave_f) %>%
+  miss_var_summary() %>% 
+  dplyr::mutate(pct_miss = round(pct_miss,2)) %>% 
+  DT::datatable(., extensions='Buttons',
+                     options = list(
+                       searching = T,
+                       pageLength = 15,
+                       dom = 'Bfrtip',
+                       buttons = c('csv')))
+ 
+```
+
+
+##### This second table is grouped by survey wave only.   
+```{r, message = FALSE, warning = FALSE}
+
+na %>%
+  dplyr::group_by(survey_wave_f) %>%
+  naniar::miss_var_summary() %>% 
+  dplyr::mutate(pct_miss = round(pct_miss,2)) %>% 
+  DT::datatable(., extensions='Buttons',
+                     options = list(
+                       searching = T,
+                       pageLength = 15,
+                       dom = 'Bfrtip',
+                       buttons = c('csv')))
+```
+
+#### 3a-02. Visual representation of the second table above. 
+
+```{r, message = FALSE, warning = FALSE}
+gg_miss_var(na, facet = survey_wave_f)
+```
+  
+Note:    
+   
+1. There was almost no information missing on Age, sex, race, education completed, province, and urbanicity across all waves because they are cleaned to ensure consistency since they are variables that should generally remain consistent for individuals across waves.  
+
+2. There were people classified as having been interviewed at wave 1 and yet were missing information on BP, BMI, smoking, diabetes, heart disease, stroke, alcohol and exercise. The reasons for missing information on these varaibles varied. The primary reason for missing  information on BP and BMI had to do with participants refusing measurements. Among the 10,246 age eligible participants at baseline, 944 individuals were missing information on smoking, diabetes, heart disease, stroke, alcohol and exercise at wave 1 and the reasons were not specified.
+
+
+#### 3a-03. Figures below provide insights into relationships across covarates on number of missing information by wave.   
+
+
+```{r, message = FALSE, warning = FALSE}
+# Wave 1
+gg_miss_upset(subset(na,survey_wave_f == "Wave 1"), 
+              nsets = 11,
+              nintersects = NA) %>% 
+  ggplot2::labs(title = "Wave 1")
+
+# Wave 2
+gg_miss_upset(subset(na,survey_wave_f == "Wave 2"), 
+              nsets = 11,
+              nintersects = NA) %>% 
+  ggplot2::labs(title = "Wave 2")
+
+# Wave 3
+gg_miss_upset(subset(na,survey_wave_f == "Wave 3"), 
+              nsets = 11,
+              nintersects = NA) %>% 
+  ggplot2::labs(title = "Wave 3")
+
+# Wave 4
+gg_miss_upset(subset(na,survey_wave_f == "Wave 4"), 
+              nsets = 11,
+              nintersects = NA) %>% 
+  ggplot2::labs(title = "Wave 4")
+# Wave 5
+gg_miss_upset(subset(na,survey_wave_f == "Wave 5"), 
+              nsets = 11,
+              nintersects = NA) %>% 
+  ggplot2::labs(title = "Wave 5")
+```
+
+
+#### 3b: How many died between waves?
+
+```{r, message = FALSE, warning = FALSE}
+
+na %>% 
+  dplyr::group_by(survey_wave_f,died) %>%
+  dplyr::summarise(n=n()) %>% 
+  dplyr::mutate(pct = round((n / sum(n)*100),2)) %>%
+  dplyr::filter(died == 1) %>% 
+  knitr::kable(., "html") %>%  # note must tell kableExtra html or latex
+  kableExtra::kable_styling(bootstrap_options = "striped", full_width = F, position = "center")
+```
+Note: Under the survey wave colunm, the "Wave 1" label corresponds to "Between Wave 1 and 2", "Wave 2" label corresponds to "Between Wave 2 and 3" and so on. 
+
+#### 3c-3d: Sankey figure summarizing tasks 3c-3d (INTERACTIVE Figure)
+```{r, message = FALSE, warning = FALSE}
+
+#### Generate dataset of interest ####
+
+censor <-nids %>%
+    dplyr::select(pid,wave,ltfu)
+
+#### Intro & Set-up ####
+
+# Sankeys diagrams enable you to visualize the flow of data:
+# https://www.displayr.com/sankey-diagrams-r/
+# https://plot.ly/r/sankey-diagram/
+
+# networkD3 package creates Javascript Sankey diagrams from R:
+# https://cran.r-project.org/web/packages/networkD3/networkD3.pdf 
+
+
+# We are interested in visualizing retention in to the study over follow-up
+# Participants are assigned to one group (and only one) at each survey
+# 1 = Interviewed, 2 = Did Not Participate (DNP), 3 = Dead
+node <- c("INT", "DNP", "Dead")
+time <- c(1:5)
+censor$node <- factor(censor$ltfu, levels = c(1,2,3),
+                    labels = node)# recode node as a factor variable
+
+#### Nodes and Links ####
+
+# The main inputs for the Sankey function are NODES and LINKS.
+
+# NODES = 4 drug categories at 5 time points = 20 unique node | create a matrix of all possible nodes at all possible time; expand function generates all the possible combinations of each vector
+nodes <- expand.grid(node, time) %>%
+  dplyr::rename(node=Var1, time=Var2) %>%
+  dplyr::mutate(left = "[", right = "] ") %>% 
+  dplyr::mutate(label1 = paste(node, time, sep = " at Wave ")) %>%
+  dplyr::mutate(label2 = paste(left, label1, sep = "")) %>%
+  dplyr::mutate(label = paste(label2, right, sep = "")) %>%
+  dplyr::mutate(number = c(0:14)) %>% # Sankey plot function relies on nodes being numbered and uses Javascript which is 0-based (vs. R is 1-based). 
+  dplyr::select(-label1, -label2, -right, -left)
+# LINKS = participants going from a source node (Interviewed, DNP, Dead at time t) to
+#         a target node (Interviewed, DNP, Dead at time t+1). How many possible links are there? 
+## 3 sources at t=1 --> 3 targets at t=2      (9 links)
+## 3 sources at t=2 --> 3 targets at t=3      (9 links)
+## 3 sources at t=3 --> 3 targets at t=4      (9 links)
+## 3 sources at t=4 --> 3 targets at t=5      (9 links)
+
+## 9+9+9+9 = 36 links total
+
+# For the Sankey function, we need to specify these 36 links (source-target combinations) and the value (number) of participants in each.
+links <- data.frame(source=c(),
+                    target=c(),
+                    value=c()) # How do we populate this data frame?
+
+# Sources: all nodes prior to the last time point (time=5) can serve as a source for 3 possible links.
+source <- nodes %>%
+  dplyr::filter(time<5) %>%
+  dplyr::slice(rep(1:n(), each=3)) %>% #slice function is interesting
+  dplyr::rename(source_node=node, 
+         source_time=time,
+         source_number=number) 
+
+# Targets: all nodes after the first time point (time=1) are a target for 3 possible links. 
+target <- nodes %>%
+  dplyr::filter(time>1) %>%
+  dplyr::group_by(time) %>%
+  dplyr::slice(rep(1:n(), times = 3)) %>%
+  dplyr::rename(target_node=node, target_time=time, target_number=number) %>%
+  dplyr::ungroup()
+
+# Combining all possible sources and targets into a dataframe of 64 unique links
+links <- cbind(source, target) 
+
+#### Calculating Values ####
+
+# Writing a function to calculate the number of participants (value) going from source to target, for each of 36 unique links.
+
+values_for_sankey <- function(data, id, time, node, source, source_time, target, target_time){
+  #using quosures in order to write a function with dplyr code - more info here: https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html
+  node <- dplyr::enquo(node) 
+  time <- dplyr::enquo(time)
+  id <- dplyr::enquo(id) #returning node, time, id as quosures
+  value <- nrow(         #then using !! to unquote node, time, id so they are evaluated, not quoted
+    data %>%         
+      dplyr::filter((!!node==source & !!time==source_time) |    
+               (!!node==target & !!time==target_time)) %>% 
+      dplyr::group_by(!!id) %>%
+      dplyr::summarise(n = n()) %>%
+      dplyr::filter(n==2)
+  )
+  return(value)
+}
+
+# Example of how links work ####
+# # Number of participants on drug A at time=1 and remaining on drug A at time=2
+# values_for_sankey(data=data, pid=pid, time=time, node=node, 
+#                   source="Drug A", source_time=1, target="Drug A", target_time=2)
+# 
+# # Number of participants on drug A at time=1 and switching to drug B at time=2
+# values_for_sankey(data=data, id=id, time=time, node=node, 
+#                   source="Drug A", source_time=1, target="Drug B", target_time=2)
+# 
+# # Number of participants on drug A at time=1 and switching to drug C at time=2
+# values_for_sankey(data=data, id=id, time=time, node=node, 
+#                   source="Drug A", source_time=1, target="Drug C", target_time=2)
+# 
+# # Number of participants on drug A at time=1 and switching to drug D at time=2
+# values_for_sankey(data=data, id=id, time=time, node=node, 
+#                   source="Drug A", source_time=1, target="Drug D", target_time=2)
+
+# 4 down, 32 to go... instead, let's use the links data frame to run this function for each source-target combination, and then save the value for number of participants.
+# Code continues ####
+links$value <- rep(NA) # variable in links to save the value of participants
+
+for (i in 1:nrow(links)){ # run function for each row in links
+  n <- values_for_sankey(data=censor, id=pid, time=wave, node=node, #names of our data never change
+                    source = links$source_node[i],
+                    source_time = links$source_time[i],
+                    target = links$target_node[i],
+                    target_time = links$target_time[i]) 
+  links$value[i] <- n    # save number of participants going from each source to target
+  #print(n)
+}
+
+#### Sankey Function ####
+
+# Nodes input for Sankey function
+nodes <- data.frame(name=nodes$label, stringsAsFactors = F) 
+
+# Links input for Sankey function
+links <- data.frame(source=links$source_number,
+                    target=links$target_number,
+                    value=links$value,
+                    stringsAsFactors = F) 
+links1 <- links %>% 
+  dplyr::filter(value!=0)
+  
+# nodes1 <- nodes %>% 
+#   dplyr::filter(name != "[Dead at Wave 1] ") %>%
+#   dplyr::filter(name != "[DNP at Wave 1] ")
+# 
+# source1 <- source %>%
+#   dplyr::filter(label != "[Dead at Wave 1] ") %>%
+#   dplyr::filter(label != "[DNP at Wave 1] ")
+# 
+# target1 <- target %>%
+#   dplyr::filter(label != "[Dead at Wave 2] ") %>%
+#   dplyr::filter(label != "[DNP at Wave 2] ")
+
+# Create Sankey
+networkD3::sankeyNetwork(Links = links1, Nodes = nodes, Source = "source",
+                         Target = "target", Value = "value", NodeID = "name",
+                         fontSize = 12, fontFamily = "Arial", nodeWidth = 20, nodePadding = 5)
+
+# Customize your Sankey with colors: https://www.r-graph-gallery.com/322-custom-colours-in-sankey-diagram/
+```
+Abbreviation: INT, Interviewed; DNP, Did Not Participate (Refused or unavailable)
+
+Note:   
+1. Ignore the labels [Dead at Wave 1] and [DNP at Wave 1] on the top-right side of the figure. I could not figure out how to eliminate those.    
+2. [Dead at Wave 2] lable corresponds to those who "Died between Wave 1 and 2", [Dead at Wave 3] label corresponds to those who "Died between Wave 2 and 3" and so on.   
+
+#### 3c: How many were lost between waves?
+```{r, message = FALSE, warning = FALSE}
+
+# #loss to follow up (LTFU)
+# nids$ltfu <- ifelse(nids$interviewed == 1, 0,
+#                     ifelse(nids$interviewed >=2 & nids$interviewed <8, 1,2))
+# nids$ltfu_f <- factor(nids$ltfu, levels=c(0,1,2), labels=c("Interviewed", "DNP", "Died"))
+# # Abbreviation: DNP, Did Not Participate
+
+nids %>% 
+  dplyr::group_by(survey_wave_f, ltfu_f) %>%
+  dplyr::summarise(n=n()) %>%
+  dplyr::mutate(pct = round((n / sum(n)*100),2))%>%
+  dplyr::filter(ltfu_f == "DNP") %>% 
+  knitr::kable(., "html") %>%  # note must tell kableExtra html or latex
+  kableExtra::kable_styling(bootstrap_options = "striped", full_width = F, position = "center")
+```
+ 
+
+#### 3d: How many were re-found in later waves?
+```{r, message = FALSE, warning = FALSE}
+refound_tbl <- tibble::tribble(
+                  ~X., ~Lost.Wave.2..Found.Wave.3, ~Lost.Wave.3..Found.Wave.4, ~Lost.Wave.4..Found.Wave.5,
+                  " ",                    "N (%)",                    "N (%)",                    "N (%)",
+  "Lost To Follow Up",                     "1,880",                     "1,593",                     "1,549",
+            "Refound",              "851 (45.27)",              "445 (27.93)",              "189 (12.20)",
+               "Died",               "116 (6.17)",                "71 (4.46)",                "38 (2.45)",
+          "Not Found",              "913 (48.56)",            "1,077 (67.61)",            "1,322 (85.35)"
+  )
+
+require(knitr)
+require(kableExtra)
+kable_styling(
+              kable(refound_tbl, digits = 3, row.names = FALSE, align = "c",
+              caption = NULL, format = "html"),
+        bootstrap_options = "striped",
+        position = "center", full_width = FALSE) %>%
+  add_indent(c(2, 3, 4, 5))
+
+
+
+
+```
+Note: Fewer and fewer people were refound in subsequent waves as time-lapsed.
+
+### Task 4: Table 1. Descriptive statistics of the sample at baseline
+
+For a cleaner version of the overall table bellow, see the excel document titled "tbl_nids-substantive-paper_2020-01-05" in the "NIDS parametric g-formula project/substantive_paper/documents_tables" folder on Google Drive. 
+
+
+##### 4a. Overall
+```{r, message = FALSE, warning = FALSE}
+
+nids$current_smoker_f <- factor(nids$smoke, levels = c(0,1), labels = c("No", "Yes"))
+nids$diabetes_dx_f <- factor(nids$diabetes, levels = c(0,1), labels = c("No", "Yes"))
+nids$heart_dx_f <- factor(nids$heart, levels = c(0,1), labels = c("No", "Yes"))
+nids$stroke_dx_f <- factor(nids$stroke, levels = c(0,1), labels = c("No", "Yes"))
+# Table 1 description of characteric 
+  ## Vector of variables to summarize
+  tbl1_vars <- c("age","sex_f", "race_f", "edlevel_f", "married_f", "urbanicity_f", "province_f",
+                 "current_smoker_f", "alcohol_3cat_f", "exercise_3cat_f", "bmi_avg", "bpsys_min",
+                 "srh_binary_f", "diabetes_dx_f", "heart_dx_f", "stroke_dx_f")
+      
+  ## Vector of categorical variables that need transformation
+  tbl1_cat_vars <- c("sex_f", "race_f", "edlevel_f", "married_f", "urbanicity_f", "province_f",
+                     "current_smoker_f", "alcohol_3cat_f", "exercise_3cat_f",
+                     "srh_binary_f", "diabetes_dx_f", "heart_dx_f", "stroke_dx_f")
+     
+## Create a TableOne object
+ tbl1_overall <- tableone::CreateTableOne(vars = tbl1_vars, data = subset(nids, wave==1),
+                                          factorVars = tbl1_cat_vars)
+ summary(tbl1_overall)
+
+
+````
+Note: Should we treat the number of times people exercised or number of days people drank per week as a continuous variable insead of a 3 level categorical variable?
+
+##### 4b. Sex strata
+```{r, message = FALSE, warning = FALSE}
+
+
+
+## Create a TableOne by sex
+ tbl1_sex_strata <- tableone::CreateTableOne(vars = tbl1_vars, data = subset(nids, wave==1),
+                                             strata = "sex_f", factorVars = tbl1_cat_vars)
+ summary(tbl1_sex_strata)
+
+
+````
+
+
+### Task 5: Graph age-trajectories of BP, BMI, smoking, and the other time varying variables within individuals. 
+
+Our time-varying variables are age, BP, BMI, smoking, alcohol, exercise, self-reported health, diabetes, stroke and heart disease. I think we should exclude alcohol because it was not measured at wave 5. If you look at Table 1 by strata of sex, you will also notice that there may be some potential sparse data issues. We should also consider excluding history of diabetes, heart disease and stroke of potential sparse data issues. 
+
+##### 5a. Age-trajectories of BP
+```{r, message = FALSE, warning = FALSE}
+nids %>% 
+  dplyr::filter(!is.na(sex_f)) %>%
+  ggplot2::ggplot(aes(x = age, y = bpsys_min, group = pid)) +
+  ggplot2::geom_line()+
+  ggplot2::scale_x_continuous(breaks=seq(30,110,10)) +
+  ggplot2::scale_y_continuous(breaks=seq(70,240,30)) +
+  ggplot2::labs(title = "Age trajectory of BP") +
+  ggplot2::ylab("Age (years)")+
+  ggplot2::ylab("Minimum Systolic Blood Pressure (mmHg)") +
+  ggplot2::theme_bw()+ 
+  facet_wrap(~ sex_f)
+````
+
+##### 5b. Age-trajectories of BMI
+```{r, message = FALSE, warning = FALSE}
+nids %>% 
+  dplyr::filter(!is.na(sex_f)) %>% 
+  dplyr::filter(bmi_avg <110) %>% # there are several people with BMI values above 110
+  ggplot2::ggplot(aes(x = age, y = bmi_avg, group = pid)) +
+  ggplot2::geom_line()+
+  ggplot2::scale_x_continuous(breaks=seq(30,110,10)) +
+  ggplot2::scale_y_continuous(breaks=seq(0,110,10)) +
+  ggplot2::labs(title = "Age trajectory of BMI") +
+  ggplot2::xlab("Age (years)")+
+  ggplot2::ylab("BMI (kg/m2)") +
+  ggplot2::theme_bw()+ 
+  facet_wrap(~ sex_f)
+````
+
+##### 5b. Age-trajectories of categorical covariates. 
+
+I could not figure out the best way to display the age Age-trajectories of smoking, exercise, alcohol consumpition, self-reported health status, diabetes, stroke and heart disease.
+
+## **Questions from Oumar after you go through doucment**
+1. Any ideas on how to visualize the age-trajectories and categorical variables?   
+2. Should we remove alcohol consumption, which was only measured at wave 1-4 nad not wave 5 from our analysis? Also, should we remove the self-reported diagnoses (diabetes, stroke and heart disease) form the analyses? I am concerned about sparse data (positivity assumption violation) or this not a problem given that our exposure is continuous?
+    a. I suggest the following variables for our analysis: modifier/confounder (sex), fixed (race, education, marital status, urbanicity, province) and time-varying (age, BP, BMI, smoking and exercise, self-reported health status).   
+    b. Should we treat the number of times people exercised per week as a continuous variable insead of a 3 level categorical variable?
+    c. Should we continue to consider marital status as a fixed confounder or time-varying? Given our age eligibility criteria and 8 years of follow-up, we would likely see some changes marital status.   
+    d. Should we create a wealth index to include as one of our time-varying variables?
+    
+3. For the person-time missing information on mortality status, should we leave these as missing in the g-formula phase?
+
+4. What are next the steps for analysis? Here is what I am thinking:   
+    a. Create cross-lagged DAG with the newly agreed upon variables
+    b. Draft table shells and identify a list of figures
+    c. Complete parametric g-formula modeling using complete case data for both outcomes: total person-years lived over the 8-year period and projected life expectancy for each 10-year cohort (30 year-olds, 40 year-olds, etc). 
+    d. Complete multiple imputation and complete parametric g-formula modeling for both outcomes
+    e. Complete sensitivity analysis
