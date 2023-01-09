@@ -106,7 +106,7 @@ give_two_a_zero <- function(x){
   earliest_symp_date <- ymd("2022-08-19")
 
   # This date represent the most recent data transfer from jurisdictions
-  date_tag <- ymd("2022-12-16")
+  date_tag <- ymd("2023-01-06")
   
   
 
@@ -185,7 +185,7 @@ mpoxve <- raw %>%
            dose2_date_na = case_when(dose2_yesno == 1 & is.na(dose2_date) ~ 1,
                                      TRUE ~ as.numeric(0)),
            
-           # Flag records missing any minimum set of data element need for VE  variables
+           # Flag records missing any minimum set of data element needed for VE estimate
            minset_vars = ifelse(if_any(contains("_na"), ~ . == 1), 0, 1),
            
 
@@ -219,7 +219,7 @@ mpoxve <- raw %>%
                                                              !is.na(first_dose_date) & !is.na(second_dose_date) & 
                                                                   (((second_dose_date - first_dose_date) %in% c(24:28)))  ~ "24-28 days",
                                                                 !is.na(first_dose_date) & !is.na(second_dose_date) & 
-                                                                  ((second_dose_date - first_dose_date) > 28)        ~ ">28 days",
+                                                                  ((second_dose_date - first_dose_date) > 28)            ~ ">28 days",
                                                              TRUE ~ as.character(NA))),
                                        "Dose #1 only", "<24 days", "24-28 days", ">28 days", "Not Vaxed"
                                                              ),
@@ -290,7 +290,7 @@ mpoxve <- raw %>%
                                                                    (abs(clinic_date - control_visit_date) <= 2) ~ "Abs > 2: No",
                                                                  TRUE ~ as.character(NA))),
                                          "Abs > 2: Yes", "Abs > 2: No"),
-        # site-report: Dose 1 and Dose 2 Vaccination Interval - Flag inteval < 24 days and > 24 days to ID implausible intervals
+        # site-report: Dose 1 and Dose 2 Vaccination Interval - Flag interval < 24 days and > 24 days to ID implausible intervals
          site_dose_int = ifelse(!is.na(dose1_date) & !is.na(dose2_date), dose2_date - dose1_date, NA), 
          site_dose_int_f = fct_relevel(as_factor(case_when(dose1_yesno != 1                             ~ "Not Vaxed",
                                                               !is.na(dose1_date) & is.na(dose2_date)    ~ "Dose #1 only",
@@ -371,7 +371,7 @@ mpoxve <- raw %>%
 #          (is.na(ca_co_check) | minset_vars == 0) == F)
 
 tt <- mpoxve %>%
-  select(pid, ca_co_check,
+  select(pid, ca_co_check, minset_vars,
          provider_dx, clinic_yesno, clinic_date,
          symptoms_yesno, symptoms_date,
          first_dose_yesno, first_dose_date,
@@ -384,7 +384,7 @@ aa <- mpoxve %>% pfreq(minset_vars, provider_dx_na, clinic_yesno_na, clinic_date
                        second_dose_yesno_na, second_dose_date_na)
 
 bb <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
+  #filter(!is.na(ca_co))%>% 
   pfreq(ca_co, symp_clinic_site_date_met, symp_clinic_self_date_met,
         symptoms_date, test_result_date, control_visit_date, clinic_date) %>% 
   filter(symp_clinic_site_date_met == 0 |  symp_clinic_self_date_met == 0)
@@ -435,19 +435,37 @@ ss <- mpoxve %>% pfreq(clinic_yesno_na, provider_dx, clinic_yesno)
 
 ```
 
-## Data Quality Check
+## Data Quality Check (Part 1)
 
-##### Distribution of case status
+### Distribution of Participants with complete minimum set of data element needed for VE estimation
 
 ```{r}
 mpoxve %>% 
-  filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+  select(jid, minset_vars) %>% 
+  tbl_summary(
+    by = jid,
+    label = list(minset_vars ~ "Complete minimum set of data element"),
+     #percent = "column",
+    missing = "always",
+    missing_text = "Missing"
+    
+  )  %>% 
+  add_n() %>% 
+  add_overall() %>% 
+  bold_labels()
+```
+
+### Distribution of case status---Restricted to those complete minimum set of data element.
+ 
+```{r}
+mpoxve %>% 
+  filter(#Exclude records without site-reported or self-reported case status information or incomplete minimum data elements
          (is.na(ca_co_check) | minset_vars == 0) == F) %>%
   select(jid, ca_co_check, ca_co_check_symp, ca_co) %>% 
   tbl_summary(
     by = jid,
-    label = list(ca_co_check ~ "Case status (HD & self)",
-                 ca_co_check_symp ~ "Case status + symptom",
+    label = list(ca_co_check ~ "Case status (HD versus self)",
+                 ca_co_check_symp ~ "Case status (HD or self) + symptom",
                  ca_co ~ "Case status per protocol"),
      #percent = "column",
     missing = "always",
@@ -459,22 +477,55 @@ mpoxve %>%
   bold_labels()
 ```
 
-##### Distribution of case status within timepoint interval (matching criteria): `r earliest_symp_date` -- `r date_tag` 
+
+### List of cases or controls with discrepancy in status between HD and self-report
+ 
+```{r}
+mpoxve %>% 
+   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+         (is.na(ca_co_check) | minset_vars == 0) == F) %>%
+  filter((ca_co_check %in% c("Discrepancy: site case", "Discrepancy: self case")) == T) %>% # restrict to those with a discrepancy in status between HD and self-report
+  
+  select(pid, case_yesno, provider_dx) %>% 
+  mutate(case_yesno = fct_relevel(as_factor(case_when(case_yesno == 1 ~ "Case: Confirmed",
+                                                      case_yesno == 2 ~ "Case: Probable",
+                                                      case_yesno == 3 ~ "Control",
+                                                      TRUE ~ as.character(NA))),
+                                  "Case: Confirmed", "Case: Probable", "Control"),
+         provider_dx = fct_relevel(as_factor(case_when(provider_dx == 0 ~ "No",
+                                                       provider_dx == 1 ~ "Yes",
+                                                       TRUE ~ as.character(NA))),
+                                  "Yes", "No")) %>% 
+  rename(PID = pid, `Case status (HD)` = case_yesno,
+         `Provider Dx (self)` = provider_dx) %>% 
+  DT::datatable(., extensions='Buttons',
+                     options = list(
+                       searching = T,
+                       pageLength = 15,
+                       dom = 'Bfrtip',
+                       buttons = c('csv')))
+```
+
+## Data Quality Check (Part 2)---Restricted to per protocol case & control definition 
+
+### List of participants with key dates outside study period by jurisdiction: `r earliest_symp_date` -- `r date_tag`
 
 ```{r}
-int_date_met <- mpoxve %>% 
+mpoxve %>% 
   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
          (is.na(ca_co_check) | minset_vars == 0) == F) %>%
   filter(is.na(ca_co) == F) %>% # restrict to per protocol definition of case status
   filter(symp_clinic_site_date_met == 0 | symp_clinic_self_date_met == 0) %>% # restrict to those without any date met
-  pfreq(ca_co, symptoms_date, test_result_date, control_visit_date, clinic_date) %>% 
-  select(-n, -pct)
+  select(pid, ca_co, symptoms_date, test_result_date, clinic_date, control_visit_date) %>% 
+  rename(PID = pid, `Case status` = ca_co, `Symptom date` = symptoms_date,
+         `Test result date` = test_result_date, 
+         `Clinic date (self)` = clinic_date,
+         `Clinic date (HD)` = control_visit_date) %>% 
+  DT::datatable(., extensions='Buttons',
+                     options = list(
+                       searching = T,
+                       pageLength = 15,
+                       dom = 'Bfrtip',
+                       buttons = c('csv')))
 
-kable(int_date_met)
-  
-
-tt <- mpoxve %>% 
-  filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
-         (is.na(ca_co_check) | minset_vars == 0) == F) %>%
-  pfreq(jid, birth_year)
 ```
