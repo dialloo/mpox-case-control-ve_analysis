@@ -1,6 +1,6 @@
 ---
 title: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluation"
-subtitle: "Data Quality Checks & Preliminary Report"
+subtitle: "Data Quality Report"
 authors: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
 output:
@@ -26,15 +26,9 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 **Secondary:** Estimate effectiveness by number of doses, route of administration and age group (if samples size allows).
 
-## Resources:
+## Report objective
 
--   Rmarkdown:
-
-    -   [R Markdown Cookbook](https://bookdown.org/yihui/rmarkdown-cookbook/) (AOD: if you are familiar with R Markdown, then this is more digestible.)
-
-    -   [Write Markdown in the RStudio Visual Editor](https://bookdown.org/yihui/rmarkdown-cookbook/rstudio-visual.html) (AOD: this is amazing!)
-
-    -   [The Definitive Guide](https://bookdown.org/yihui/rmarkdown/)
+Examine data quality, clean data, and create analysis variables.
 
 ```{r libraries, message = FALSE, warning = FALSE}
 
@@ -43,7 +37,9 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 # Last modified date: 2022-12-19
 
 # Load packages --------------------------------
-  pacman::p_load(here,         # file paths relative to R project root folder
+  pacman::p_load(here,        # file paths relative to R project root folder
+                 rio,         # import/export
+                 readxl,      # read excel files
                  tidyverse,    # data management and visualization
                  purrr,        # iteration
                  janitor,      # data management: cleaning and exploring data
@@ -64,7 +60,9 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 # Global option number format
   options(scipen = 9999)
-
+  
+  theme_gtsummary_journal(journal = "jama")
+  theme_gtsummary_compact()
 # Helper (custom functions) ------------------------------------------------------------
 #This function replicates the SAS proc freq function with the '/ list missing statement'. 
 #Source: https://github.com/asnr/sas-to-r
@@ -96,25 +94,37 @@ give_two_a_zero <- function(x){
 }
 
 
-# Source data and create ---------------------------------------------------------------------
+# Source data and define environment variables ---------------------------------------------------------------------
 
   source("00_REDCap-API-linkage.R", local =knit_global())
 
 
   # This the date of the earliest symptom per the study protocol, 
   # but there is flexibility around this date to account for recall bias.
-  earliest_symp_date <- ymd("2022-08-19")
+  eligibility_date <- ymd("2022-08-19")
 
   # This date represent the most recent data transfer from jurisdictions
-  date_tag <- ymd("2023-01-06")
+  redcap_trans_date <- ymd("2023-01-06")
   
-  
+  big <- function(x) {
+  x > mean(x, na.rm = TRUE)
+}
 
 # Tidy data ----------------------------------------------------------------------
 mpoxve <- raw %>%
     # Restrict to eligible participants (i.e., those that passed the eligibility screening)
     filter(inelig_stop ==  1) %>% 
-    mutate(# Format all yes/no variables with 1(Yes)/2(No) values as 1(Yes)/0(No).
+    # Restrict to those who have data for relevent eligibility screening questions 
+    filter(!if_all(c(elig_age, elig_sexuality, elig_gender,
+                     elig_gender_msm, elig_sexual_partners,
+                     elig_healthcare), is.na)) %>% 
+    mutate(#! Variable name key: 
+               #!  *_cat: indicates a categorical these are flags (0/1)
+               #!  *_f: these are flags (0/1)
+               #!  *_na: these are also flags but specifically related to missingness (NA = missing in R)
+               #!  *_int: these refer to some calculate interval
+               #!  pd: an abbreviation for period
+          # Format all yes/no variables with 1(Yes)/2(No) values as 1(Yes)/0(No).
            across(contains(c("elig_age", "elig_gender_msm", "elig_sexual_partners",
                              "elig_healthcare", "first_dose_yesno", "second_dose_yesno",
                              "symptoms_yesno", "provider_dx", "clinic_yesno", "hospitalized",
@@ -134,7 +144,9 @@ mpoxve <- raw %>%
              #                 (Case Control > Data management and analysis > data_archive > MultiJurisdictionalM_DATA_2022-12-19_1108). 
            
            # Rename REDCap Data Access Group variable and capitalize the letters
-           jid = toupper(redcap_data_access_group),
+           jid = fct_relevel(as_factor(toupper(redcap_data_access_group)),
+                             "CA", "LAC", "CO", "CT", "GA", "MD", "MN",
+                             "NYS", "NYC", "OR", "TN", "DC"),
            
            # Case Ascertainment: Symptomatic cases identified by state or local health departments who meet either
            #                     the confirmed or probable case definition will be eligible for inclusion. 
@@ -148,71 +160,88 @@ mpoxve <- raw %>%
            provider_dx_na = case_when(is.na(provider_dx) ~ 1,
                                      TRUE ~ as.numeric(0)),
            
-           symptoms_yesno_na = case_when(is.na(symptoms_yesno) ~ 1,
-                                     TRUE ~ as.numeric(0)),
-           
-           symptoms_date_na = case_when(symptoms_yesno == 1 & is.na(symptoms_date) ~ 1,
-                                     TRUE ~ as.numeric(0)),
-           
            clinic_yesno_na = case_when((provider_dx == 0 | is.na(provider_dx)) & is.na(clinic_yesno) ~ 1,
-                                     TRUE ~ as.numeric(0)),
+                                       TRUE ~ as.numeric(0)),
            
            clinic_date_na = case_when(clinic_yesno == 1 & is.na(clinic_date) ~ 1,
-                                     TRUE ~ as.numeric(0)),
+                                      TRUE ~ as.numeric(0)),
+          
+           symptoms_yesno_na = case_when(is.na(symptoms_yesno) ~ 1,
+                                         TRUE ~ as.numeric(0)),
+           
+           symptoms_date_na = case_when(symptoms_yesno == 1 & is.na(symptoms_date) ~ 1,
+                                        TRUE ~ as.numeric(0)),
            
            first_dose_yesno_na = case_when(is.na(first_dose_yesno) ~ 1,
-                                     TRUE ~ as.numeric(0)),
+                                           TRUE ~ as.numeric(0)),
            
            first_dose_date_na = case_when(first_dose_yesno == 1 & is.na(first_dose_date) ~ 1,
-                                     TRUE ~ as.numeric(0)),
+                                          TRUE ~ as.numeric(0)),
            
            second_dose_yesno_na = case_when(first_dose_yesno == 1 & is.na(second_dose_yesno) ~ 1,
-                                     TRUE ~ as.numeric(0)),
+                                            TRUE ~ as.numeric(0)),
            
            second_dose_date_na = case_when(second_dose_yesno == 1 & is.na(second_dose_date) ~ 1,
-                                     TRUE ~ as.numeric(0)),
-           
+                                           TRUE ~ as.numeric(0)),
+          
+           # Flag records missing any minimum set of data element needed for VE estimate
+           minset_vars_self = ifelse(if_any(contains("_na"), ~ . == 1), 0, 1),
+          
            # Create indicator vars to help flag records missing jurisdiction completed vax info
-           dose1_yesno_na = case_when(is.na(dose1_yesno) ~ 1,
+          
+           case_yesno_na = case_when(is.na(case_yesno) ~ 1,
                                      TRUE ~ as.numeric(0)),
+          
+           test_result_date_na = case_when(case_yesno %in% c(1:2) & is.na(test_result_date) ~ 1,
+                                           TRUE ~ as.numeric(0)),
+           
+           control_visit_date_na = case_when(case_yesno == 3 & is.na(control_visit_date) ~ 1,
+                                              TRUE ~ as.numeric(0)),
+           
+           dose1_yesno_na = case_when(is.na(dose1_yesno) ~ 1,
+                                      TRUE ~ as.numeric(0)),
            
            dose1_date_na = case_when(dose1_yesno == 1 & is.na(dose1_date) ~ 1,
                                      TRUE ~ as.numeric(0)),
            
            dose2_yesno_na = case_when(dose1_yesno == 1 & is.na(dose2_yesno) ~ 1,
-                                     TRUE ~ as.numeric(0)),
+                                      TRUE ~ as.numeric(0)),
            
            dose2_date_na = case_when(dose2_yesno == 1 & is.na(dose2_date) ~ 1,
                                      TRUE ~ as.numeric(0)),
            
+           
            # Flag records missing any minimum set of data element needed for VE estimate
-           minset_vars = ifelse(if_any(contains("_na"), ~ . == 1), 0, 1),
+           minset_vars_site = ifelse(if_any(c("case_yesno_na", "test_result_date_na", "control_visit_date_na", 
+                                              "dose1_yesno_na", "dose1_date_na",
+                                              "dose2_yesno_na", "dose2_date_na",
+                                              "symptoms_yesno_na", "symptoms_date_na"), ~ . == 1), 0, 1),
            
-
-           # Although not part of data quality check report, flag mpox symptoms date within 2022-08-19 and system date. 
-           timepoint_interval = interval(earliest_symp_date, date_tag),
            
-           symp_clinic_site_date_met = case_when((symptoms_date %within% timepoint_interval) |
-                                                   (control_visit_date %within% timepoint_interval) ~ 1,
-                                                 ((symptoms_date < earliest_symp_date | 
-                                                   control_visit_date < earliest_symp_date) |
-                                                   (symptoms_date > date_tag | 
-                                                      control_visit_date > date_tag)) ~ 0,
+          # Although not part of data quality check report, flag mpox symptoms date within 2022-08-19 and system date. 
+           study_pd_int = interval(eligibility_date, redcap_trans_date),
+           
+           study_pd_int_site_f = case_when((test_result_date %within% study_pd_int) |
+                                                   (control_visit_date %within% study_pd_int) ~ 1,
+                                                 ((test_result_date < eligibility_date | 
+                                                   control_visit_date < eligibility_date) |
+                                                   (test_result_date > redcap_trans_date | 
+                                                      control_visit_date > redcap_trans_date)) ~ 0,
                                             TRUE ~ as.numeric(NA)),
            
-           symp_clinic_self_date_met = case_when((symptoms_date %within% timepoint_interval) |
-                                                   (clinic_date %within% timepoint_interval) ~ 1,
-                                                 ((symptoms_date < earliest_symp_date | 
-                                                   clinic_date < earliest_symp_date) |
-                                                   (symptoms_date > date_tag | 
-                                                      clinic_date > date_tag)) ~ 0,
+           study_pd_int_self_f = case_when((symptoms_date %within% study_pd_int) |
+                                                   (clinic_date %within% study_pd_int) ~ 1,
+                                                 ((symptoms_date < eligibility_date | 
+                                                   clinic_date < eligibility_date) |
+                                                   (symptoms_date > redcap_trans_date | 
+                                                      clinic_date > redcap_trans_date)) ~ 0,
                                             TRUE ~ as.numeric(NA)),
            
     #==== Case/Control Questionnaire Checks ====#
            
            # Dose 1 and Dose 2 Vaccination Interval (self-report) - Flag interval < 24 days and > 24 days to ID implausible intervals
-           self_dose_int = ifelse(!is.na(first_dose_date) & !is.na(second_dose_date), second_dose_date - first_dose_date, NA), 
-           self_dose_int_f = fct_relevel(as_factor(case_when(first_dose_yesno != 1                                   ~ "Not Vaxed",
+          dose_int_self = ifelse(!is.na(first_dose_date) & !is.na(second_dose_date), second_dose_date - first_dose_date, NA), 
+          dose_int_cat_self = fct_relevel(as_factor(case_when(first_dose_yesno != 1                                   ~ "Not Vaxed",
                                                                 !is.na(first_dose_date) & is.na(second_dose_date)    ~ "Dose #1 only",
                                                                 !is.na(first_dose_date) & !is.na(second_dose_date) & 
                                                                   ((second_dose_date - first_dose_date) < 24)        ~ "<24 days",
@@ -221,87 +250,97 @@ mpoxve <- raw %>%
                                                                 !is.na(first_dose_date) & !is.na(second_dose_date) & 
                                                                   ((second_dose_date - first_dose_date) > 28)            ~ ">28 days",
                                                              TRUE ~ as.character(NA))),
-                                       "Dose #1 only", "<24 days", "24-28 days", ">28 days", "Not Vaxed"
-                                                             ),
+                                       "Dose #1 only", "<24 days", "24-28 days", ">28 days", "Not Vaxed"),
            
           # Length of Hospitalization - Examine if length of days of hospitalization is longer than
           #                             the time between illness onset and survey submission
           #                             Flag if hospitalized_days > (submitted date - symptoms_date)
-          #!                           AOD: We do not have a submitted date variable at CDC as the sites
+          #!                            AOD: We do not have a submitted date variable at CDC as the sites
           #!                                are not uploading the time stamps. However, only 2 people reported
           #!                                being hospitalized and their days of hospitalization (3 & 13) seem plausible.
-    
     
           # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
           #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls             
     
-          # Prior Smallpox Vaccination Timing 
-           smallpox_birth_f = fct_relevel(as_factor(case_when(priorvax == 1 & (birth_year < priorvax_year) ~ "Plausible",
+          # Prior Smallpox Vaccination Timing flag
+           smallpox_birth_f = fct_relevel(as_factor(case_when((priorvax == 1 & (birth_year < priorvax_year)|
+                                                                priorvax %in% c(2:3)) ~ "Plausible",
                                                               priorvax == 1 & (birth_year > priorvax_year) ~ "Implausible",
-                                                            TRUE ~ as.character("No or Don't Know"))),
-                                        "Plausible", "Implausible", "No or Don't Know"),
+                                                              priorvax == 1 & is.na(birth_year) ~ "birth year missing",
+                                                              priorvax == 1 & is.na(priorvax_year) ~ "Vax year missing",
+                                                            TRUE ~ as.character(NA))),
+                                        "Plausible", "Implausible", "birth year missing", "Vax year missing"),
     
     #==== Case & Vaccination Status vs C/C Questionnaire ====#
     
-         # Case Status – HD vs Self Report - Compare case status from health department to self-reported MPX diagnosis 
-           ca_co_check = fct_relevel(as_factor(case_when(case_yesno %in% c(1,2) & provider_dx == 1 ~ "Case: HD & self",
-                                                   is.na(case_yesno)  & provider_dx == 1 ~ "Case: self but HD missing",
-                                                   case_yesno == 3 & provider_dx == 0 ~ "Control: HD & self",
-                                                   is.na(case_yesno)  & provider_dx == 0 ~ "Control: self but HD missing",
-                                                   case_yesno %in% c(1,2) & provider_dx == 0 ~ "Discrepancy: site case",
-                                                   case_yesno == 3 & provider_dx == 1 ~ "Discrepancy: self case",
-                                                   TRUE ~ as.character(NA))),
-                              "Case: HD & self", "Case: self but HD missing",
-                              "Control: HD & self", "Control: self but HD missing",
-                              "Discrepancy: site case", "Discrepancy: self case"),
+         # Case Status – site vs Self Report - Compare case status from health department to self-reported mpox diagnosis 
+           caco_stat_match_f = fct_relevel(as_factor(case_when(case_yesno %in% c(1,2) & provider_dx == 1 ~ "Case: site & self",
+                                                               is.na(case_yesno)  & provider_dx == 1 ~ "Case: self but site missing",
+                                                               case_yesno == 3 & provider_dx == 0 ~ "Control: site & self",
+                                                               is.na(case_yesno)  & provider_dx == 0 ~ "Control: self but site missing",
+                                                               case_yesno %in% c(1,2) & provider_dx == 0 ~ "Discrepancy: site case",
+                                                               case_yesno == 3 & provider_dx == 1 ~ "Discrepancy: self case",
+                                                               TRUE ~ as.character(NA))),
+                                           "Case: site & self", "Case: self but site missing",
+                                           "Control: site & self", "Control: self but site missing",
+                                           "Discrepancy: site case", "Discrepancy: self case"),
            
            # Flag cases with/without symptoms; Everyone who said that they had mpox symptoms, specified at least one of the options.
-           ca_co_check_symp = fct_relevel(as_factor(case_when(ca_co_check %in% c("Case: HD & self", "Case: self but HD missing") &
-                                                          symptoms_yesno == 1  ~ "Case: symptom +",
-                                                        ca_co_check %in% c("Case: self & site", "Case: self but HD missing") &
-                                                          symptoms_yesno == 0  ~ "Case: symptom -",
-                                                        ca_co_check %in% c("Control: HD & self", "Control: self but HD missing") ~
-                                                          "Control",
+           Case_symp_f = fct_relevel(as_factor(case_when(caco_stat_match_f %in% c("Case: site & self", "Case: self but site missing") &
+                                                          symptoms_yesno == 1 ~ "Case: symptom +",
+                                                        caco_stat_match_f %in% c("Case: self & site", "Case: self but site missing") &
+                                                          symptoms_yesno == 0 ~ "Case: symptom -",
+                                                        caco_stat_match_f %in% c("Control: site & self", "Control: self but site missing") &
+                                                          (clinic_date_na == 0 | control_visit_date_na == 0)  ~
+                                                          "Control: clinic date +",
+                                                        caco_stat_match_f %in% c("Control: site & self", "Control: self but site missing") &
+                                                          (clinic_date_na == 1 & control_visit_date_na == 1)  ~
+                                                          "Control: clinic date -",
                                                 TRUE ~ as.character(NA))),
-                                    "Case: symptom +", "Case: symptom -",
-                                    "Control"),
+                                     "Case: symptom +", "Case: symptom -", "Control: clinic date +", "Control: clinic date -"),
            
            # Case/control definition per study protocol 
-           ca_co = fct_relevel(as_factor(case_when(case_yesno %in% c(1,2) & symptoms_yesno == 1  ~ "Case",
-                                                   case_yesno == 3 ~ "Control",
-                                                   TRUE ~ as.character(NA))),
-                               "Case", "Control"),
+           caco = fct_relevel(as_factor(case_when(case_yesno %in% c(1,2) & 
+                                                    (symptoms_yesno == 1 & symptoms_date_na == 0)  ~ "Case",
+                                                   case_yesno == 3 & 
+                                                        (control_visit_date_na == 0 | clinic_date_na == 0) ~ "Control",
+                                                  TRUE ~ as.character(NA))),
+                              "Case", "Control"),
     
         # Symptom Onset Date vs Test Date (Cases) - Compare symptom onset date to ensure same day as
         #                                           or before positive test result (cases only)
     
-         symp_gt_test_date = fct_relevel(as_factor(case_when(!is.na(symptoms_date) & !is.na(test_result_date) &
-                                                               (symptoms_date > test_result_date) ~ "Yes",
-                                                             !is.na(symptoms_date) & !is.na(test_result_date) &
-                                                               (symptoms_date <= test_result_date) ~ "No",
+         symp_gt_test_date_f = fct_relevel(as_factor(case_when(caco == "Case" & !is.na(symptoms_date) &
+                                                                 !is.na(test_result_date) &
+                                                                 (symptoms_date > test_result_date) ~ "Yes",
+                                                               caco == "Case" & !is.na(symptoms_date) &
+                                                                 !is.na(test_result_date) &
+                                                                 (symptoms_date <= test_result_date) ~ "No",
+                                                               caco == "Control"                     ~ "Not applicable, control",
                                                              TRUE ~ as.character(NA))),
-                                         "Yes", "No"),
+                                         "Yes", "No", "Not applicable, control"),
         
         # Clinic Visit Date – HD vs Self Report (Controls) - Compare  clinic visit as reported from HD compared to self-report 
-        #                                                     Flag if (clinic_date - control_visit_date) > +/- 2
+        #                                                    Flag if (clinic_date - control_visit_date) > +/- 2
          clinic_v_control_date = fct_relevel(as_factor(case_when(!is.na(clinic_date) & !is.na(control_visit_date) &
                                                                    (abs(clinic_date - control_visit_date) > 2) ~ "Abs > 2: Yes",
                                                                  !is.na(clinic_date) & !is.na(control_visit_date) &
                                                                    (abs(clinic_date - control_visit_date) <= 2) ~ "Abs > 2: No",
                                                                  TRUE ~ as.character(NA))),
-                                         "Abs > 2: Yes", "Abs > 2: No"),
+                                             "Abs > 2: Yes", "Abs > 2: No"),
+    
         # site-report: Dose 1 and Dose 2 Vaccination Interval - Flag interval < 24 days and > 24 days to ID implausible intervals
-         site_dose_int = ifelse(!is.na(dose1_date) & !is.na(dose2_date), dose2_date - dose1_date, NA), 
-         site_dose_int_f = fct_relevel(as_factor(case_when(dose1_yesno != 1                             ~ "Not Vaxed",
-                                                              !is.na(dose1_date) & is.na(dose2_date)    ~ "Dose #1 only",
+         dose_int_site = ifelse(!is.na(dose1_date) & !is.na(dose2_date), dose2_date - dose1_date, NA),
+         dose_int_cat_site = fct_relevel(as_factor(case_when(dose1_yesno != 1                             ~ "Not Vaxed",
+                                                              !is.na(dose1_date) & is.na(dose2_date)      ~ "Dose #1 only",
                                                               !is.na(dose1_date) & !is.na(dose2_date) & 
-                                                                ((dose2_date - dose1_date) < 24)        ~ "<24 days",
+                                                                ((dose2_date - dose1_date) < 24)          ~ "<24 days",
                                                            !is.na(dose1_date) & !is.na(dose2_date) & 
                                                                   (((dose2_date - dose1_date) %in% c(24:28)))  ~ "24-28 days",
                                                               !is.na(dose1_date) & !is.na(dose2_date) & 
-                                                                ((dose2_date - dose1_date) > 28)        ~ ">28 days",
+                                                                ((dose2_date - dose1_date) > 28)          ~ ">28 days",
                                                            TRUE ~ as.character(NA))),
-                                     "Dose #1 only", "<24 days", "24-28 days", ">28 days", "Not Vaxed"
+                                         "Dose #1 only", "<24 days", "24-28 days", ">28 days", "Not Vaxed"
                                                            ),
         # Vaccine Dose Number – HD vs Self Report: Compare number of vaccine doses reported from HD compared to self-report
           site_v_self_dose1 = fct_relevel(as_factor(case_when((dose1_yesno == 1 & first_dose_yesno == 1) |
@@ -340,111 +379,257 @@ mpoxve <- raw %>%
        #               Invalid birth years/ages should be captured via REDCap checks, except for some unusual
        #                situations which should be reviewed and resolved on a case-by-case basis 
               # Calculate age based on birth year and symptom or clinic date
-              age = ifelse(ca_co == "Case", (year(symptoms_date) - birth_year),
-                           ifelse(ca_co == "Control", (year(control_visit_date) - birth_year), NA)),
+              age_cal = ifelse(caco == "Case", (year(symptoms_date) - birth_year),
+                               ifelse(caco == "Control", (year(control_visit_date) - birth_year), NA)),
               # Flag if submitted date– birth_year <18 | > 49 (AOD: we do not have submitted date) 
-              age_check_f = fct_relevel(as_factor(case_when(age < 18          ~ "<18",
-                                                            age %in% c(18:49) ~ "18-49",
-                                                            age > 49          ~ ">49",
+              age_f = fct_relevel(as_factor(case_when(age_cal < 18          ~ "<18",
+                                                            age_cal %in% c(18:49) ~ "18-49",
+                                                            age_cal > 49          ~ ">49",
                                                             TRUE ~ as.character(NA))),
                                         "<18", "18-49", ">49"),
     
-    #==== General cleaning ====#
     
-    
+    #==== General cleaning & analytical variables====#
+          elig_case_date_abs = abs(symptoms_date-test_result_date),
+          elig_control_date_abs = abs(clinic_date-control_visit_date),
       # Flag those who reported having experienced mpox symptoms and specified one of the listed symptoms 
              symptom_type_complete = ifelse(symptoms_yesno == 1 &
                                                  if_any(contains("symptom_type___"), ~ . == 1),
                                                1,
                                                ifelse(symptoms_yesno == 1 &
                                                          if_all(contains("symptom_type___"), ~ . == 0),
-                                                       0, NA))
+                                                       0, NA)),
+             
+      # Age categorical
+              age_cat = fct_relevel(as_factor(case_when(age_cal %in% c(18:29) ~ "18-29",
+                                                        age_cal %in% c(30:39) ~ "30-39",
+                                                        age_cal %in% c(39:49) ~ "40-49",
+                                                        age_cal > 49          ~ "50+", # There are a couple people with age >49
+                                                            TRUE ~ as.character(NA))),
+                                        "18-29", "30-39", "40-49", "50+")
       
       
       
        
             ) %>% 
-  select(pid, jid, everything(), -redcap_data_access_group) 
+  select(pid, jid, everything(), -redcap_data_access_group)
 
-# %>% 
-#   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
-#          (is.na(ca_co_check) | minset_vars == 0) == F)
-
-tt <- mpoxve %>%
-  select(pid, ca_co_check, minset_vars,
-         provider_dx, clinic_yesno, clinic_date,
-         symptoms_yesno, symptoms_date,
-         first_dose_yesno, first_dose_date,
-         second_dose_yesno, second_dose_date
-         ) 
-
-aa <- mpoxve %>% pfreq(minset_vars, provider_dx_na, clinic_yesno_na, clinic_date_na,
-                       symptoms_yesno_na, symptoms_date_na,
-                       first_dose_yesno_na, first_dose_date_na,
-                       second_dose_yesno_na, second_dose_date_na)
-
-bb <- mpoxve %>% 
-  #filter(!is.na(ca_co))%>% 
-  pfreq(ca_co, symp_clinic_site_date_met, symp_clinic_self_date_met,
-        symptoms_date, test_result_date, control_visit_date, clinic_date) %>% 
-  filter(symp_clinic_site_date_met == 0 |  symp_clinic_self_date_met == 0)
-
-cc <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(site_dose_int_f, site_dose_int, dose2_yesno, dose1_yesno, dose2_date,  dose1_date)
-
-dd <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(self_dose_int_f, self_dose_int, first_dose_yesno, second_dose_yesno, second_dose_date,  first_dose_date)
-
-ee <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(smallpox_birth_f, priorvax, birth_year, priorvax_year)
-
-ff <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(hospitalized, hospitalized_days) 
-
-gg <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(ca_co, sex_part_num_case, sex_part_num_control) 
-
-hh <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(ca_co, symp_gt_test_date, symptoms_date, test_result_date) 
-
-ii <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(ca_co, clinic_v_control_date, clinic_date, control_visit_date) 
-
-jj <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(site_v_self_dose2, dose2_yesno, second_dose_yesno) 
-
-kk <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(site_v_self_vaxdate2, dose2_date, second_dose_date) 
-
-ll <- mpoxve %>% 
-  filter(!is.na(ca_co))%>% 
-  pfreq(age_check_f, age)
-  
- # gg_miss_upset(tt)
-
-ss <- mpoxve %>% pfreq(clinic_yesno_na, provider_dx, clinic_yesno)
+# 
+# tt <- mpoxve %>%
+#   select(pid, caco_stat_match_f, minset_vars,
+#          provider_dx, clinic_yesno_na, clinic_yesno,  clinic_date,
+#          symptoms_yesno, symptoms_date,
+#          first_dose_yesno, first_dose_date,
+#          second_dose_yesno, second_dose_date) 
+# 
+# aa <- mpoxve %>% pfreq(minset_vars_self, provider_dx_na, clinic_yesno_na, clinic_date_na,
+#                        symptoms_yesno_na, symptoms_date_na, 
+#                        first_dose_yesno_na, first_dose_date_na,
+#                        second_dose_yesno_na, second_dose_date_na)
+# 
+# aaa <- mpoxve %>% pfreq(minset_vars_self, provider_dx_na, provider_dx, clinic_yesno_na, clinic_yesno,
+#                         clinic_date_na, clinic_date,
+#                        symptoms_yesno_na, symptoms_yesno, symptoms_date_na, symptoms_date,
+#                        first_dose_yesno_na, first_dose_yesno, first_dose_date_na, first_dose_date,
+#                        second_dose_yesno_na, second_dose_date_na, pid, caco, Case_symp_f) %>% 
+#   filter(provider_dx_na == 0 & clinic_yesno_na == 0 & symptoms_yesno_na == 0 & first_dose_yesno_na == 0)
+# 
+# aaaa <- mpoxve %>% pfreq(minset_vars_self, provider_dx_na, clinic_yesno_na, clinic_date_na,
+#                        symptoms_yesno_na, symptoms_yesno, symptoms_date_na, symptoms_date,
+#                        first_dose_yesno_na, first_dose_date_na,
+#                        second_dose_yesno_na, second_dose_date_na, pid, caco, Case_symp_f) %>% 
+#   filter(provider_dx_na == 1 & clinic_yesno_na == 1 & symptoms_yesno_na == 1 & first_dose_yesno_na == 1)
+# 
+# bb <- mpoxve %>% 
+#   #filter(!is.na(caco))%>% 
+#   pfreq(caco, study_pd_int_site_f, study_pd_int_self_f,
+#         symptoms_date, test_result_date, control_visit_date, clinic_date) %>% 
+#   filter(study_pd_int_site_f == 0 |  study_pd_int_self_f == 0)
+# 
+# cc <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(dose_int_cat_site, dose_int_site, dose2_yesno, dose1_yesno, dose2_date,  dose1_date)
+# 
+# dd <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(dose_int_cat_self,dose_int_self, first_dose_yesno, second_dose_yesno, second_dose_date,  first_dose_date)
+# 
+# ee <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(smallpox_birth_f, priorvax, birth_year, priorvax_year)
+# 
+# ff <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(hospitalized, hospitalized_days) 
+# 
+# gg <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(caco, sex_part_num_case, sex_part_num_control) 
+# 
+# hh <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(caco, symp_gt_test_date, symptoms_date, test_result_date) 
+# 
+# ii <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(caco, clinic_v_control_date, clinic_date, control_visit_date) 
+# 
+# jj <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(site_v_self_dose2, dose2_yesno, second_dose_yesno) 
+# 
+# kk <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(site_v_self_vaxdate2, dose2_date, second_dose_date) 
+# 
+# ll <- mpoxve %>% 
+#   filter(!is.na(caco))%>% 
+#   pfreq(age_check_f, age)
+#   
+# mm <- mpoxve %>%
+#   pfreq(clinic_yesno_na, provider_dx, clinic_yesno)
 
 ```
 
 ## Data Quality Check (Part 1)
 
-### Distribution of Participants with complete minimum set of data element needed for VE estimation
+### Minimum set of data elements needed for VE estimation: Components
+
+Although we have a minimum set of data elements, this composed of self-reported data. We decided to defined a site specific minimum set of data elements in Table 1 because we will primarily rely on the site-reported case status classification for our analysis.
+
+**Table 1. Minimum set of data elements**
+
+| **Minimum set^a^**                              | **Variable names^b^**                                       | **Labels**                                                                                                                                                            |
+|-------------------|-------------------|----------------------------------|
+| [*Site and self-reported symptoms*]{.underline} | [*Case and Vaccination Status & Questionnaire*]{.underline} |                                                                                                                                                                       |
+| X                                               | case_yesno                                                  | Is this individual a confirmed or probable MPX case-patient with symptom onset on or after August 19, 2022?                                                           |
+|                                                 | test_result_date                                            | What is the case patient's date of the positive test result?                                                                                                          |
+|                                                 | control_visit_date                                          | Date of clinic visit (used for enrollment to frequency match controls to cases by 2-4 week period):                                                                   |
+| X                                               | symptoms_yesno                                              | Have you ever had symptoms consistent with monkeypox, such as a rash or skin lesions?                                                                                 |
+|                                                 | symptoms_date                                               | What was the date that you first started experiencing symptoms or got a rash or skin lesions? (If you can't remember the exact date, please provide your best guess.) |
+| X                                               | dose1_yesno                                                 | Dose #1 received                                                                                                                                                      |
+|                                                 | dose1_date                                                  | Dose #1 date                                                                                                                                                          |
+|                                                 | dose2_yesno                                                 | Dose #2 received                                                                                                                                                      |
+|                                                 | dose2_date                                                  | Dose #2 date                                                                                                                                                          |
+| [*Self-report only*]{.underline}                | [*Questionnaire*]{.underline}                               |                                                                                                                                                                       |
+| X                                               | first_dose_yesno                                            | Have you received a first dose of JYNNEOS monkeypox vaccine?                                                                                                          |
+|                                                 | first_dose_date                                             | When did you receive your first monkeypox vaccine? If you can't remember the exact date, please provide your best guess.                                              |
+|                                                 | second_dose_yesno                                           | Have you received a second dose of JYNNEOS monkeypox vaccine?                                                                                                         |
+|                                                 | second_dose_date                                            | When did you receive your second monkeypox vaccine? If you can't remember the exact date, please provide your best guess.                                             |
+| X                                               | symptoms_yesno                                              | Have you ever had symptoms consistent with monkeypox, such as a rash or skin lesions?                                                                                 |
+|                                                 | symptoms_date                                               | What was the date that you first started experiencing symptoms or got a rash or skin lesions? (If you can't remember the exact date, please provide your best guess.) |
+| X                                               | provider_dx                                                 | Have you ever been told by a doctor or healthcare provider that you have monkeypox?                                                                                   |
+| X                                               | clinic_yesno                                                | Have you ever been told by a doctor or healthcare provider that you have monkeypox?                                                                                   |
+|                                                 | Clinic_date                                                 | Have you visited an STI or HIV clinic, infectious disease clinic, or PrEP clinic between August 19, 2022, and today?                                                  |
+
+### Minimum set of data elements: site versus self
+
+In addition to ask sites like MD to upload data to REDCap, we need to encourage all sites to enter the data into the case and vaccination status form as soon as possilbe so that we can use the maximum number of enrolled participants in our preliminary analysis.
+
+**Table 2.** **Distribution of participants with a minimum set of data elements by site- and self-report**
 
 ```{r}
 mpoxve %>% 
-  select(jid, minset_vars) %>% 
+  # Exclude records without site-reported or self-reported case status information (most from are from TN)
+  # It is likely that these records were created in REDCap before and participants did not respond.
+  filter(is.na(caco_stat_match_f) == F) %>% 
+  select(jid, minset_vars_site, minset_vars_self) %>% 
   tbl_summary(
     by = jid,
-    label = list(minset_vars ~ "Complete minimum set of data element"),
+    label = list(minset_vars_site ~ "Site",
+                 minset_vars_self ~ "Self"),
+     #percent = "column",
+    missing = "always",
+    missing_text = "Missing"
+    
+  )  %>% 
+  add_n() %>% 
+  add_overall() %>% 
+  bold_labels()
+
+```
+
+### Self-reported minimum set of data element:
+
+Most of those with self-reported minimum set of data elements that were incomplete are from TN. We do not report completeness of site-reported minimum set of data elements here because there it will not be as useful because so many sites are missing these variables.
+
+**Figure 1. Intersection of missingness among components of minimum set of data elements**
+
+```{r}
+mpoxve %>%
+  filter(minset_vars_self == 0) %>%
+  select(provider_dx, clinic_yesno, symptoms_yesno, first_dose_yesno)  %>% 
+  gg_miss_upset()
+
+
+```
+
+**Table 3. List of participants with self-reported minimum set of data elements that were incomplete**
+
+```{r}
+
+mpoxve %>% 
+  filter(minset_vars_self == 0) %>%
+  select(pid, provider_dx, symptoms_yesno, clinic_yesno, first_dose_yesno) %>% 
+  mutate(provider_dx = fct_relevel(as_factor(case_when(provider_dx == 0 ~ "No",
+                                                       provider_dx == 1 ~ "Yes",
+                                                       TRUE ~ as.character(NA))),
+                                  "Yes", "No"),
+         symptoms_yesno = fct_relevel(as_factor(case_when(symptoms_yesno == 0 ~ "No",
+                                                       symptoms_yesno == 1 ~ "Yes",
+                                                       TRUE ~ as.character(NA))),
+                                  "Yes", "No"),
+         provider_dx = fct_relevel(as_factor(case_when(first_dose_yesno == 0 ~ "No",
+                                                       first_dose_yesno == 1 ~ "Yes",
+                                                       TRUE ~ as.character(NA))),
+                                  "Yes", "No")) %>%
+  rename(PID = pid, `Provider DX` = provider_dx,
+         `Clinic Visit` = clinic_yesno,
+         Symptoms = symptoms_yesno, `Dose #1` = first_dose_yesno) %>% 
+  DT::datatable(., extensions='Buttons',
+                     options = list(
+                       searching = T,
+                       pageLength = 15,
+                       dom = 'Bfrtip',
+                       buttons = c('csv')))
+
+
+ 
+
+```
+
+### List of cases missing symptom onset date
+
+For cases who report experiencing symptoms but are missing symptom onset date, we could use the test result date as a proxy. At this time, only TN has cases that are missing symptom onset date. However, they are also missing the test result date.
+
+**Table 4. List of cases missing symptom onset date**
+
+```{r}
+mpoxve %>% 
+  filter(symptoms_date_na == 1) %>% 
+  select(pid, Case_symp_f, symptoms_date, test_result_date) %>% 
+  rename(PID = pid, `Case status (site or Self)` = Case_symp_f,
+         `Date of symptoms` = symptoms_date, 
+         `Test result date` = test_result_date) %>% 
+  DT::datatable(., extensions='Buttons',
+                     options = list(
+                       searching = T,
+                       pageLength = 15,
+                       dom = 'Bfrtip',
+                       buttons = c('csv')))
+```
+
+### Distribution of case status---for now, restricted to those with complete self-reported minimum set of data element.
+
+```{r}
+mpoxve %>% 
+  filter(minset_vars_self == 1) %>%
+  select(jid, caco_stat_match_f, Case_symp_f, caco) %>% 
+  tbl_summary(
+    by = jid,
+    label = list(caco_stat_match_f ~ "Case status (site versus self)",
+                 Case_symp_f ~ "Case status (site or self) & symptom & clinic visit date",
+                 caco ~ "Case status (per protocol"),
      #percent = "column",
     missing = "always",
     missing_text = "Missing"
@@ -455,38 +640,15 @@ mpoxve %>%
   bold_labels()
 ```
 
-### Distribution of case status---Restricted to those complete minimum set of data element.
- 
-```{r}
-mpoxve %>% 
-  filter(#Exclude records without site-reported or self-reported case status information or incomplete minimum data elements
-         (is.na(ca_co_check) | minset_vars == 0) == F) %>%
-  select(jid, ca_co_check, ca_co_check_symp, ca_co) %>% 
-  tbl_summary(
-    by = jid,
-    label = list(ca_co_check ~ "Case status (HD versus self)",
-                 ca_co_check_symp ~ "Case status (HD or self) + symptom",
-                 ca_co ~ "Case status per protocol"),
-     #percent = "column",
-    missing = "always",
-    missing_text = "Missing"
-    
-  )  %>% 
-  add_n() %>% 
-  add_overall() %>% 
-  bold_labels()
-```
+### List of participants with a discrepancy in status between site- and self-report
 
-
-### List of cases or controls with discrepancy in status between HD and self-report
- 
 ```{r}
-mpoxve %>% 
+mpoxve %>%
    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
-         (is.na(ca_co_check) | minset_vars == 0) == F) %>%
-  filter((ca_co_check %in% c("Discrepancy: site case", "Discrepancy: self case")) == T) %>% # restrict to those with a discrepancy in status between HD and self-report
-  
-  select(pid, case_yesno, provider_dx) %>% 
+         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+  filter((caco_stat_match_f %in% c("Discrepancy: site case", "Discrepancy: self case")) == T) %>% # restrict to those with a discrepancy in status between HD and self-report
+
+  select(pid, case_yesno, provider_dx) %>%
   mutate(case_yesno = fct_relevel(as_factor(case_when(case_yesno == 1 ~ "Case: Confirmed",
                                                       case_yesno == 2 ~ "Case: Probable",
                                                       case_yesno == 3 ~ "Control",
@@ -495,9 +657,9 @@ mpoxve %>%
          provider_dx = fct_relevel(as_factor(case_when(provider_dx == 0 ~ "No",
                                                        provider_dx == 1 ~ "Yes",
                                                        TRUE ~ as.character(NA))),
-                                  "Yes", "No")) %>% 
-  rename(PID = pid, `Case status (HD)` = case_yesno,
-         `Provider Dx (self)` = provider_dx) %>% 
+                                  "Yes", "No")) %>%
+  rename(PID = pid, `Case status (site)` = case_yesno,
+         `Provider Dx (self)` = provider_dx) %>%
   DT::datatable(., extensions='Buttons',
                      options = list(
                        searching = T,
@@ -506,21 +668,29 @@ mpoxve %>%
                        buttons = c('csv')))
 ```
 
-## Data Quality Check (Part 2)---Restricted to per protocol case & control definition 
+## Data Quality Check (Part 2)---Restricted to complete self-reported minimum set of data element & per protocol case status definition
 
-### List of participants with key dates outside study period by jurisdiction: `r earliest_symp_date` -- `r date_tag`
+### List of participants with key dates outside study period: `r eligibility_date` -- `r redcap_trans_date`
+
+There are 13 enrolled participants with key dates outside the study period. Case GA_2 and MN_181 may need a closer look from the sites because their reported symptom onset dates were in June 2022. Control OR_106 also needs a closer look because they have a self-reported clinic visit date in November 2021.
+
+For frequency matching, we plan to use the site-reported dates. Among the 10 cases, 9 (9%) had an absolute difference in days between the symptom onset and test results date \>6. The \>6 days threshold is arbitrary. For most of the cases, this difference in days (range: 7-27) is likely reasonable given potential lag between symptom onset and getting tested and then receiving a result, especially early in the outbreak. Among the 3 controls, 2 (67%) had an absolute difference in days the self-reported and site-reported clinic visit date was \>6.
 
 ```{r}
-mpoxve %>% 
-  filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
-         (is.na(ca_co_check) | minset_vars == 0) == F) %>%
-  filter(is.na(ca_co) == F) %>% # restrict to per protocol definition of case status
-  filter(symp_clinic_site_date_met == 0 | symp_clinic_self_date_met == 0) %>% # restrict to those without any date met
-  select(pid, ca_co, symptoms_date, test_result_date, clinic_date, control_visit_date) %>% 
-  rename(PID = pid, `Case status` = ca_co, `Symptom date` = symptoms_date,
-         `Test result date` = test_result_date, 
+mpoxve %>%
+   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+  filter(is.na(caco) == F) %>% # restrict to per protocol definition of case status
+  filter(study_pd_int_site_f == 0 | study_pd_int_self_f == 0) %>% # restrict to those without any date met
+  select(caco, pid, symptoms_date, test_result_date, elig_case_date_abs, 
+         clinic_date, control_visit_date, elig_control_date_abs) %>%
+  arrange(caco, pid) %>% 
+  rename(PID = pid, `Case status` = caco, `Symptom onset date` = symptoms_date,
+         `Test result date` = test_result_date,
+         `Abs(symtom date - test result date)` = elig_case_date_abs,
          `Clinic date (self)` = clinic_date,
-         `Clinic date (HD)` = control_visit_date) %>% 
+         `Clinic date (site)` = control_visit_date,
+         `Abs(site - self clinic date)` = elig_control_date_abs) %>%
   DT::datatable(., extensions='Buttons',
                      options = list(
                        searching = T,
@@ -528,4 +698,46 @@ mpoxve %>%
                        dom = 'Bfrtip',
                        buttons = c('csv')))
 
+```
+
+### Self-Report: plausible smallpox vaccination year, length of hospitalization, and number of sexual partners
+
+For the length of Hospitalization, we want to examine if length of days of hospitalization is longer than the time between illness onset and survey submission (flag if hospitalized_days > (submitted date - symptoms_date). However, we do not have a submitted date variable at CDC as the sites are not uploading the time stamps. However, only 2 people reported being hospitalized and their days of hospitalization (3 & 13) seem plausible.
+
+For the number of sexual partners, we want to examine the distribution of number of sexual partners for any implausible values. What considered implausible values (Range: 0-15 for cases; 0-20 for controls).
+
+```{r}
+mpoxve %>%
+   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+  filter(is.na(caco) == F) %>%
+  select(jid, smallpox_birth_f) %>% 
+  tbl_summary(
+    by = jid,
+    label = list(smallpox_birth_f ~ "Smallpox"
+                 # sex_part_num_case ~ "# sexual partners: case",
+                 # sex_part_num_control ~ "# sexual partners: control"
+                 ),
+     #percent = "column",
+    missing = "always",
+    missing_text = "Missing"
+    
+  )  %>% 
+  add_n() %>% 
+  add_overall() %>% 
+  bold_labels()
+
+mpoxve %>%
+   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+  filter(is.na(caco) == F) %>% 
+  mutate(sex_part_num = ifelse(caco == "Case", sex_part_num_case, 
+                               ifelse(caco == "Control", sex_part_num_control, NA))) %>% 
+  ggplot(aes(x=sex_part_num, color=caco, fill=caco)) +
+    geom_histogram(alpha=0.6, position = 'identity') +
+    scale_fill_jama() +
+    theme_bw() +
+    facet_wrap(~caco) %>% 
+    labs(fill="")
+  
 ```
