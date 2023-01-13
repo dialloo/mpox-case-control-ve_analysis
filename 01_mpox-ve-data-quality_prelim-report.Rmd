@@ -1,15 +1,20 @@
 ---
-title: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluation"
-subtitle: "Data Quality Report"
-authors: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
+title: "Data Quality Report" 
+subtitle: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluation"
+author: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
 output:
-  html_document:
+  rmdformats::downcute:
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+    gallery: false
+  #html_document:
     code_folding: hide
     highlight: tango
-    toc: yes
+    # toc: yes
     toc_depth: 3
-    toc_float: yes
+    # toc_float: yes
     editor_options:
       chunk_output_type: console
       canonical: true
@@ -20,13 +25,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-## Study objectives
+## **Study objectives**
 
 **Primary:** Evaluate the effectiveness of the JYNNEOS vaccine in preventing symptomatic mpox disease among 18-49-year-old gay, bisexual, and other men who have sex with men, as well as transgender, non-binary, and gender-diverse persons.
 
 **Secondary:** Estimate effectiveness by number of doses, route of administration and age group (if samples size allows).
 
-## Report objective
+## **Report objective**
 
 Examine data quality, clean data, and create analysis variables.
 
@@ -102,13 +107,13 @@ give_two_a_zero <- function(x){
   # This the date of the earliest symptom per the study protocol, 
   # but there is flexibility around this date to account for recall bias.
   eligibility_date <- ymd("2022-08-19")
+  
+  eligibility_date_v2 <- dmy(eligibility_date)
 
   # This date represent the most recent data transfer from jurisdictions
   redcap_trans_date <- ymd("2023-01-06")
-  
-  big <- function(x) {
-  x > mean(x, na.rm = TRUE)
-}
+  redcap_trans_date_v2 <- dmy("2023-01-06")
+
 
 # Tidy data ----------------------------------------------------------------------
 mpoxve <- raw %>%
@@ -259,9 +264,11 @@ mpoxve <- raw %>%
           #!                                are not uploading the time stamps. However, only 2 people reported
           #!                                being hospitalized and their days of hospitalization (3 & 13) seem plausible.
     
-          # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
-          #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls             
+          hospitalized_days_cat = as_factor(as.character(hospitalized_days)),
     
+          # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
+          #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls           #                                  categorization included below.
+          
           # Prior Smallpox Vaccination Timing flag
            smallpox_birth_f = fct_relevel(as_factor(case_when((priorvax == 1 & (birth_year < priorvax_year)|
                                                                 priorvax %in% c(2:3)) ~ "Plausible",
@@ -392,6 +399,19 @@ mpoxve <- raw %>%
     #==== General cleaning & analytical variables====#
           elig_case_date_abs = abs(symptoms_date-test_result_date),
           elig_control_date_abs = abs(clinic_date-control_visit_date),
+    
+    # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
+          #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls           #                             
+          sex_part_num = ifelse(caco == "Case", sex_part_num_case, 
+                               ifelse(caco == "Control", sex_part_num_control, NA)),
+          sex_part_num_cat = fct_relevel(as_factor(case_when(sex_part_num == 0 ~ "0",
+                                                            sex_part_num %in% c(1:3) ~ "1-3",
+                                                            sex_part_num %in% c(4:6) ~ "4-6",
+                                                            sex_part_num %in% c(7:9) ~ "7-9",
+                                                            sex_part_num %in% c(10:12) ~ "10-12",
+                                                            sex_part_num >= 13 ~ "13+",
+                                                            TRUE ~ as.character(NA))),
+                                         "0", "1-3", "4-6", "7-9", "10-12", "13+"),
       # Flag those who reported having experienced mpox symptoms and specified one of the listed symptoms 
              symptom_type_complete = ifelse(symptoms_yesno == 1 &
                                                  if_any(contains("symptom_type___"), ~ . == 1),
@@ -488,10 +508,11 @@ mpoxve <- raw %>%
 #   
 # mm <- mpoxve %>%
 #   pfreq(clinic_yesno_na, provider_dx, clinic_yesno)
+  
 
 ```
 
-## Data Quality Check (Part 1)
+## **Data Quality Check (Part 1)**
 
 ### Minimum set of data elements needed for VE estimation: Components
 
@@ -519,8 +540,8 @@ Although we have a minimum set of data elements, this composed of self-reported 
 | X                                               | symptoms_yesno                                              | Have you ever had symptoms consistent with monkeypox, such as a rash or skin lesions?                                                                                 |
 |                                                 | symptoms_date                                               | What was the date that you first started experiencing symptoms or got a rash or skin lesions? (If you can't remember the exact date, please provide your best guess.) |
 | X                                               | provider_dx                                                 | Have you ever been told by a doctor or healthcare provider that you have monkeypox?                                                                                   |
-| X                                               | clinic_yesno                                                | Have you ever been told by a doctor or healthcare provider that you have monkeypox?                                                                                   |
-|                                                 | Clinic_date                                                 | Have you visited an STI or HIV clinic, infectious disease clinic, or PrEP clinic between August 19, 2022, and today?                                                  |
+| X                                               | clinic_yesno                                                | Have you visited an STI or HIV clinic, infectious disease clinic, or PrEP clinic between August 19, 2022, and today?                                                  |
+|                                                 | Clinic_date                                                 | Clinic visit date                                                                                                                                                     |
 
 ### Minimum set of data elements: site versus self
 
@@ -579,9 +600,9 @@ mpoxve %>%
                                                        symptoms_yesno == 1 ~ "Yes",
                                                        TRUE ~ as.character(NA))),
                                   "Yes", "No"),
-         provider_dx = fct_relevel(as_factor(case_when(first_dose_yesno == 0 ~ "No",
-                                                       first_dose_yesno == 1 ~ "Yes",
-                                                       TRUE ~ as.character(NA))),
+         first_dose_yesno = fct_relevel(as_factor(case_when(first_dose_yesno == 0 ~ "No",
+                                                            first_dose_yesno == 1 ~ "Yes",
+                                                            TRUE ~ as.character(NA))),
                                   "Yes", "No")) %>%
   rename(PID = pid, `Provider DX` = provider_dx,
          `Clinic Visit` = clinic_yesno,
@@ -668,9 +689,9 @@ mpoxve %>%
                        buttons = c('csv')))
 ```
 
-## Data Quality Check (Part 2)---Restricted to complete self-reported minimum set of data element & per protocol case status definition
+## **Data Quality Check (Part 2)---Restricted to complete self-reported minimum set of data element & per protocol case status definition**
 
-### List of participants with key dates outside study period: `r eligibility_date` -- `r redcap_trans_date`
+### **List of participants with key dates outside study period: `r eligibility_date_v2` -- `r redcap_trans_date_v2`**
 
 There are 13 enrolled participants with key dates outside the study period. Case GA_2 and MN_181 may need a closer look from the sites because their reported symptom onset dates were in June 2022. Control OR_106 also needs a closer look because they have a self-reported clinic visit date in November 2021.
 
@@ -700,23 +721,26 @@ mpoxve %>%
 
 ```
 
-### Self-Report: plausible smallpox vaccination year, length of hospitalization, and number of sexual partners
+### **Self-Report: plausible smallpox vaccination year, length of hospitalization, and number of sexual partners**
 
-For the length of Hospitalization, we want to examine if length of days of hospitalization is longer than the time between illness onset and survey submission (flag if hospitalized_days > (submitted date - symptoms_date). However, we do not have a submitted date variable at CDC as the sites are not uploading the time stamps. However, only 2 people reported being hospitalized and their days of hospitalization (3 & 13) seem plausible.
+For the length of Hospitalization, we want to examine if length of days of hospitalization is longer than the time between illness onset and survey submission (flag if hospitalized_days \> (submitted date - symptoms_date). However, we do not have a submitted date variable at CDC as the sites are not uploading the time stamps. However, only 4 people reported being hospitalized and their days of hospitalization seem plausible.
 
-For the number of sexual partners, we want to examine the distribution of number of sexual partners for any implausible values. What considered implausible values (Range: 0-15 for cases; 0-20 for controls).
+For the number of sexual partners, we want to examine the distribution of number of sexual partners for any implausible values. What values are considered implausible?
 
 ```{r}
 mpoxve %>%
    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
          (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
   filter(is.na(caco) == F) %>%
-  select(jid, smallpox_birth_f) %>% 
+  select(caco, smallpox_birth_f, hospitalized, hospitalized_days, sex_part_num, sex_part_num_cat) %>% 
   tbl_summary(
-    by = jid,
-    label = list(smallpox_birth_f ~ "Smallpox"
-                 # sex_part_num_case ~ "# sexual partners: case",
-                 # sex_part_num_control ~ "# sexual partners: control"
+    by = caco,
+    label = list(smallpox_birth_f ~ "Smallpox",
+                 hospitalized ~ "Hospitalized",
+                 hospitalized_days ~ "Days hospitalized (Categorical)",
+                 sex_part_num ~ "# sexual partners (Continuous)",
+                 sex_part_num_cat ~ "# sexual partners (Categorical)"
+                 
                  ),
      #percent = "column",
     missing = "always",
@@ -726,18 +750,5 @@ mpoxve %>%
   add_n() %>% 
   add_overall() %>% 
   bold_labels()
-
-mpoxve %>%
-   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
-         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
-  filter(is.na(caco) == F) %>% 
-  mutate(sex_part_num = ifelse(caco == "Case", sex_part_num_case, 
-                               ifelse(caco == "Control", sex_part_num_control, NA))) %>% 
-  ggplot(aes(x=sex_part_num, color=caco, fill=caco)) +
-    geom_histogram(alpha=0.6, position = 'identity') +
-    scale_fill_jama() +
-    theme_bw() +
-    facet_wrap(~caco) %>% 
-    labs(fill="")
   
 ```
