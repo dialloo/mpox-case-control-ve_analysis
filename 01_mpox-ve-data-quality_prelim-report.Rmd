@@ -4,17 +4,17 @@ subtitle: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluati
 author: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
 output:
-  rmdformats::downcute:
-    self_contained: true
-    thumbnails: false
-    lightbox: true
-    gallery: false
-  #html_document:
+  # rmdformats::downcute:
+  #   self_contained: true
+  #   thumbnails: false
+  #   lightbox: true
+  #   gallery: false
+  html_document:
     code_folding: hide
     highlight: tango
-    # toc: yes
+    toc: yes
     toc_depth: 3
-    # toc_float: yes
+    toc_float: yes
     editor_options:
       chunk_output_type: console
       canonical: true
@@ -108,11 +108,12 @@ give_two_a_zero <- function(x){
   # but there is flexibility around this date to account for recall bias.
   eligibility_date <- ymd("2022-08-19")
   
-  eligibility_date_v2 <- dmy(eligibility_date)
+  eligibility_date_v2 <- "19 Aug 2022"
 
   # This date represent the most recent data transfer from jurisdictions
   redcap_trans_date <- ymd("2023-01-06")
-  redcap_trans_date_v2 <- dmy("2023-01-06")
+  
+  redcap_trans_date_v2 <- "06 Jan 2023"
 
 
 # Tidy data ----------------------------------------------------------------------
@@ -521,7 +522,7 @@ Although we have a minimum set of data elements, this composed of self-reported 
 **Table 1. Minimum set of data elements**
 
 | **Minimum set^a^**                              | **Variable names^b^**                                       | **Labels**                                                                                                                                                            |
-|-------------------|-------------------|----------------------------------|
+|----------------|----------------|----------------------------------------|
 | [*Site and self-reported symptoms*]{.underline} | [*Case and Vaccination Status & Questionnaire*]{.underline} |                                                                                                                                                                       |
 | X                                               | case_yesno                                                  | Is this individual a confirmed or probable MPX case-patient with symptom onset on or after August 19, 2022?                                                           |
 |                                                 | test_result_date                                            | What is the case patient's date of the positive test result?                                                                                                          |
@@ -750,5 +751,102 @@ mpoxve %>%
   add_n() %>% 
   add_overall() %>% 
   bold_labels()
+  
+```
+
+## Coding vaxs variables here for now
+
+Arbitrary flag of >31
+[Fully vaccinated:]{.underline} Receipt of two doses of JYNNEOS vaccine at least 24 days apart, with the second dose having been administered \>13 days prior to mpox symptom onset (for cases) or enrollment date (for controls).
+
+[Partially vaccinated:]{.underline} Receipt of one dose of JYNNEOS vaccine \>13 days prior to mpox symptom onset or participants with receipt of two doses of JYNNEOS vaccine \<14 days prior to mpox symptom onset
+
+[PEP vaccination]{.underline}: Receipt of one dose of JYNNEOS vaccine within 13 days after exposure to a person diagnosed with mpox (confirmed or probable case) and prior to mpox symptom onset
+
+[Unvaccinated:]{.underline} Without receipt of any doses of JYNNEOS vaccine or receipt of the vaccine after mpox symptom onset and no self-report of vaccination
+
+```{r}
+vax <- mpoxve %>% 
+  mutate(index_date = case_when(caco == "Case" & 
+                                  ((study_pd_int_site_f == 0 | study_pd_int_self_f == 0) |
+                                    (study_pd_int_site_f == 1  & study_pd_int_self_f == 1)) &
+                                  elig_case_date_abs >31                ~ test_result_date,
+                                caco == "Case"                          ~ symptoms_date,
+                                caco == "Control" & control_visit_date_na == 0 ~ control_visit_date,
+                                caco == "Control" & control_visit_date_na == 1 ~ clinic_date,
+                                TRUE ~ as.Date(NA)),
+         # Site
+         index_dose1_int_site = dose1_date - index_date,
+         index_dose2_int_site = dose2_date - index_date,
+         vax_stat_site = fct_relevel(as_factor(case_when(dose1_yesno == 0                                 ~ "Unvaccinated",
+                                                         dose1_yesno == 1 & index_dose1_int_site < 0     ~ "Vax post-index",
+                                                         ((dose1_yesno == 1 & dose2_yesno == 1 & index_dose2_int_site <= 13) |
+                                                            (dose1_yesno == 1 & dose2_yesno != 1 & index_dose1_int_site > 13))  ~ "Partial",
+                                                         dose1_yesno == 1 & dose2_yesno == 1 &
+                                                           dose_int_site >=24 & index_dose2_int_site > 13 ~ "Full",
+                                                         TRUE ~ as.character(NA))),
+                                      "Full", "Partial", "Vax post-index", "Unvaccinated"),
+         # Self
+         index_dose1_int_self = first_dose_date - index_date,
+         index_dose2_int_self = second_dose_date - index_date,
+         vax_stat_self = fct_relevel(as_factor(case_when(first_dose_yesno == 0                              ~ "Unvaccinated",
+                                                         first_dose_yesno == 1 & index_dose1_int_self < 0   ~ "Vax post-index",
+                                                         ((first_dose_yesno == 1 & second_dose_yesno == 1 & index_dose2_int_self <= 13) |
+                                                            (first_dose_yesno == 1 & second_dose_yesno != 1 & index_dose1_int_self > 13))  ~ "Partial",
+                                                         first_dose_yesno == 1 & second_dose_yesno == 1 &
+                                                           dose_int_self >=24 & index_dose2_int_self > 13 ~ "Full",
+                                                         TRUE ~ as.character(NA))),
+                                      "Full", "Partial", "Vax post-index", "Unvaccinated"))
+
+vax %>%
+   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+  filter(is.na(caco) == F) %>%
+  select(caco, vax_stat_site, vax_stat_self) %>% 
+  tbl_summary(
+    by = caco,
+    label = list(vax_stat_site ~ "Site",
+                 vax_stat_self ~ "Self"
+                 
+                 ),
+     #percent = "column",
+    missing = "always",
+    missing_text = "Missing"
+    
+  )  %>% 
+  add_n() %>% 
+  add_overall() %>% 
+  bold_labels()
+
+qq <- vax %>%
+   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+         (is.na(caco_stat_match_f) | minset_vars_site == 0) == F) %>%
+  pfreq(pid, vax_stat_site, dose1_yesno, dose2_yesno,
+        dose_int_site, index_dose2_int_site, index_dose1_int_site, dose2_date, index_date, dose1_date) %>%
+  arrange(vax_stat_site, dose1_yesno, dose2_yesno,
+        dose_int_site, index_dose2_int_site, index_dose1_int_site, dose2_date, index_date, dose1_date)
+
+
+# rr <- vax %>%
+#    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+#          (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>% 
+#   pfreq(pid, vax_stat_self, dose1_yesno, dose2_yesno,
+#         dose_int_self, index_dose2_int_self, index_dose1_int_self, second_dose_date, index_date, first_dose_date) %>% 
+#   arrange(vax_stat_self, dose1_yesno, dose2_yesno,
+#         dose_int_self, index_dose2_int_self, index_dose1_int_self, second_dose_date, index_date, first_dose_date)
+# 
+# ss <- vax %>%
+#    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+#          (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+#   filter(caco == "Control") %>% 
+#   pfreq(caco, control_visit_date_na, elig_control_date_abs, study_pd_int_site_f, study_pd_int_self_f, index_date, control_visit_date, clinic_date)
+# 
+# 
+# tt <- vax %>%
+#    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
+#          (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
+#   filter(caco == "Case") %>% 
+#   pfreq(caco, symptoms_date_na, elig_case_date_abs, study_pd_int_site_f, study_pd_int_self_f, index_date, symptoms_date, test_result_date)
+
   
 ```
