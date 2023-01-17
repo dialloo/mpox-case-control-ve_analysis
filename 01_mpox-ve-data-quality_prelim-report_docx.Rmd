@@ -4,23 +4,23 @@ subtitle: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluati
 author: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
 output:
-  rmdformats::downcute:
-    self_contained: true
-    thumbnails: false
-    lightbox: true
-    gallery: false
-  #html_document:
-    code_folding: hide
-    highlight: tango
-    #toc: yes
-    toc_depth: 3
-    #toc_float: yes
-    editor_options:
-      chunk_output_type: console
-      canonical: true
-      
+  # rmdformats::downcute:
+  #   self_contained: true
+  #   thumbnails: false
+  #   lightbox: true
+  #   gallery: false
+  # #html_document:
+  #   code_folding: hide
+  #   highlight: tango
+  #   #toc: yes
+  #   toc_depth: 3
+  #   #toc_float: yes
+  #   editor_options:
+  #     chunk_output_type: console
+  #     canonical: true
     word_document:
     reference_docx: "template.docx"
+    always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
