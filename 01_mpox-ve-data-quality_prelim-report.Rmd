@@ -4,23 +4,23 @@ subtitle: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluati
 author: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
 output:
-  rmdformats::downcute:
-    self_contained: true
-    thumbnails: false
-    lightbox: true
-    gallery: false
-  #html_document:
+  # rmdformats::downcute:
+  #   self_contained: true
+  #   thumbnails: false
+  #   lightbox: true
+  #   gallery: false
+  html_document:
     code_folding: hide
     highlight: tango
-    #toc: yes
+    toc: yes
     toc_depth: 3
-    #toc_float: yes
+    toc_float: yes
     editor_options:
       chunk_output_type: console
       canonical: true
       
-    word_document:
-    reference_docx: "template.docx"
+    # word_document:
+    # reference_docx: "template.docx"
 ---
 
 ```{r setup, include=FALSE}
@@ -99,27 +99,30 @@ give_two_a_zero <- function(x){
   
   redcap_trans_date_v2 <- "06 Jan 2023"
 
-
+# transform data > run r script > 
 # Tidy data ----------------------------------------------------------------------
 mpoxve <- raw %>%
     # Restrict to eligible participants (i.e., those that passed the eligibility screening)
     filter(inelig_stop ==  1) %>% 
-    # Restrict to those who have data for relevent eligibility screening questions 
+    # Restrict to those who have data for relevant eligibility screening questions 
     filter(!if_all(c(elig_age, elig_sexuality, elig_gender,
                      elig_gender_msm, elig_sexual_partners,
-                     elig_healthcare), is.na)) %>% 
+                     elig_healthcare), is.na)) %>%
     mutate(#! Variable name key: 
                #!  *_cat: indicates a categorical these are flags (0/1)
                #!  *_f: these are flags (0/1)
                #!  *_na: these are also flags but specifically related to missingness (NA = missing in R)
                #!  *_int: these refer to some calculate interval
                #!  pd: an abbreviation for period
+          
+      
+    #==== General cleaning ----
+          
           # Format all yes/no variables with 1(Yes)/2(No) values as 1(Yes)/0(No).
            across(contains(c("elig_age", "elig_gender_msm", "elig_sexual_partners",
                              "elig_healthcare", "first_dose_yesno", "second_dose_yesno",
                              "symptoms_yesno", "provider_dx", "clinic_yesno", "hospitalized",
                              "dose1_yesno", "dose2_yesno"), ignore.case = TRUE), give_two_a_zero),
-           
            
            # Format all date variables as YYYY-MM-DD
            across(contains("_date", ignore.case = TRUE), ymd),
@@ -131,14 +134,9 @@ mpoxve <- raw %>%
            jid = fct_relevel(as_factor(toupper(redcap_data_access_group)),
                              "CA", "LAC", "CO", "CT", "GA", "MD", "MN",
                              "NYS", "NYC", "OR", "TN", "DC"),
-           
-           # Case Ascertainment: Symptomatic cases identified by state or local health departments who meet either
-           #                     the confirmed or probable case definition will be eligible for inclusion. 
-           #                     #! If a participant self-reports as a cases and the rest of their data
-           #                        are consistent with being a case then we should follow-up with the
-           #                        with he jurisdiction to confirm. We will likely include this participant as a case.
-           
-           
+
+    #==== Minimum data elements ----
+          
            # Create indicator vars to help flag records missing minimum set of data elements need for VE  variables
           
            provider_dx_na = case_when(is.na(provider_dx) ~ 1,
@@ -170,6 +168,16 @@ mpoxve <- raw %>%
           
            # Flag records missing any minimum set of data element needed for VE estimate
            minset_vars_self = ifelse(if_any(contains("_na"), ~ . == 1), 0, 1),
+    
+           # minset_vars_anna = case_when((first_dose_yesno ==1 & is.na(first_dose_date)) |
+           #                                (first_dose_yesno == 1 & is.na(second_dose_yesno)) |
+           #                                (second_dose_yesno == 1 & is.na(second_dose_date)) |
+           #                                is.na(symptoms_yesno) |
+           #                                (symptoms_yesno == 1 & is.na(symptoms_date)) |
+           #                                is.na(provider_dx)|
+           #                                (provider_dx == 0 & is.na(clinic_yesno)) ~ "incomplete",
+           #                              TRUE ~ as.character("complete")
+           #                                ),
           
            # Create indicator vars to help flag records missing jurisdiction completed vax info
           
@@ -201,8 +209,9 @@ mpoxve <- raw %>%
                                               "dose2_yesno_na", "dose2_date_na",
                                               "symptoms_yesno_na", "symptoms_date_na"), ~ . == 1), 0, 1),
            
-           
-          # Although not part of data quality check report, flag mpox symptoms date within 2022-08-19 and system date. 
+    #==== Study period interval ----
+          
+          # Although not part of data quality check report, flag mpox symptoms date within 2022-08-19 and most recent data transfer from jurisdictions. 
            study_pd_int = interval(eligibility_date, redcap_trans_date),
            
            study_pd_int_site_f = case_when((test_result_date %within% study_pd_int) |
@@ -220,10 +229,16 @@ mpoxve <- raw %>%
                                                    (symptoms_date > redcap_trans_date | 
                                                       clinic_date > redcap_trans_date)) ~ 0,
                                             TRUE ~ as.numeric(NA)),
-            # Case Status – site vs Self Report - Compare case status from health department to self-reported mpox diagnosis 
+          
+          
+    #==== Case Ascertainment & index date ----
+          #  2022-01-18 data call decisions:  
+          #      Cases: Use site test result date, and if missing, use self-reported symptoms date
+          #      Controls: Use self-report clinic date, if self-reported missing OR before Aug 19th, then use the sit- reported clinic date
+
+           # Case Status – site vs Self Report - Compare case status from health department to self-reported mpox diagnosis 
            caco_stat_match_f = fct_relevel(as_factor(case_when(case_yesno %in% c(1,2) & provider_dx == 0 ~ "Discrepancy: site case",
                                                                case_yesno == 3 & (provider_dx == 1 | symptoms_yesno == 1)  ~ "Discrepancy: self case",
-                                                               
                                                                case_yesno %in% c(1,2) & provider_dx == 1 ~ "Case: site & self",
                                                                is.na(case_yesno)  & provider_dx == 1 ~ "Case: self but site missing",
                                                                case_yesno == 3 & provider_dx == 0 ~ "Control: site & self",
@@ -250,16 +265,19 @@ mpoxve <- raw %>%
            # Case/control definition per study protocol 
            caco = fct_relevel(as_factor(case_when(case_yesno %in% c(1,2) & 
                                                     (symptoms_yesno == 1 & symptoms_date_na == 0)  ~ "Case",
-                                                   case_yesno == 3 & 
+                                                  case_yesno == 3 & 
                                                     control_visit_date_na == 0 &
                                                     symptoms_yesno !=1 ~ "Control",
                                                   TRUE ~ as.character(NA))),
                               "Case", "Control"),
           
+          # Absolute difference between symptom onset date and test result date
           elig_case_date_abs = abs(symptoms_date-test_result_date),
           
-         elig_control_date_abs = abs(clinic_date-control_visit_date),
+          # Absolute difference between self- and site-reported clinic visit date
+          elig_control_date_abs = abs(clinic_date-control_visit_date),
          
+          # Index date (mpox symptom onset [for cases] or clinic visit date [for controls])
          index_date = case_when(caco == "Case" &
                                   ((study_pd_int_site_f == 0 | study_pd_int_self_f == 0) |
                                      (study_pd_int_site_f == 1  & study_pd_int_self_f == 1)) &
@@ -292,7 +310,7 @@ mpoxve <- raw %>%
                                                                    (abs(clinic_date - control_visit_date) <= 2) ~ "Abs > 2: No",
                                                                  TRUE ~ as.character(NA))),
                                              "Abs > 2: Yes", "Abs > 2: No"),
-    #==== Case/Control Questionnaire Checks ====#
+    #==== Vaccination status ----
            
            # Dose 1 and Dose 2 Vaccination Interval (self-report) - Flag interval < 24 days and > 24 days to ID implausible intervals
           dose_int_self = ifelse(!is.na(first_dose_date) & !is.na(second_dose_date), second_dose_date - first_dose_date, NA), 
@@ -307,42 +325,9 @@ mpoxve <- raw %>%
                                                              TRUE ~ as.character(NA))),
                                        "Dose #1 only", "<24 days", "24-28 days", ">28 days", "Not Vaxed"),
            
-          # Length of Hospitalization - Examine if length of days of hospitalization is longer than
-          #                             the time between illness onset and survey submission
-          #                             Flag if hospitalized_days > (submitted date - symptoms_date)
-          #!                            AOD: We do not have a submitted date variable at CDC as the sites
-          #!                                are not uploading the time stamps. However, only 2 people reported
-          #!                                being hospitalized and their days of hospitalization (3 & 13) seem plausible.
-         hospitalized_cat = fct_relevel(as_factor(case_when(hospitalized == 0 ~ "No",
-                                                            hospitalized == 1 ~ "Yes",
-                                                            TRUE ~ as.character(NA))),
-                                        "Yes", "No"),
-          hospitalized_days_cat = fct_relevel(as_factor(case_when(hospitalized_days == 0         ~ "0",
-                                                                  hospitalized_days %in% c(1:7)   ~ "1-7",
-                                                                  hospitalized_days %in% c(8:14)  ~ "8-14",
-                                                                  hospitalized_days %in% c(15:21) ~ "15-21",
-                                                                  hospitalized_days %in% c(22:28) ~ "22-28",
-                                                                  hospitalized_days >= 29         ~ "\u226529",
-                                                                  TRUE ~ as.character(NA))),
-                                              "0", "1-7","8-14", "15-21", "22-28", "22-28", "\u226529"),
+         
     
-          # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
-          #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls           #                                  categorization included below.
-          
-          # Prior Smallpox Vaccination Timing flag
-           smallpox_birth_f = fct_relevel(as_factor(case_when((priorvax == 1 & (birth_year < priorvax_year)|
-                                                                priorvax %in% c(2:3)) ~ "Plausible",
-                                                              priorvax == 1 & (birth_year > priorvax_year) ~ "Implausible",
-                                                              priorvax == 1 & is.na(birth_year) ~ "birth year missing",
-                                                              priorvax == 1 & is.na(priorvax_year) ~ "Vax year missing",
-                                                            TRUE ~ as.character(NA))),
-                                        "Plausible", "Implausible", "birth year missing", "Vax year missing"),
-    
-    #==== Case & Vaccination Status vs C/C Questionnaire ====#
-    
-        
-    
-        # site-report: Dose 1 and Dose 2 Vaccination Interval - Flag interval < 24 days and > 24 days to ID implausible intervals
+          # site-report: Dose 1 and Dose 2 Vaccination Interval - Flag interval < 24 days and > 24 days to ID implausible intervals
          dose_int_site = ifelse(!is.na(dose1_date) & !is.na(dose2_date), dose2_date - dose1_date, NA),
          dose_int_cat_site = fct_relevel(as_factor(case_when(dose1_yesno != 1                             ~ "Not Vaxed",
                                                               !is.na(dose1_date) & is.na(dose2_date)      ~ "Dose #1 only",
@@ -389,11 +374,11 @@ mpoxve <- raw %>%
                                           "Abs > 2: Yes", "Abs > 2: No"),
     
 
-       # Site
+       # Site vaccination status
        index_dose1_int_site = dose1_date - index_date,
-    
+
        index_dose2_int_site = dose2_date - index_date,
-    
+
        vax_stat_site = fct_relevel(as_factor(case_when(dose1_yesno == 0 |
                                                          (dose1_yesno == 1 & index_dose1_int_site < 0) ~ "Unvaccinated",
                                                          ((dose1_yesno == 1 & dose2_yesno == 1 &
@@ -404,7 +389,7 @@ mpoxve <- raw %>%
                                                            dose_int_site >=24 & index_dose2_int_site > 13 ~ "Full",
                                                          TRUE ~ as.character(NA))),
                                      "Full", "Partial", "Unvaccinated"),
-    
+
        vax_stat_4cat_site = fct_relevel(as_factor(case_when(dose1_yesno == 0   ~ "Unvaccinated",
                                                        dose1_yesno == 1 & index_dose1_int_site < 0 ~ "Vax post-index",
                                                        ((dose1_yesno == 1 & dose2_yesno == 1 &
@@ -415,7 +400,7 @@ mpoxve <- raw %>%
                                                          dose_int_site >=24 & index_dose2_int_site > 13 ~ "Full",
                                                        TRUE ~ as.character(NA))),
                                    "Full", "Partial", "Vax post-index", "Unvaccinated"),
-         # Self
+         # Self  vaccination status
          index_dose1_int_self = first_dose_date - index_date,
     
          index_dose2_int_self = second_dose_date - index_date,
@@ -442,6 +427,7 @@ mpoxve <- raw %>%
                                                          TRUE ~ as.character(NA))),
                                      "Full", "Partial", "Vax post-index", "Unvaccinated"),
     
+    #==== Other data quality checks ----
        # Check to make sure birth year is within range of a person being between 18-49 years old
        #               Invalid birth years/ages should be captured via REDCap checks, except for some unusual
        #                situations which should be reviewed and resolved on a case-by-case basis 
@@ -455,8 +441,37 @@ mpoxve <- raw %>%
                                         "<18", "18-49", "\u226550"),
     
     
-    #==== General cleaning & analytical variables====#
+    
+         # Length of Hospitalization - Examine if length of days of hospitalization is longer than
+          #                             the time between illness onset and survey submission
+          #                             Flag if hospitalized_days > (submitted date - symptoms_date)
+          #!                            AOD: We do not have a submitted date variable at CDC as the sites
+          #!                                are not uploading the time stamps. However, only 2 people reported
+          #!                                being hospitalized and their days of hospitalization (3 & 13) seem plausible.
+         hospitalized_cat = fct_relevel(as_factor(case_when(hospitalized == 0 ~ "No",
+                                                            hospitalized == 1 ~ "Yes",
+                                                            TRUE ~ as.character(NA))),
+                                        "Yes", "No"),
+          hospitalized_days_cat = fct_relevel(as_factor(case_when(hospitalized_days == 0         ~ "0",
+                                                                  hospitalized_days %in% c(1:7)   ~ "1-7",
+                                                                  hospitalized_days %in% c(8:14)  ~ "8-14",
+                                                                  hospitalized_days %in% c(15:21) ~ "15-21",
+                                                                  hospitalized_days %in% c(22:28) ~ "22-28",
+                                                                  hospitalized_days >= 29         ~ "\u226529",
+                                                                  TRUE ~ as.character(NA))),
+                                              "0", "1-7","8-14", "15-21", "22-28", "22-28", "\u226529"),
+    
+          # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
+          #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls           #                                  categorization included below.
           
+          # Prior Smallpox Vaccination Timing flag
+           smallpox_birth_f = fct_relevel(as_factor(case_when((priorvax == 1 & (birth_year < priorvax_year)|
+                                                                priorvax %in% c(2:3)) ~ "Plausible",
+                                                              priorvax == 1 & (birth_year > priorvax_year) ~ "Implausible",
+                                                              priorvax == 1 & is.na(birth_year) ~ "birth year missing",
+                                                              priorvax == 1 & is.na(priorvax_year) ~ "Vax year missing",
+                                                            TRUE ~ as.character(NA))),
+                                        "Plausible", "Implausible", "birth year missing", "Vax year missing"),
     # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
           #                             AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls           #                             
           sex_part_num = ifelse(caco == "Case", sex_part_num_case, 
@@ -469,14 +484,8 @@ mpoxve <- raw %>%
                                                             sex_part_num >= 13 ~ "13+",
                                                             TRUE ~ as.character(NA))),
                                          "0", "1-3", "4-6", "7-9", "10-12", "13+"),
-      # Flag those who reported having experienced mpox symptoms and specified one of the listed symptoms 
-             symptom_type_complete = ifelse(symptoms_yesno == 1 &
-                                                 if_any(contains("symptom_type___"), ~ . == 1),
-                                               1,
-                                               ifelse(symptoms_yesno == 1 &
-                                                         if_all(contains("symptom_type___"), ~ . == 0),
-                                                       0, NA)),
-             
+      
+    #==== Analysis variables and other data cleaning----         
       # Age categorical
               age_cat = fct_relevel(as_factor(case_when(age_cal %in% c(18:29) ~ "18-29",
                                                         age_cal %in% c(30:39) ~ "30-39",
@@ -484,7 +493,15 @@ mpoxve <- raw %>%
                                                          age_cal == 50          ~ "50",
                                                         age_cal >= 51          ~ "\u226551", # There are a couple people with age >49
                                                             TRUE ~ as.character(NA))),
-                                        "18-29", "30-39", "40-49",  "50", "\u226551")
+                                        "18-29", "30-39", "40-49",  "50", "\u226551"),
+    
+    # Flag those who reported having experienced mpox symptoms and specified one of the listed symptoms 
+             symptom_type_complete = ifelse(symptoms_yesno == 1 &
+                                                 if_any(contains("symptom_type___"), ~ . == 1),
+                                               1,
+                                               ifelse(symptoms_yesno == 1 &
+                                                         if_all(contains("symptom_type___"), ~ . == 0),
+                                                       0, NA))
       
       
       
@@ -492,11 +509,49 @@ mpoxve <- raw %>%
             ) %>% 
   select(pid, jid, everything(), -redcap_data_access_group)
 
-  # tt <- mpoxve %>% 
-  #   filter(jid %in% c("MN", "TN")) %>% 
-  #   filter(is.na(control_visit_date) & !is.na(clinic_date)) %>% 
-  #   select(caco, caco_stat_match_f, pid, index_year, birth_year, symptoms_date, test_result_date, case_yesno, control_visit_date, clinic_yesno, clinic_date)
-             
+  # vax <- mpoxve %>% 
+  #   mutate( 
+  #          invalid_inelig_stop = case_when(inelig_stop == 1 & if_all(c(elig_age, elig_sexuality, elig_gender, 
+  #                                                                    elig_gender_msm, elig_sexual_partners,
+  #                                                                    elig_healthcare), is.na) ~ 1,
+  #                                        TRUE ~ as.numeric(0)),
+  #   # Site vaccination status
+  #      index_dose1_int_site = index_date - dose1_date,
+  #   
+  #      index_dose2_int_site = index_date - dose2_date,
+  #   
+  #      # vax_stat_site = fct_relevel(as_factor(case_when(dose1_yesno == 0 |
+  #      #                                                   (dose1_yesno == 1 & index_dose1_int_site >= 0) ~ "Unvaccinated",
+  #      #                                                   ((dose1_yesno == 1 & dose2_yesno == 1 &
+  #      #                                                       index_dose2_int_site <= 13) |
+  #      #                                                      (dose1_yesno == 1 & dose2_yesno != 1 &
+  #      #                                                         index_dose1_int_site > 13))  ~ "Partial",
+  #      #                                                   dose1_yesno == 1 & dose2_yesno == 1 &
+  #      #                                                     dose_int_site >=24 & index_dose2_int_site > 13 ~ "Full",
+  #      #                                                   TRUE ~ as.character(NA))),
+  #      #                               "Full", "Partial", "Unvaccinated"),
+  #   
+  #      vax_stat_4cat_site = fct_relevel(as_factor(case_when(dose1_yesno == 0 & is.na(dose2_yesno)   ~ "No documented doses",
+  #                                                           dose1_yesno == 1 &  () <= 0 ~ "Vax post-index",
+  #                                                           dose1_yesno == 1 & dose2_yesno == 1 &
+  #                                                             dose_int_site >=24 & index_dose2_int_site < 14 ~ "2 doses partial",
+  #                                                           dose1_yesno == 1 & dose2_yesno != 1 &
+  #                                                             index_dose1_int_site >= 14  ~ "1 dose partial",
+  #                                                           dose1_yesno == 1 & dose2_yesno == 1 &
+  #                                                             dose_int_site >=24 & index_dose2_int_site >= 14 ~ "Full",
+  #                                                           TRUE ~ as.character(NA))),
+  #                                  "Full", "2 doses partial", "1 dose partial", "Vax post-index", "Unvaccinated"))
+  # tt <- vax %>% 
+  #  filter(minset_vars_site == 1) %>%
+  # filter(!is.na(caco)) %>% # restrict to per protocol definition of case status
+  # select(caco, vax_stat_4cat_site, dose1_yesno, index_date, dose1_date, index_dose1_int_site, 
+  #        dose_int_site, dose2_yesno, dose2_date, index_dose2_int_site)
+  # 
+  # # tt <- mpoxve %>% 
+  # #   filter(jid %in% c("MN", "TN")) %>% 
+  # #   filter(is.na(control_visit_date) & !is.na(clinic_date)) %>% 
+  # #   select(caco, caco_stat_match_f, pid, index_year, birth_year, symptoms_date, test_result_date, case_yesno, control_visit_date, clinic_yesno, clinic_date)
+  #            
 ```
 
 ## **Part 1: Key data elements and case status**
@@ -510,7 +565,7 @@ Although we have a minimum set of data elements, this is composed of self-report
 **Table 1. Minimum set of data elements**
 
 | **Minimum set^a^**                              | **Variable names^b^**                                       | **Labels**                                                                                                                                                            |
-|-------------------|-------------------|-----------------------------------|
+|-------------------|-------------------|----------------------------------|
 | [*Site and self-reported symptoms*]{.underline} | [*Case and Vaccination Status & Questionnaire*]{.underline} |                                                                                                                                                                       |
 | X                                               | case_yesno                                                  | Is this individual a confirmed or probable MPX case-patient with symptom onset on or after August 19, 2022?                                                           |
 |                                                 | test_result_date                                            | What is the case patient's date of the positive test result?                                                                                                          |
@@ -620,7 +675,7 @@ The third set of results shows that would only have 49 cases and 202 controls if
 
 ```{r}
 mpoxve %>% 
-  filter(minset_vars_self == 1) %>%
+  filter(minset_vars_self == 1 | minset_vars_site == 1) %>%
   select(jid, caco_stat_match_f, Case_symp_f, caco) %>% 
   tbl_summary(
     by = jid,
@@ -787,9 +842,8 @@ mpoxve %>%
 
 ```{r}
 mpoxve %>%
-   filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN),
-         (is.na(caco_stat_match_f) | minset_vars_self == 0) == F) %>%
-  filter(is.na(caco) == F) %>%
+  filter(minset_vars_site == 1) %>%
+  filter(!is.na(caco)) %>% # restrict to per protocol definition of case status
   select(caco, dose_int_cat_site, dose_int_cat_self) %>% 
   tbl_summary(
     by = caco,
