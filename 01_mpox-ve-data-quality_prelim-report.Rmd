@@ -286,7 +286,7 @@ mpoxve <- raw %>%
                                                   case_yesno == 3 & # Site-reported as control
                                                     symptoms_yesno == 0 & # no reported symptoms
                                                     clinic_yesno != 1 & # no clinic visit
-                                                    control_visit_date_na == 0 & # site reported data complete and >= Aug 19
+                                                    !is.na(control_visit_date) & # site reported data complete and >= Aug 19
                                                     control_visit_date >= eligibility_date  ~ "Control: no clinic visit-self",
                                                   
                                                   case_yesno_na == 1 ~ "Site-report missing",
@@ -303,8 +303,9 @@ mpoxve <- raw %>%
                               "Control-site, Case-self", 
                               "Site-report missing"),
     # binary case status
-    caco = fct_relevel(as_factor(case_when(caco_stat_cat %in% c("Case") ~ "Case",
-                                           caco_stat_cat %in% c("Control") ~ "Control",
+    caco = fct_relevel(as_factor(case_when(caco_stat_cat %in% c("Case", "Case: provider_dx NA") ~ "Case",
+                                           caco_stat_cat %in% c("Control", "Control: no clinic visit-self",
+                                                                "Control: symptom +") ~ "Control",
                                            TRUE ~ as.character(NA))),
                        "Case", "Control"),
     
@@ -333,12 +334,14 @@ mpoxve <- raw %>%
     #==== Vaccination Status ----
       
             # Time (days) between index event date and 1st/2nd doses
+              # Site
             dose1index_days_site = index_date - dose1_date,
 
             dose2index_days_site = index_date - dose2_date,
       
             dose_int_site = dose2_date - dose1_date,
             
+              # Self
             dose1index_days_self = index_date - first_dose_date,
 
             dose2index_days_self = index_date - second_dose_date,
@@ -349,18 +352,17 @@ mpoxve <- raw %>%
             # Vax status: Site
             vax_stat_site_na = as.character(NA),
             vax_stat_site = fct_relevel(as_factor(case_when(!is.na(index_date) & 
-                                                              ((dose1_yesno == 0 &
-                                                                   is.na(dose2_yesno)) |
-                                                                   (dose1_yesno == 1 &
-                                                                     dose1index_days_site %in% (1:13)) |
-                                                                   dose1_yesno == 1 & dose1index_days_site <= 0)    ~ "Unvaccinated",
-                                                                 (dose1_yesno == 1 & dose2_yesno != 1 &
+                                                              ((dose1_yesno == 0 &                       # no documented vaccination
+                                                                   is.na(dose2_yesno)) |                 
+                                                                   (dose1_yesno == 1 &                   # 1 dose but dose1-index date interval < 14 days
+                                                                     dose1index_days_site <= 0))    ~ "Unvaccinated",
+                                                                 (dose1_yesno == 1 & dose2_yesno != 1 &   # 1 dose partial (1st dose but no 2nd dose)
                                                                    dose1index_days_site >= 14) |
-                                                                   (dose1_yesno == 1 & dose2_yesno == 1 &
-                                                                      dose1index_days_site >= 14 & 
+                                                                   (dose1_yesno == 1 & dose2_yesno == 1 & # 1 dose partial
+                                                                      dose1index_days_site >= 14 &          # (2 doses but dose interval <24 days)
                                                                       dose_int_site <24)  |
-                                                                   (dose2_yesno == 1 &
-                                                                      dose1index_days_site >= 14 & 
+                                                                   (dose2_yesno == 1 &                    # 2 doses partial
+                                                                      dose1index_days_site >= 14 &          # (dose 2-index date interval < 14 days )
                                                                       dose_int_site >=24 & dose2index_days_site < 14) ~ "Partially vaccinated",
                                                                  (dose2_yesno == 1 &
                                                                    dose_int_site >=24 & dose2index_days_site >= 14) ~ "Fully vaccinated",
@@ -394,10 +396,10 @@ mpoxve <- raw %>%
     
          symp_gt_test_date_f = fct_relevel(as_factor(case_when(caco == "Case" & !is.na(symptoms_date) &
                                                                  !is.na(test_result_date) &
-                                                                 (symptoms_date > test_result_date) ~ "Yes",
+                                                                 (symptoms_date >= test_result_date) ~ "Yes",
                                                                caco == "Case" & !is.na(symptoms_date) &
                                                                  !is.na(test_result_date) &
-                                                                 (symptoms_date <= test_result_date) ~ "No",
+                                                                 (symptoms_date < test_result_date) ~ "No",
                                                                caco == "Control"                     ~ "Not applicable, control",
                                                              TRUE ~ as.character(NA))),
                                          "Yes", "No", "Not applicable, control"),
@@ -405,12 +407,12 @@ mpoxve <- raw %>%
         # Clinic Visit Date – HD vs Self Report (Controls) - Compare  clinic visit as reported from HD compared to self-report 
         #                                                    Flag if (clinic_date - control_visit_date) > +/- 2
          clinic_v_control_date = fct_relevel(as_factor(case_when(!is.na(clinic_date) & !is.na(control_visit_date) &
-                                                                   (abs(clinic_date - control_visit_date) > 2) ~ "Abs > 2: Yes",
+                                                                   (abs(clinic_date - control_visit_date) > 20) ~ "Abs > 20 days: Yes",
                                                                  !is.na(clinic_date) & !is.na(control_visit_date) &
-                                                                   (abs(clinic_date - control_visit_date) <= 2) ~ "Abs > 2: No",
+                                                                   (abs(clinic_date - control_visit_date) <= 20) ~ "Abs > 20 days: No",
                                                                  TRUE ~ as.character(NA))),
-                                             "Abs > 2: Yes", "Abs > 2: No"),
-    #==== ==== DQ Check: Vaccination variables ----
+                                             "Abs > 20 days: Yes", "Abs > 20 days: No"),
+    #==== DQ Check: Vaccination variables ----
            
            # Dose 1 and Dose 2 Vaccination Interval (self-report) - Flag interval < 24 days and > 24 days to ID implausible intervals
           dose_int_self = ifelse(!is.na(first_dose_date) & !is.na(second_dose_date), second_dose_date - first_dose_date, NA), 
@@ -636,13 +638,13 @@ mpoxve %>%
 
 ### List of enrolled respondents case status issues
 
-**Table 4. Case: date issue and provider_dx missing **
+**Table 4. Case: no symptoms and dates missing **
 
-We exclude those who did not report symptoms. We should included most of these case, but we should create a rule for dates that are are before 19 August 2022?
+We exclude those who did not report symptoms or had a test result and symptom onset date before 19 August.
 
 ```{r}
 mpoxve %>%
-   filter(caco_stat_cat %in% c("Case: date issue", "Case: provider_dx NA",
+   filter(caco_stat_cat %in% c("Case: date issue",
                                "Case: symptom -")) %>% 
   select(pid, caco_stat_cat, case_yesno, provider_dx, symptoms_yesno, test_result_date, symptoms_date) %>%
   mutate(case_yesno = fct_relevel(as_factor(case_when(case_yesno == 1 ~ "Confirmed",
@@ -667,9 +669,10 @@ mpoxve %>%
                        buttons = c('csv')))
 ```
 
+
 **Table 5. Control: no clinic visit-self  **
 
-We will include these because they have a site-reported clinic visit date. However, we will not have any of the mpox exposurure history on these folks.
+We include those who did not self-report clinic visit but have a site-reported clinic visit date in the main analysis. We will drop them from any analyses with examining the mpox exposure history because we will not have any of the mpox exposure history, and other sensitivity analyses.
 
 
 ```{r}
@@ -700,7 +703,7 @@ mpoxve %>%
 
 **Table 6. Control: date issue  **
 
-As you can some of these respondents do not have a self- and a site reported date. For those who have at least a site-reported clinic visit date, these dates are before the 19 August. Like for cases, we should create a rule for such scenarios. There are other that with implausible dates likely because of entry errors. 
+As now now, we will exclude these respondents for missing respondents do not have a self- and a site reported date, and those missing a self-reported clinic visit date but has site-reported date 19 August. There are other respondents with implausible dates likely due to entry errors. 
 
 
 ```{r}
@@ -732,7 +735,7 @@ mpoxve %>%
 
 **Table 7. Discrepancy: Case-site, Control-self  **
 
-I am not sure what to do with one to be honest. 
+Will reach out to LAC to confirm that this is a case. 
 
 
 ```{r}
@@ -766,7 +769,7 @@ mpoxve %>%
 
 **Table 8. Discrepancy: Control-site, Case-self  **
 
-Most of these are from Maryland.
+Most of these are from Maryland, Oumar will reach out to sites to confirm this information.
 
 ```{r}
 mpoxve %>%
@@ -903,153 +906,85 @@ mpoxve %>%
 
 ```
 
-<!-- **Table 14. Distribution of status---four levels** -->
-
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(is.na(caco) == F) %>%  -->
-<!--   select(caco, vax_stat_4cat_site, vax_stat_4cat_self) %>%  -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(vax_stat_4cat_site ~ "Site", -->
-<!--                  vax_stat_4cat_self ~ "Self" -->
-
-<!--                  ), -->
-<!--      #percent = "column", -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
-<!--   bold_labels() -->
 
 
+## **Part 3: Vaccination related variables**
 
-<!-- ``` -->
+### **Table 13. Dose 1 and Dose 2 vaccination interval: site & self**
 
+```{r}
+mpoxve %>%
+  filter(index_date_na == "Complete") %>% 
+  select(caco, dose_int_cat_site, dose_int_cat_self) %>%
+  tbl_summary(
+    by = caco,
+    label = list(dose_int_cat_site ~ "Site",
+                 dose_int_cat_self ~ "Self"),
+    missing = "always",
+    missing_text = "Missing"
 
-<!-- ## **Part 3: Vaccination related variables** -->
+  )  %>%
+  add_n() %>%
+  add_overall() %>%
+  bold_labels()
 
-<!-- ### **Table 10. Dose 1 and Dose 2 vaccination interval: site & self** -->
+```
 
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--   filter(minset_vars_site == "Complete") %>% -->
-<!--   filter(!is.na(caco)) %>% # restrict to per protocol definition of case status -->
-<!--   select(caco, dose_int_cat_site, dose_int_cat_self) %>%  -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(dose_int_cat_site ~ "Site", -->
-<!--                  dose_int_cat_self ~ "Self"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
+### **Table 14. Vaccine dose number: site versus self**
 
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
-<!--   bold_labels() -->
+```{r}
+mpoxve %>%
+  filter(index_date_na == "Complete") %>% 
+  select(caco, site_v_self_dose1, site_v_self_dose2) %>%
+  tbl_summary(
+    by = caco,
+    label = list(site_v_self_dose1 ~ "Dose #1",
+                 site_v_self_dose2 ~ "Dose #2"),
+    missing = "always",
+    missing_text = "Missing"
 
-<!-- ``` -->
+  )  %>%
+  add_n() %>%
+  add_overall() %>%
+  bold_labels()
 
-<!-- ### **Table 11. Vaccine dose number: site versus self** -->
+```
 
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(is.na(caco) == F) %>% -->
-<!--   select(caco, site_v_self_dose1, site_v_self_dose2) %>%  -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(site_v_self_dose1 ~ "Dose #1", -->
-<!--                  site_v_self_dose2 ~ "Dose #2"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
+### **Table 15. Vaccine administration date: site versus self (+/- 2 days)**
 
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
-<!--   bold_labels() -->
+```{r}
+mpoxve %>%
+  filter(index_date_na == "Complete") %>% 
+  select(caco, site_v_self_vaxdate1, site_v_self_vaxdate2) %>%
+  tbl_summary(
+    by = caco,
+    label = list(site_v_self_vaxdate1 ~ "Dose #1",
+                 site_v_self_vaxdate2 ~ "Dose #2"),
+    missing = "always",
+    missing_text = "Missing"
 
-<!-- ``` -->
+  )  %>%
+  add_n() %>%
+  add_overall() %>%
+  bold_labels()
 
-<!-- ### **Table 12. Vaccine administration date: site versus self (+/- 2 days)** -->
+```
 
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(is.na(caco) == F) %>% -->
-<!--   select(caco, site_v_self_vaxdate1, site_v_self_vaxdate2) %>%  -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(site_v_self_vaxdate1 ~ "Dose #1", -->
-<!--                  site_v_self_vaxdate2 ~ "Dose #2"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
+<!-- ## **Part 4: Plausibility of key dates (non-vaccination)** -->
 
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
-<!--   bold_labels() -->
+<!-- In Part 4, we explore explore the plausibility of key dates. We restrict the analysis to respondents with per protocol case status definition before apply additional restrictions where necessary. -->
 
-<!-- ``` -->
-
-<!-- ## **Part 2: Plausibility of key dates (non-vaccination)** -->
-
-<!-- In Part 2, we explore explore the plausibility of key dates. We restrict the analysis to respondents with per protocol case status definition before apply additional restrictions where necessary. -->
-
-<!-- ### **List of respondents with key dates outside study period: `r eligibility_date_v2` -- `r redcap_trans_date_v2`** -->
-
-<!-- There are 13 enrolled respondents with key dates outside the study period. Case GA_2 and MN_181 may need a closer look from the sites because their reported symptom onset dates were in June 2022. Control OR_106 also needs a closer look because they have a self-reported clinic visit date in November 2021. -->
-
-<!-- For frequency matching, we plan to use the site-reported dates. Among the 10 cases, 8 (80%) had an absolute difference in days between the symptom onset and test results date \<28. However, the difference in days (range: 1-27) for these eight cases is plausible given the potential lag between symptom onset and getting tested and then receiving a result, especially early in the outbreak. Among the 3 controls, 2 (67%) had an absolute difference in days between the self-reported and site-reported clinic visit date \>28. *Note*: We selected \>28 days as the threshold because that translates to +/- 4 weeks we will use for the time point matching criteria. -->
-
-<!-- **Table 6. respondents with key dates outside study period** -->
-
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(is.na(caco) == F) %>% # restrict to per protocol definition of case status -->
-<!--   filter(study_pd_int_site_f == 0 | study_pd_int_self_f == 0) %>% # restrict to those without any date met -->
-<!--   select(caco, pid, symptoms_date, test_result_date, elig_case_date_abs,  -->
-<!--          clinic_date, control_visit_date, elig_control_date_abs) %>% -->
-<!--   arrange(caco, pid) %>%  -->
-<!--   rename(PID = pid, `Case status` = caco, `Symptom onset date` = symptoms_date, -->
-<!--          `Test result date` = test_result_date, -->
-<!--          `Abs(symtom date - test result date)` = elig_case_date_abs, -->
-<!--          `Clinic date (self)` = clinic_date, -->
-<!--          `Clinic date (site)` = control_visit_date, -->
-<!--          `Abs(site - self clinic date)` = elig_control_date_abs) %>% -->
-<!--   DT::datatable(., extensions='Buttons', -->
-<!--                      options = list( -->
-<!--                        searching = T, -->
-<!--                        pageLength = 10, -->
-<!--                        dom = 'Bfrtip', -->
-<!--                        buttons = c('csv'))) -->
-
-<!-- ``` -->
 
 <!-- ### **Symptom Onset Date vs Test Date (Cases)** -->
 
 <!-- How should we handle these 11 records where the symptom onset date is after the positive test result? -->
 
-<!-- **Table 7. list of cases with symptom onset date after positive test result** -->
+<!-- **Table 15. list of cases with symptom onset date after positive test result** -->
 
 <!-- ```{r} -->
 <!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(caco == "Case" & symp_gt_test_date_f == "Yes") %>% # restrict to per protocol definition of case status = cases -->
-<!--   select(pid, symptoms_date, test_result_date, elig_case_date_abs) %>% -->
-<!--   arrange(elig_case_date_abs) %>%  -->
-<!--   rename(PID = pid, `Symptom onset date` = symptoms_date, -->
-<!--          `Test result date` = test_result_date, -->
-<!--          `Abs(symtom date - test result date)` = elig_case_date_abs) %>% -->
+<!--   filter(caco == "Case" & index_date_na == "Complete" & symp_gt_test_date_f == "Yes") %>%  -->
+<!--   select(pid, symptoms_date, test_result_date) %>% -->
 <!--   DT::datatable(., extensions='Buttons', -->
 <!--                      options = list( -->
 <!--                        searching = T, -->
@@ -1063,19 +998,13 @@ mpoxve %>%
 
 <!-- Flag if records with the absolute difference in days between the site and self-reported clinic date is \>2. Among the 60 records with the absolute difference in days between the site and self-reported clinic date is \>2, there are 20 records with an absolute difference in days \>28 days. What should we do with this? -->
 
-<!-- **Table 8. list of controls with absolute difference in days between the site and self-reported clinic date is \>2** -->
+<!-- **Table 16. list of controls with absolute difference in days between the site and self-reported clinic date is \>2** -->
 
 <!-- ```{r} -->
 <!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(caco == "Control" & clinic_v_control_date == "Abs > 2: Yes") %>% # restrict to per protocol definition of case status = cases -->
-<!--   select(pid, control_visit_date, clinic_date, elig_control_date_abs) %>% -->
-<!--   arrange(elig_control_date_abs) %>%  -->
-<!--   rename(PID = pid, `Clinic date` = control_visit_date, -->
-<!--          `Clinic date (self)` = clinic_date, -->
-<!--          `Abs(site - self clinic date)` = elig_control_date_abs) %>% -->
-<!--   DT::datatable(., extensions='Buttons', -->
+<!--   filter(caco == "Control" & clinic_v_control_date == "Abs > 20: Yes") %>% # restrict to per protocol definition of case status = cases -->
+<!--   select(pid, control_visit_date, clinic_date) %>% -->
+<!--    DT::datatable(., extensions='Buttons', -->
 <!--                      options = list( -->
 <!--                        searching = T, -->
 <!--                        pageLength = 10, -->
@@ -1086,23 +1015,21 @@ mpoxve %>%
 
 <!-- ### **Smallpox vaccination year** -->
 
-<!-- **Table 9. Smallpox vaccination timing** -->
+<!-- **Table 17. Smallpox vaccination timing** -->
 
 <!-- ```{r} -->
 <!-- mpoxve %>% -->
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-<!--   filter(is.na(caco) == F) %>% -->
-<!--   select(caco, smallpox_birth_f) %>%  -->
+<!--    filter(index_date_na == "Complete") %>%  -->
+<!--   select(caco, smallpox_birth_f) %>% -->
 <!--   tbl_summary( -->
 <!--     by = caco, -->
 <!--     label = list(smallpox_birth_f ~ "Smallpox"), -->
 <!--     missing = "always", -->
 <!--     missing_text = "Missing" -->
 
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
+<!--   )  %>% -->
+<!--   add_n() %>% -->
+<!--   add_overall() %>% -->
 <!--   bold_labels() -->
 
 <!-- ``` -->
@@ -1112,14 +1039,14 @@ mpoxve %>%
 
 <!-- ### **Age** -->
 
-<!-- **Table 15. Distribution of age** -->
+<!-- **Table 18. Distribution of age** -->
 
 <!-- ```{r} -->
 <!-- mpoxve %>% -->
 <!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
 <!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
 <!--   filter(is.na(caco) == F) %>% -->
-<!--   select(caco, age_f, age_cat) %>%   -->
+<!--   select(caco, age_f, age_cat) %>% -->
 <!--   tbl_summary( -->
 <!--     by = caco, -->
 <!--     label = list(age_f ~ "Age", -->
@@ -1127,9 +1054,9 @@ mpoxve %>%
 <!--     missing = "always", -->
 <!--     missing_text = "Missing" -->
 
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
+<!--   )  %>% -->
+<!--   add_n() %>% -->
+<!--   add_overall() %>% -->
 <!--   bold_labels() -->
 
 <!-- ``` -->
@@ -1144,11 +1071,11 @@ mpoxve %>%
 
 <!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
 
-<!--   filter(is.na(caco) == F) %>%  -->
+<!--   filter(is.na(caco) == F) %>% -->
 
-<!--   filter(is.na(age_cal))%>%  -->
+<!--   filter(is.na(age_cal))%>% -->
 
-<!--   select(caco, pid, index_year, birth_year, symptoms_date, test_result_date, control_visit_date, clinic_date)  %>%  -->
+<!--   select(caco, pid, index_year, birth_year, symptoms_date, test_result_date, control_visit_date, clinic_date)  %>% -->
 
 <!--   rename(PID = pid, `Birth year` = birth_year) %>% -->
 
@@ -1177,14 +1104,14 @@ mpoxve %>%
 <!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
 <!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
 <!--   filter(caco == "Case") %>% -->
-<!--   select(hospitalized_cat, hospitalized_days_cat) %>%   -->
+<!--   select(hospitalized_cat, hospitalized_days_cat) %>% -->
 <!--   tbl_summary( -->
 <!--     label = list(hospitalized_cat ~ "Hospital", -->
 <!--                  hospitalized_days_cat ~ "Days hospitalized" ), -->
 <!--     missing = "always", -->
 <!--     missing_text = "Missing" -->
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
+<!--   )  %>% -->
+<!--   add_n() %>% -->
 <!--   bold_labels() -->
 
 <!-- ``` -->
@@ -1200,7 +1127,7 @@ mpoxve %>%
 <!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
 <!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
 <!--   filter(is.na(caco) == F) %>% -->
-<!--   select(caco, sex_part_num, sex_part_num_cat) %>%   -->
+<!--   select(caco, sex_part_num, sex_part_num_cat) %>% -->
 <!--   tbl_summary( -->
 <!--     by = caco, -->
 <!--     label = list(sex_part_num ~ "# sexual partners", -->
@@ -1209,9 +1136,9 @@ mpoxve %>%
 <!--     missing = "always", -->
 <!--     missing_text = "Missing" -->
 
-<!--   )  %>%  -->
-<!--   add_n() %>%  -->
-<!--   add_overall() %>%  -->
+<!--   )  %>% -->
+<!--   add_n() %>% -->
+<!--   add_overall() %>% -->
 <!--   bold_labels() -->
 
 <!-- ``` -->
