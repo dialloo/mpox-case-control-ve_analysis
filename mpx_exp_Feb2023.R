@@ -59,7 +59,6 @@ exp_catdata <- raw %>%
                                            
 #If needed, re-group individuals who said "other" (16) to symptom, right now (06Feb) the others (13) do not overlap with other symptom types
     
-    
     #signs or symptoms experienced with recent illness - ;
     symptoms_count = symptom_type___1 + symptom_type___2 + symptom_type___3 + symptom_type___4 + symptom_type___5 + symptom_type___6 +
                     symptom_type___7 + symptom_type___8 + symptom_type___9 + symptom_type___10 + symptom_type___11 + symptom_type___12 +
@@ -411,9 +410,9 @@ exp_catdata <- raw %>%
 ###################################################################################
 ###################################################################################
 #Checks
+ exp_catdata %>% pfreq(any_contact_confprob)
     
-    
-#Does anyone report 'other' symptomps
+#Does anyone report 'other' symptoms
 sympcheck <-exp_catdata  %>% pfreq(symptoms_count_ge1, symptoms_count, symptom_type___1, symptom_type___2, symptom_type___3, symptom_type___4, symptom_type___5, symptom_type___6,
                              symptom_type___7, symptom_type___8, symptom_type___9, symptom_type___10, symptom_type___11,  symptom_type___12,
                              symptom_type___13, symptom_type___14,  symptom_type___15, symptom_type___16, other_sx_spec)

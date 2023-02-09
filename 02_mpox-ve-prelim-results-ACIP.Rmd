@@ -1,5 +1,5 @@
 ---
-title: "Data Quality Report" 
+title: "Preliminary Results: ACIP Meeting" 
 subtitle: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluation"
 author: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
@@ -30,7 +30,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## **Report objective**
 
-Examine data quality, clean data, and create analysis variables.
+Produce preliminary results for ACIP meeting
 
 ```{r libraries, message = FALSE, warning = FALSE}
 
@@ -56,7 +56,18 @@ Examine data quality, clean data, and create analysis variables.
                  gtsummary,    # publication-ready analytical and summary tables
                  tableone,     # Creates 'Table 1', i.e., description of baseline patient characteristics
                  stargazer,    # provides a way to create publication quality tables
-                 plotly        # creates interactive web-based graphs 
+                 plotly,        # creates interactive web-based graphs 
+                 geepack,
+                 broom,
+                 sjPlot,   # to visualizing mixed-effects models
+                 effects,   # to visualizing mixed-effects models
+                 lme4,      # "golden standard" for mixed-effects modelling in R (no p-values,
+                lmerTest,  # p-values for MEMs based on the Satterthwaite approximation
+                report,    # mainly for an "report" function
+                emmeans,   # post-hoc analysis
+                knitr,     # beautifying tables
+                sjstats,   # ICC - intraclass-correlation coefficient
+                caret     # ML, model comparison & utility functions
 
                  
   )
@@ -237,6 +248,57 @@ mpoxve <- raw %>%
                                      TRUE ~ as.Date(NA)),
   
   index_yrmo = format_ISO8601(index_date, precision = "ym"),
+  index_epiyr   = epiyear(index_date),
+  index_epiwk   = epiweek(index_date),
+  index_epiyrwk_2 = fct_relevel(as_factor(case_when(index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(33, 34)~ "2022: 33-34",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(35, 36)~ "2022: 35-36",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(37, 38)~ "2022: 37-38",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(39, 40)~ "2022: 39-40",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(41, 42)~ "2022: 41-42",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(43, 44)~ "2022: 43-44",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(45, 46)~ "2022: 45-46",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(47, 48)~ "2022: 47-48",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(49, 50)~ "2022: 49-50",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(51, 52)~ "2022: 51-52",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(1, 2)  ~  "2023: 1-2",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(3, 4)  ~  "2023: 3-4",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(5, 6)  ~  "2023: 5-6",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(7, 8)  ~  "2023: 7-8",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(9, 10)  ~ "2023: 9-10"))),
+  
+  index_epiyrwk_4 = fct_relevel(as_factor(case_when(index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(33, 34, 35, 36)~ "2022: 33-36",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(37, 38, 39, 40)~ "2022: 37-40",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(41, 42, 43, 44)~ "2022: 41-44",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(45, 46, 47, 48)~ "2022: 45-48",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(49, 50, 51, 52)~ "2022: 49-52",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(1, 2, 3, 4)  ~  "2023: 1-4",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(5, 6, 7, 8)  ~  "2023: 5-8",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(9, 10, 11, 12)  ~ "2023: 9-12"))),
+  
+  
   #==== Vaccination Status ----
           # Combine site- and self-reported vaccination dose variables
           vax1_yesno = case_when((is.na(dose1_yesno) & !is.na(first_dose_yesno)) |
@@ -421,11 +483,9 @@ mpoxve <- raw %>%
               # Age categorical
               age_cat = fct_relevel(as_factor(case_when(age %in% c(18:29) ~ "18-29",
                                                         age %in% c(30:39) ~ "30-39",
-                                                        age %in% c(40:49) ~ "40-49",
-                                                        age == 50   ~ "50",
-                                                        age >= 51    ~ "\u226551", #There are a couple people with age >49
+                                                        age >=40 ~ "40-49",
                                                             TRUE ~ as.character(NA))),
-                                        "18-29", "30-39", "40-49",  "50", "\u226551"),
+                                        "18-29", "30-39", "40-49"),
   
           
     
@@ -451,12 +511,24 @@ mpoxve <- raw %>%
 
 
             #race-ethnicity: ethnicity (1, Hispanic or Latino | 2, Not Hispanic or Latino | 3, Prefer not to answer)
-            race_ethn = fct_relevel(as_factor(case_when((ethnicity ==1 & race_cat == "African American or Black") ~ "Hispanic, Black",
-                                                        (ethnicity ==1 & race_cat == "White") ~ "Hispanic, White",
-                                                        (ethnicity ==2 & race_cat == "African American or Black") ~ "Non-Hispanic, Black",
-                                                        (ethnicity ==2 & race_cat == "White") ~ "Non-Hispanic, White",
-                                                        TRUE ~ as.character("Other"))), 
-                                    "Non-Hispanic, Black", "Hispanic, Black", "Non-Hispanic, White", "Hispanic, White", "Other"),
+            race_ethn_cat = fct_relevel(as_factor(case_when(ethnicity == 1 ~ "Hispanic",
+                                                        race_cat == "White" ~ "White",
+                                                        race_cat == "African American or Black" ~ "Black",
+                                                        race_cat == "Asian" ~ "Asian",
+                                                        race_cat == "Native Hawaiin/Pacific Islander" ~ "Native Hawaiin/Pacific Islander",
+                                                        race_cat == "American Indian/Alaska Native" ~ "American Indian/Alaska Native",
+                                                        race_cat == "Multiracial" ~ "Multiracial",
+                                                        
+                                                        TRUE ~ as.character("Other"))),
+                                        "Black", "White", "Hispanic", "Asian",
+                                   "Native Hawaiin/Pacific Islander", "American Indian/Alaska Native", "Multiracial", "Other"),
+  
+            race_ethn = fct_relevel(as_factor(case_when(ethnicity == 1 ~ "Hispanic",
+                                                        race_cat == "White" ~ "White",
+                                                        race_cat == "African American or Black" ~ "Black",
+                                                        TRUE ~ as.character("Other"))),
+                                        "Black", "White", "Hispanic", "Other"),
+  
   
   
   # Length of Hospitalization - Examine if length of days of hospitalization is longer than
@@ -489,10 +561,12 @@ mpoxve <- raw %>%
           sex_part_num = ifelse(caco == "Case", sex_part_num_case, 
                                ifelse(caco == "Control", sex_part_num_control, NA)),
           sex_part_num_cat = fct_relevel(as_factor(case_when(sex_part_num == 0 ~ "0",
-                                                            sex_part_num %in% c(1:3) ~ "1-3",
+                                                            sex_part_num == 1 ~ "1",
+                                                            sex_part_num == 2 ~ "2",
+                                                            sex_part_num == 3 ~ "3",
                                                             sex_part_num >= 4 ~ "\u22654",
                                                             TRUE ~ as.character(NA))),
-                                         "0", "1-3", "\u22654"),
+                                         "0", "1", "2", "3", "\u22654"),
       
            
       
@@ -520,735 +594,195 @@ mpoxve <- raw %>%
                                                              close_contact_dx == 3 ~ "Don't know",
                                                              TRUE ~ as.character(NA))),
                                          "Yes", "No","Don't know")
+  
+      # time period matching
       # close ------
        
             ) %>% 
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------  
+# aa <- mpoxve %>% 
+#         mutate(gonorrhea == )
+#       
+#  tt <- mpoxve %>%
+#         pfreq(caco, sti_case___1, sti_case___2, sti_case___3, sti_case___4, sti_case___5, sti_case_spec)
+ 
+ 
       
-aa <- mpoxve %>% 
-        filter(minset_vars == "Complete") %>%
-        pfreq(caco, immunocompromised, hiv_status)
-        select(pid, case_yesno, test_result_date, symptoms_date, clinic_date, control_visit_date)
-      
 ```
 
-## **Part 1: Key data elements and case status**
+## **Descriptive Statistics**
 
-In part 1, we examine missingness patterns of the key data elements, especially those that are related to case and control classification.
-
-### Minimum set of data elements needed for VE estimation: Components
-
-1.  Site case status classification
-
-2.  Index date:
-
-    -   *Cases:* Test result date ≥ August 19, 2022. If the test result date is missing or before August 19, 2022, use symptom onset date ≥ August 19, 2022.
-    -   *Controls:* Self-reported clinic date ≥ August 19, 2022. If the self-reported clinic date is missing or before August 19, 2022, use site-reported clinic date ≥ August 19, 2022.
-
-3.  Vaccination:
-
-    -   Dose #1: Use site-reported variables (dose1_yesno & dose1_date) to create vax1_yesno and vax1_date. If the site-reported variables are missing or site reported no vaccination then use self-reported variables (first_dose_yesno and first_dose_date).
-    -   Dose #2: if vax1_yesno and vax1_date are complete, then use the site-reported variables (dose2_yesno & dose2_date) to create vax2_yesno and vax2_date. If the site-reported variables are missing or site reported no vaccination then use self-reported variables (second_dose_yesno and second_dose_date).
-
-### Distribution of complete minimum set of data elements
-
-**Table 1. Distribution of respondents with a minimum set of data elements**
+**Table 1. Study participant characteristics by case status**
 
 ```{r}
-mpoxve %>% 
-  #filter(!is.na(caco_stat_cat)) %>% 
-  select(jid, minset_vars) %>% 
-  tbl_summary(
-    by = jid,
-    label = list(minset_vars ~ "Min data elements")
-    
-  )  %>% 
-  add_n() %>% 
-  add_overall() %>% 
-  bold_labels()
-
-```
-
-**Figure 1. Missingness patterns across a the set of minimum data elements**
-
-```{r}
-mpoxve %>% 
-  select(case_yesno, index_date, vax1_yesno, vax1_date, vax2_yesno, vax2_date)%>%
-  gg_miss_upset()
-
-```
-
-### Distribution of case status
-
-**Figure 2. Case definition**
-
-![](screenshots/case_def_2023-02-03.png)
-
-**Table 2. Case status**
-
-```{r}
-mpoxve %>% 
-  select(jid, caco_stat_cat,  caco, caco_sen) %>% 
-  tbl_summary(
-    by = jid,
-    label = list(caco_stat_cat ~ "All categories",
-                 caco ~ "Main VE analysis",
-                 caco_sen ~ "Sensitivity VE analysis"),
-    missing = "always",
-    missing_text = "Missing"
-    
-  )  %>% 
-  add_n() %>% 
-  add_overall() %>% 
-  modify_header(label = "**Case status**") %>% # update the column header
-  bold_labels()
-```
-
-### Distribution of site-reported clinic visit versus vaccine dose dates
-
-**Table 3. Respondent with same clinic dates versus vaccination dates**
-
-```{r}
-
-mpoxve %>% 
-  mutate(clinic_vax_date = fct_relevel(as_factor(case_when(control_visit_date == dose1_date ~ "Clinic = D1",
-                                                           control_visit_date == dose2_date ~ "Clinic = D2",
-                                                           TRUE ~ as.character(NA))),
-                                       "Clinic = D1", "Clinic = D2")) %>% 
-  filter(!is.na(clinic_vax_date)) %>%
-  select(jid, clinic_vax_date) %>% 
-  tbl_summary(
-    by = jid,
-    label = list(clinic_vax_date ~ "Dates"),
-    missing = "no"
-  )  %>% 
-  add_n() %>% 
-  add_overall() %>% 
-  bold_labels()
-  
-
-```
-
-**Table 4. List of respondent with same clinic dates versus vaccination dates**
-
-```{r}
-
-clinic_vax <- mpoxve %>% 
-  mutate(clinic_vax_date = fct_relevel(as_factor(case_when(control_visit_date == dose1_date ~ "Clinic = D1",
-                                                           control_visit_date == dose2_date ~ "Clinic = D2",
-                                                           TRUE ~ as.character(NA))),
-                                       "Clinic = D1", "Clinic = D2")) %>% 
-  filter(!is.na(clinic_vax_date)) %>%
-  select(pid, caco_stat_cat, clinic_vax_date, case_yesno, vax_stat, index_date, clinic_date, control_visit_date, dose1_date, dose2_date) %>% 
-  arrange(clinic_vax_date)
-
-
-#clipr::write_clip(clinic_vax) 
-
-clinic_vax %>% 
-     DT::datatable(., extensions='Buttons',
-                     options = list(
-                       searching = T,
-                       pageLength = 10,
-                       dom = 'Bfrtip',
-                       buttons = c('csv')))
-  
-
-```
-
-## **Part 2: Vaccination Status**
-
-**Definitions:**
-
--   [Fully vaccinated:]{.underline} Receipt of two doses of JYNNEOS vaccine at least 24 days apart, with the second dose having been administered \>13 days before index date (mpox symptom onset [for cases] or clinic visit date [for controls]).
-
--   [Partially vaccinated:]{.underline} Receipt of one dose of JYNNEOS vaccine \>13 days before index date or respondents with receipt of two doses of JYNNEOS vaccine \<14 days before index date.
-
--   [PEP vaccination]{.underline}: Receipt of one dose of JYNNEOS vaccine within 13 days after exposure to a person diagnosed with mpox (confirmed or probable case) and before index date.
-
--   [Unvaccinated:]{.underline} Without receipt of any doses of JYNNEOS vaccine or receipt of the vaccine after index date
-
-**Figure 2. Dose #1 (D1), dose #2 (D2), and index event (IE) date scenarios**
-
-![](screenshots/vax_def_2023-02-03.png)
-
-**Table 5. Distribution of vaccination status among those with a complete minimum data elements**
-
-```{r}
-mpoxve %>%
-  filter(minset_vars == "Complete") %>% 
-  select(caco, vax_stat, vax_stat_ve, pep_stat_ve) %>% 
-  tbl_summary(
-    by = caco,
-    label = list(vax_stat ~ "Descriptive table",
-                 vax_stat_ve ~ "Main VE analysis*",
-                 pep_stat_ve ~ "PEP VE analysis"
-                 
-                 ),
-     #percent = "column",
-    missing = "always",
-    missing_text = "Missing"
-    
-  )  %>% 
-  add_n() %>% 
-  add_overall() %>% 
-  bold_labels() %>% 
-  as_gt() %>%
-  gt::tab_source_note(gt::md("*Missing = those exculded in scenario 3 & 5"))
-
-```
-
-### **Table 10. VE model adjustment variables **
-
-```{r}
-
 mpoxve %>%
   filter(minset_vars == "Complete") %>%
-  select(caco, age, age_cat, race_ethn, sex_part_num_cat, index_yrmo, close_contact_dx_cat) %>%
+  select(caco, age_cat, race_ethn_cat, immunocompromised, sex_part_num_cat, close_contact_dx_cat, vax_stat_ve) %>%
   tbl_summary(
     by = caco,
-    # label = list(why_vax___1 ~ "Exposed and dose w/in 13d",
-    #              why_vax___2 ~ "High risk of mpox",
-    #              why_vax___3 ~ "Work exposure"),
-    missing = "always",
+    label = list(age_cat ~ "Age categories",
+                 race_ethn_cat ~ "Ethnicity, race",
+                 immunocompromised ~ "Immunocompromised",
+                 sex_part_num_cat ~ "Number of sexual partners*",
+                 close_contact_dx_cat ~ "Close contact w/conf. or prob. mpox case*",
+                 vax_stat_ve ~ "Vaccination status**"),
+    #missing = "always",
     missing_text = "Missing"
 
   )  %>%
   add_n() %>%
   add_overall() %>%
-  bold_labels()
+  bold_labels() %>% 
+  as_gt()%>%
+  gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
+  gt::tab_source_note(gt::md("**Missing represent those with <13 days between dose 1 & index event date or <24 days between doses."))
 
 ```
 
-### **Table 11. VE model adjustment variables **
+**Table 2. Study participant characteristics by case status (excluded sites with no cases or controls)**
 
 ```{r}
-
 mpoxve %>%
-  filter(minset_vars == "Complete" & jid == "MN") %>%
-  select(caco, index_yrmo) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "MD", "NYC", "NYS")) %>%
+    select(caco, age_cat, race_ethn_cat, immunocompromised, sex_part_num_cat, close_contact_dx_cat, vax_stat_ve) %>%
   tbl_summary(
     by = caco,
-    label = list(index_yrmo ~ "Year-Month"),
-    missing = "always",
+    label = list(age_cat ~ "Age categories",
+                 race_ethn_cat ~ "Ethnicity, race",
+                 immunocompromised ~ "Immunocompromised",
+                 sex_part_num_cat ~ "Number of sexual partners*",
+                 close_contact_dx_cat ~ "Close contact w/conf. or prob. mpox case*",
+                 vax_stat_ve ~ "Vaccination status**"),
+    #missing = "always",
     missing_text = "Missing"
 
   )  %>%
   add_n() %>%
-  add_overall() %>% 
-  modify_header(label = "**Minnesota: time period match**") %>%
-  bold_labels()
-
-
+  add_overall() %>%
+  bold_labels() %>% 
+  as_gt()%>%
+  gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
+  gt::tab_source_note(gt::md("**Missing represent those with <13 days between dose 1 & index event date or <24 days between doses."))
 
 ```
 
-<!-- ## **Part 3: Vaccination related variables**  -->
+## **Model 1 Results**
 
-<!-- We restricted the tables below to those with complete set of minimum data elements. -->
+**Results from this yesterday/this morning: Unadjusted (left-side OR) versus adjusted (right-side OR)**
 
-<!-- ### **Table 6. Dose 1 and Dose 2 vaccination interval: site & self** -->
-
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--   filter(minset_vars == "Complete") %>% -->
-<!--   select(caco, dose_int_cat_site, dose_int_cat_self) %>% -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(dose_int_cat_site ~ "Site", -->
-<!--                  dose_int_cat_self ~ "Self"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-<!--   add_n() %>% -->
-<!--   add_overall() %>% -->
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-<!-- ### **Table 7. Vaccine dose number: site versus self** -->
-
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--   filter(minset_vars == "Complete") %>% -->
-<!--   select(caco, site_v_self_dose1, site_v_self_dose2) %>% -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(site_v_self_dose1 ~ "Dose #1", -->
-<!--                  site_v_self_dose2 ~ "Dose #2"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-<!--   add_n() %>% -->
-<!--   add_overall() %>% -->
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-<!-- ### **Table 8. Vaccine administration date: site versus self (+/- 2 days)** -->
-
-<!-- ```{r} -->
-<!-- mpoxve %>% -->
-<!--   filter(minset_vars == "Complete") %>% -->
-<!--   select(caco, site_v_self_vaxdate1, site_v_self_vaxdate2) %>% -->
-<!--   tbl_summary( -->
-<!--     by = caco, -->
-<!--     label = list(site_v_self_vaxdate1 ~ "Dose #1", -->
-<!--                  site_v_self_vaxdate2 ~ "Dose #2"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-<!--   add_n() %>% -->
-<!--   add_overall() %>% -->
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-<!-- ### **Table 9. Reasons for getting vaccinated by vaccination status categories ** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-<!--   filter(minset_vars == "Complete") %>% -->
-<!--   select(vax_stat, why_vax___1, why_vax___2, why_vax___3, ) %>% -->
-<!--   tbl_summary( -->
-<!--     by = vax_stat, -->
-<!--     label = list(why_vax___1 ~ "Exposed and dose w/in 13d", -->
-<!--                  why_vax___2 ~ "High risk of mpox", -->
-<!--                  why_vax___3 ~ "Work exposure"), -->
-<!--     missing = "always", -->
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-<!--   add_n() %>% -->
-<!--   add_overall() %>% -->
-<!--   bold_labels() -->
-
-
-<!-- ``` -->
-
-<!-- ### **Table . Reasons for getting vaccinated by vaccination status categories ** -->
-
-<!-- ```{r} -->
-
-<!-- tt <- mpoxve %>% -->
-<!--   filter(minset_vars == "Complete") %>% -->
-<!--   mutate(dose1index_days_self = index_date - first_dose_date) %>%  -->
-<!--   pfreq(caco, vax_stat, why_vax___1, index_date, vax1_date, dose1index_days, first_dose_date, dose1index_days_self) %>%  -->
-<!--   filter(why_vax___1 == 1) -->
-
-<!-- clipr::write_clip(tt) -->
-
-<!-- library(tableone) -->
-<!--  mpoxve_pep<- mpoxve %>% -->
-<!--     mutate(why_vax_pep = fct_relevel(as_factor(case_when(why_vax___1 == 1 ~ "Yes", -->
-<!--                                                          why_vax___1 == 0 ~ "No", -->
-<!--                                                          TRUE ~ as.character(NA))), -->
-<!--                                      "Yes", "No")) -->
-<!-- cov_names <- names(mpoxve_pep %>%  -->
-<!--                      select(caco, vax_stat, why_vax_pep)) -->
-
-<!-- tbl1_vars <- cov_names -->
-
-
-<!-- tbl1_strata <- c("caco", "vax_stat") -->
-<!-- tbl1_factorvars <- tbl1_vars -->
-<!-- # Crude ------------------------------ -->
-<!--   tbl_crude <- CreateTableOne(data = mpoxve_pep,                            -->
-<!--                               vars = tbl1_vars, -->
-<!--                               strata = tbl1_strata,  -->
-<!--                               factorVars = tbl1_factorvars) -->
-
-<!--   tbl_crude_print <- print(tbl_crude, showAllLevels = T, quote = FALSE, smd = F, -->
-<!--                            noSpaces = TRUE, test = F, printToggle = FALSE, -->
-<!--                            nonnormal = tbl1_nonnormal, formatOptions = list(big.mark = ",")) %>%  -->
-<!--     as.data.frame() %>%  -->
-<!--       filter(level %in% c("Yes", "No")) %>%  -->
-<!--     rename(`Exposed and dose w/in 13d` = level)  -->
-
-<!-- clipr::write_clip(tbl_crude_print) -->
-<!-- ``` -->
-
-
-
-
-<!-- ## **Part 4: Plausibility of key dates (non-vaccination)** -->
-
-<!-- In Part 4, we explore explore the plausibility of key dates. We restrict the analysis to respondents with per protocol case status definition before apply additional restrictions where necessary. -->
-
-<!-- ### **Symptom Onset Date vs Test Date (Cases)** -->
-
-<!-- How should we handle these 11 records where the symptom onset date is after the positive test result? -->
-
-<!-- **Table 15. list of cases with symptom onset date after positive test result** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--   filter(caco == "Case" & index_date_na == "Complete" & symp_gt_test_date_f == "Yes") %>%  -->
-
-<!--   select(pid, symptoms_date, test_result_date) %>% -->
-
-<!--   DT::datatable(., extensions='Buttons', -->
-
-<!--                      options = list( -->
-
-<!--                        searching = T, -->
-
-<!--                        pageLength = 10, -->
-
-<!--                        dom = 'Bfrtip', -->
-
-<!--                        buttons = c('csv'))) -->
-
-<!-- ``` -->
-
-<!-- ### **Clinic visit date---site vs Self report (controls)** -->
-
-<!-- Flag if records with the absolute difference in days between the site and self-reported clinic date is \>2. Among the 60 records with the absolute difference in days between the site and self-reported clinic date is \>2, there are 20 records with an absolute difference in days \>28 days. What should we do with this? -->
-
-<!-- **Table 16. list of controls with absolute difference in days between the site and self-reported clinic date is \>2** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--   filter(caco == "Control" & clinic_v_control_date == "Abs > 20: Yes") %>% # restrict to per protocol definition of case status = cases -->
-
-<!--   select(pid, control_visit_date, clinic_date) %>% -->
-
-<!--    DT::datatable(., extensions='Buttons', -->
-
-<!--                      options = list( -->
-
-<!--                        searching = T, -->
-
-<!--                        pageLength = 10, -->
-
-<!--                        dom = 'Bfrtip', -->
-
-<!--                        buttons = c('csv'))) -->
-
-<!-- ``` -->
-
-<!-- ### **Smallpox vaccination year** -->
-
-<!-- **Table 17. Smallpox vaccination timing** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--    filter(index_date_na == "Complete") %>%  -->
-
-<!--   select(caco, smallpox_birth_f) %>% -->
-
-<!--   tbl_summary( -->
-
-<!--     by = caco, -->
-
-<!--     label = list(smallpox_birth_f ~ "Smallpox"), -->
-
-<!--     missing = "always", -->
-
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-
-<!--   add_n() %>% -->
-
-<!--   add_overall() %>% -->
-
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-<!-- ## **Part 5: Age, hospitalization, and number of sexual partners** -->
-
-<!-- ### **Age** -->
-
-<!-- **Table 18. Distribution of age** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-
-<!--   filter(is.na(caco) == F) %>% -->
-
-<!--   select(caco, age_f, age_cat) %>% -->
-
-<!--   tbl_summary( -->
-
-<!--     by = caco, -->
-
-<!--     label = list(age_f ~ "Age", -->
-
-<!--                  age_cat ~ "Age Distribution"), -->
-
-<!--     missing = "always", -->
-
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-
-<!--   add_n() %>% -->
-
-<!--   add_overall() %>% -->
-
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-<!-- **Table 16. List of respondents missing birth year** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-
-<!--   filter(is.na(caco) == F) %>% -->
-
-<!--   filter(is.na(age))%>% -->
-
-<!--   select(caco, pid, index_year, birth_year, symptoms_date, test_result_date, control_visit_date, clinic_date)  %>% -->
-
-<!--   rename(PID = pid, `Birth year` = birth_year) %>% -->
-
-<!--   DT::datatable(., extensions='Buttons', -->
-
-<!--                      options = list( -->
-
-<!--                        searching = T, -->
-
-<!--                        pageLength = 10, -->
-
-<!--                        dom = 'Bfrtip', -->
-
-<!--                        buttons = c('csv'))) -->
-
-<!-- ``` -->
-
-<!-- ### **Length of hospitalization** -->
-
-<!-- For the length of Hospitalization, we want to examine if length of days of hospitalization is longer than the time between illness onset and survey submission (flag if hospitalized_days \> (submitted date - symptoms_date). However, we do not have a 'submitted date' variable at CDC as the sites are not uploading the time stamps. However, only 4 people reported being hospitalized and their days of hospitalization seem plausible. *Note*: Length of hospitalization was assessed among those who self-reported as having been told by a provider they have mpox. -->
-
-<!-- **Table 16. Distribution of hospitalization** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-
-<!--   filter(caco == "Case") %>% -->
-
-<!--   select(hospitalized_cat, hospitalized_days_cat) %>% -->
-
-<!--   tbl_summary( -->
-
-<!--     label = list(hospitalized_cat ~ "Hospital", -->
-
-<!--                  hospitalized_days_cat ~ "Days hospitalized" ), -->
-
-<!--     missing = "always", -->
-
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-
-<!--   add_n() %>% -->
-
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-<!-- ### **Number of sexual partners** -->
-
-<!-- For the number of sexual partners, we want to examine the distribution of number of sexual partners for any implausible values. What values should we consider as implausible? -->
-
-<!-- **Table 17. Distribution of sexual partners** -->
-
-<!-- ```{r} -->
-
-<!-- mpoxve %>% -->
-
-<!--    filter(#Exclude records without site-reported or self-reported case status information (the majority of these are from TN), -->
-
-<!--          (is.na(caco_stat_match_f) | minset_vars_self == "Incomplete") == F) %>% -->
-
-<!--   filter(is.na(caco) == F) %>% -->
-
-<!--   select(caco, sex_part_num, sex_part_num_cat) %>% -->
-
-<!--   tbl_summary( -->
-
-<!--     by = caco, -->
-
-<!--     label = list(sex_part_num ~ "# sexual partners", -->
-
-<!--                  sex_part_num_cat ~ "# sexual partners" -->
-
-<!--                  ), -->
-
-<!--     missing = "always", -->
-
-<!--     missing_text = "Missing" -->
-
-<!--   )  %>% -->
-
-<!--   add_n() %>% -->
-
-<!--   add_overall() %>% -->
-
-<!--   bold_labels() -->
-
-<!-- ``` -->
-
-**List of respondents and their exposure and outcome classification**
 
 ```{r}
+analysis <- mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA","CO", "CT", "DC", "MD", "NYC", "NYS")) %>%
+  mutate(caco = fct_rev(caco),
+         vax_stat_ve = fct_rev(vax_stat_ve)) %>% 
+  rename(immunocomp = immunocompromised)
 
-data_check <- mpoxve %>%
 
-  select(jid, pid, caco, caco_stat_cat, case_yesno, provider_dx, index_date, test_result_date, symptoms_yesno, symptoms_date,
+mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
 
-         clinic_yesno, clinic_date, control_visit_date,
+mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn +  
+                    sex_part_num_cat + close_contact_dx_cat + index_yrmo + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
 
-         vax_stat, vax1_yesno, vax1_date, dose1_yesno, dose1_date,
 
-         first_dose_yesno, first_dose_date,
+tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
 
-         vax2_yesno, vax2_date, dose2_yesno, dose2_date, second_dose_yesno,
-
-         second_dose_date) %>%
-
-  mutate(case_yesno = fct_relevel(as_factor(case_when(case_yesno == 1 ~ "1-Confirmed",
-
-                                                      case_yesno == 2 ~ "2-Probable",
-
-                                                      case_yesno == 3 ~ "3-Control",
-
-                                                      TRUE ~ as.character(NA))),
-
-                                  "1-Confirmed", "2-Probable", "3-Control"),
-
-         provider_dx = fct_relevel(as_factor(case_when(provider_dx == 0 ~ "2-No",
-
-                                                       provider_dx == 1 ~ "1-Yes",
-
-                                                       TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         clinic_yesno = fct_relevel(as_factor(case_when(clinic_yesno == 0 ~ "2-No",
-
-                                                       clinic_yesno == 1 ~ "1-Yes",
-
-                                                       TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         symptoms_yesno = fct_relevel(as_factor(case_when(symptoms_yesno == 0 ~ "2-No",
-
-                                                          symptoms_yesno == 1 ~ "1-Yes",
-
-                                                       TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         dose1_yesno = fct_relevel(as_factor(case_when(dose1_yesno == 0 ~ "2-No",
-
-                                                       dose1_yesno == 1 ~ "1-Yes",
-
-                                                       TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         dose2_yesno = fct_relevel(as_factor(case_when(dose2_yesno == 0 ~ "2-No",
-
-                                                       dose2_yesno == 1 ~ "1-Yes",
-
-                                                       TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         first_dose_yesno = fct_relevel(as_factor(case_when(first_dose_yesno == 0 ~ "2-No",
-
-                                                            first_dose_yesno == 1 ~ "1-Yes",
-
-                                                            TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         second_dose_yesno = fct_relevel(as_factor(case_when(second_dose_yesno == 0 ~ "2-No",
-
-                                                             second_dose_yesno == 1 ~ "1-Yes",
-
-                                                             TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         vax1_yesno = fct_relevel(as_factor(case_when(vax1_yesno == 0 ~ "2-No",
-
-                                                      vax1_yesno == 1 ~ "1-Yes",
-
-                                                      TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         vax2_yesno = fct_relevel(as_factor(case_when(vax2_yesno == 0 ~ "2-No",
-
-                                                      vax2_yesno == 1 ~ "1-Yes",
-
-                                                      TRUE ~ as.character(NA))),
-
-                                  "1-Yes", "2-No"),
-
-         excluded = fct_relevel(as_factor(case_when(is.na(index_date) |
-
-                                                      (vax1_yesno == 1 & is.na(vax1_date)) |
-
-                                                      is.na(caco)~ "Yes",
-
-                                                    TRUE ~ as.character("No"))),
-
-                                  "Yes", "No")) %>%
-
-  arrange(jid, caco_stat_cat) %>%
-
-  select(excluded, everything(), -caco, -jid)
-
-# %>%
-
-#   filter(excluded == "Yes")
-
-clipr::write_clip(data_check)
-
-vax_clinic_date <- data_check %>%
-
-  filter(control_visit_date == dose1_date | control_visit_date == dose2_date) %>%
-
-  select(excluded, pid, caco_stat_cat, case_yesno, index_date, clinic_date, control_visit_date, dose1_date, dose2_date)
-
-tt <- data_check %>%
-
-  filter(case_yesno %in% c("1-Confirmed", "2-Probable") & provider_dx == "2-No") %>%
-
-  select(excluded, pid, caco_stat_cat, case_yesno, provider_dx, symptoms_yesno, test_result_date, symptoms_date, clinic_yesno, clinic_date, control_visit_date)
 
 ```
+
+**Results from this yesterday/this morning w/4 weeks: Unadjusted (left-side OR) versus adjusted (right-side OR)**
+
+
+```{r}
+analysis <- mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA","CO", "CT", "DC", "MD", "NYC", "NYS")) %>%
+  mutate(caco = fct_rev(caco),
+         vax_stat_ve = fct_rev(vax_stat_ve))%>% 
+  rename(immunocomp = immunocompromised)
+
+
+mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn +  
+                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+
+tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
+
+
+```
+
+**CO & CT INCLUDED, Immunocomprimised EXCLUDED: Unadjusted (left-side OR) versus adjusted (right-side OR)**
+
+
+```{r}
+analysis <- mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "MD", "NYC", "NYS")) %>%
+  mutate(caco = fct_rev(caco),
+         vax_stat_ve = fct_rev(vax_stat_ve))%>% 
+  rename(immunocomp = immunocompromised)
+
+
+mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn + 
+                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+
+tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
+
+
+```
+
+
+**CO & CT INCLUDED, immunocompromised INCLUDED: Unadjusted (left-side OR) versus adjusted (right-side OR)**
+
+
+```{r}
+analysis <- mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "MD", "NYC", "NYS")) %>%
+  mutate(caco = fct_rev(caco),
+         vax_stat_ve = fct_rev(vax_stat_ve))%>% 
+  rename(immunocomp = immunocompromised)
+
+
+mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn + immunocomp + 
+                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+
+tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
+
+
+```
+
+
+
+## 
