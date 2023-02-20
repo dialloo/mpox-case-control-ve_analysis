@@ -330,9 +330,29 @@ mpoxve <- raw %>%
           
           # Vax status: Site
           vax_stat_na = as.character(NA),
+          vax_stat_acip = fct_relevel(as_factor(case_when(!is.na(index_date) & 
+                                                            (vax1_yesno == 0 &  # no documented vaccination OR Post index event vax
+                                                                 (vax2_yesno == 0 | is.na(vax2_yesno))) ~ "S1: No documentation",
+                                                          vax1_date >= index_date ~ "S2: Post-IE",
+                                                          vax1_yesno == 1 &                 
+                                                             dose1index_days <= 13    ~ "S3: PEP, IE based",
+                                                          (vax1_yesno == 1 & vax2_yesno != 1 & 
+                                                            dose1index_days >= 14)   ~ "S4: Partial, D1 only",
+                                                          (vax1_yesno == 1 & vax2_yesno == 1 &  
+                                                             dose1index_days >= 14 & dose_int <24) ~ "S5: Partial, D1-D2 interval <24d",
+                                                          (vax2_yesno == 1 &                 
+                                                             dose1index_days >= 14 &          
+                                                             dose_int >=24 & dose2index_days < 14) ~ "S6: Partial, D2 <14 before IE",
+                                                     (vax2_yesno == 1 &
+                                                        dose_int >=24 & dose2index_days >= 14) ~ "S7: Full",  
+                                                     TRUE ~ as.character(vax_stat_na))),
+                                 "S1: No documentation", "S2: Post-IE", "S3: PEP, IE based", 
+                                 "S4: Partial, D1 only", "S5: Partial, D1-D2 interval <24d",
+                                 "S6: Partial, D2 <14 before IE", "S7: Full"),
+  
           vax_stat = fct_relevel(as_factor(case_when(!is.na(index_date) & 
                                                        ((vax1_yesno == 0 &  # no documented vaccination OR Post index event vax
-                                                                 is.na(vax2_yesno))|
+                                                                (vax2_yesno == 0 | is.na(vax2_yesno)))|
                                                           (vax1_date >= index_date)) ~ "Unvaccinated",
                                                      (vax1_yesno == 1 &                   # 1 dose but dose1-index date interval < 14 days
                                                            dose1index_days <= 13)    ~ "PEP",
@@ -351,9 +371,16 @@ mpoxve <- raw %>%
     
          # Exclude those who had 2 doses but D1 is <24 days before D2 for VE analysis
          vax_stat_ve = case_when((vax1_yesno == 1 & vax2_yesno == 1 & 
-                                 dose1index_days >= 14 & dose_int <24) | # Scenario 5
-                                  vax_stat == "PEP" ~ NA_character_,
+                                 dose1index_days >= 14 & dose_int <24) | # S5: Partial, D1-D2 interval <24d
+                                  vax_stat == "PEP" ~ NA_character_,     # S3: PEP, IE based
                                  TRUE ~ as.character(vax_stat)),
+  
+        vax_stat_ve_acip = case_when((vax1_yesno == 1 & vax2_yesno == 1 & 
+                                   dose1index_days >= 14 & dose_int <24) | # S5: Partial, D1-D2 interval <24d
+                                  (vax2_yesno == 1 & dose1index_days >= 14 &  
+                                     dose_int >=24 & dose2index_days < 14) |   # S6: Partial, D2 <14 before IE,
+                                  vax_stat == "PEP" ~ NA_character_,     # S3: PEP, IE based
+                                TRUE ~ as.character(vax_stat)),
   
          # Post-exposure prophylaxis
           pep_stat_ve = fct_relevel(as_factor(case_when(why_vax___1 == 1 ~ "PEP-Vaccinated",
@@ -602,32 +629,38 @@ mpoxve <- raw %>%
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------  
-# aa <- mpoxve %>% 
-#         mutate(gonorrhea == )
-#       
-#  tt <- mpoxve %>%
-#         pfreq(caco, sti_case___1, sti_case___2, sti_case___3, sti_case___4, sti_case___5, sti_case_spec)
- 
- 
+  vax_linelist <- mpoxve %>%
+        filter(minset_vars == "Complete") %>% 
+        pfreq(vax_stat, vax_stat_acip, vax1_yesno, vax1_date, index_date, dose1index_days, vax2_yesno,
+              vax2_date, dose2index_days, dose_int) %>% 
+        select(-n, -pct)
+      
+   write.csv(vax_linelist, "vax_linelist_2023-02-13.csv", na = "")
+   
+    # export as csv 
+      
+  analysis_export <- mpoxve %>%
+        filter(minset_vars == "Complete")
+      
+  write.csv(analysis_export, "data/mpoxve_analysis_2023-02-10_na_blanks.csv", na = "")
+   
       
 ```
 
-## **Descriptive Statistics**
+## **Vaccination Status**
 
-**Table 1. Study participant characteristics by case status**
+**Table 1. Study participant characteristics by case status (All sites)**
 
 ```{r}
 mpoxve %>%
   filter(minset_vars == "Complete") %>%
-  select(caco, age_cat, race_ethn_cat, immunocompromised, sex_part_num_cat, close_contact_dx_cat, vax_stat_ve) %>%
+  select(caco, vax_stat_acip, vax_stat_ve_acip, vax_stat, vax_stat_ve) %>%
   tbl_summary(
     by = caco,
-    label = list(age_cat ~ "Age categories",
-                 race_ethn_cat ~ "Ethnicity, race",
-                 immunocompromised ~ "Immunocompromised",
-                 sex_part_num_cat ~ "Number of sexual partners*",
-                 close_contact_dx_cat ~ "Close contact w/conf. or prob. mpox case*",
-                 vax_stat_ve ~ "Vaccination status**"),
+    label = list(vax_stat_acip ~ "Scenarios: 2023-02-13",
+                 vax_stat_ve_acip ~ "VE analysis: 2023-02-13*",
+                 vax_stat ~ "Categories: Pre 2023-02-13 Call",
+                 vax_stat_ve ~ "VE analysis: Pre 2023-02-13 Call**"),
     #missing = "always",
     missing_text = "Missing"
 
@@ -636,25 +669,28 @@ mpoxve %>%
   add_overall() %>%
   bold_labels() %>% 
   as_gt()%>%
-  gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
-  gt::tab_source_note(gt::md("**Missing represent those with <13 days between dose 1 & index event date or <24 days between doses."))
+  gt::tab_source_note(gt::md("*Missing represent scenarios 3, 5 & 6."))%>%
+  gt::tab_source_note(gt::md("**Missing represent scenarios 3 & 5."))
 
 ```
+
+## **Descriptive Statistics**
 
 **Table 2. Study participant characteristics by case status (excluded sites with no cases or controls)**
 
 ```{r}
 mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "MD", "NYC", "NYS")) %>%
-    select(caco, age_cat, race_ethn_cat, immunocompromised, sex_part_num_cat, close_contact_dx_cat, vax_stat_ve) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC", "NYS")) %>%
+  select(caco, age_cat, race_ethn_cat, immunocompromised, #sex_part_num_cat,
+         close_contact_dx_cat, vax_stat_ve_acip) %>%
   tbl_summary(
     by = caco,
     label = list(age_cat ~ "Age categories",
                  race_ethn_cat ~ "Ethnicity, race",
                  immunocompromised ~ "Immunocompromised",
-                 sex_part_num_cat ~ "Number of sexual partners*",
+                 #sex_part_num_cat ~ "Number of sexual partners*",
                  close_contact_dx_cat ~ "Close contact w/conf. or prob. mpox case*",
-                 vax_stat_ve ~ "Vaccination status**"),
+                 vax_stat_ve_acip ~ "Vaccination status**"),
     #missing = "always",
     missing_text = "Missing"
 
@@ -664,121 +700,91 @@ mpoxve %>%
   bold_labels() %>% 
   as_gt()%>%
   gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
-  gt::tab_source_note(gt::md("**Missing represent those with <13 days between dose 1 & index event date or <24 days between doses."))
+  gt::tab_source_note(gt::md("**Missing represent scenarios 3, 5 & 6."))
 
 ```
 
-## **Model 1 Results**
-
-**Results from this yesterday/this morning: Unadjusted (left-side OR) versus adjusted (right-side OR)**
-
+**Table 3. Study participant characteristics by case status (complete data in model)**
 
 ```{r}
-analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA","CO", "CT", "DC", "MD", "NYC", "NYS")) %>%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve)) %>% 
-  rename(immunocomp = immunocompromised)
+mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC", "NYS")) %>%
+  drop_na(caco, vax_stat_ve_acip, age, age_cat, race_ethn_cat, race_ethn, immunocompromised, 
+          close_contact_dx_cat, index_epiyrwk_4) %>% 
+  select(caco, age_cat, race_ethn_cat, immunocompromised, #sex_part_num_cat,
+         close_contact_dx_cat, vax_stat_ve_acip) %>%
+  tbl_summary(
+    by = caco,
+    label = list(age_cat ~ "Age categories",
+                 race_ethn_cat ~ "Ethnicity, race",
+                 immunocompromised ~ "Immunocompromised",
+                 #sex_part_num_cat ~ "Number of sexual partners*",
+                 close_contact_dx_cat ~ "Close contact w/conf. or prob. mpox case*",
+                 vax_stat_ve_acip ~ "Vaccination status**"),
+    #missing = "always",
+    missing_text = "Missing"
 
-
-mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn +  
-                    sex_part_num_cat + close_contact_dx_cat + index_yrmo + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
-
+  )  %>%
+  add_n() %>%
+  add_overall() %>%
+  bold_labels() %>% 
+  as_gt()%>%
+  gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
+  gt::tab_source_note(gt::md("**Missing represent scenarios 3, 5 & 6."))
 
 ```
 
-**Results from this yesterday/this morning w/4 weeks: Unadjusted (left-side OR) versus adjusted (right-side OR)**
+## **Adjusted Model 1 Results**
 
+**Overall**
 
 ```{r}
 analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA","CO", "CT", "DC", "MD", "NYC", "NYS")) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC", "NYS")) %>%
+  drop_na(caco, vax_stat_ve_acip, age, age_cat, race_ethn_cat, race_ethn, immunocompromised, 
+         close_contact_dx_cat, index_epiyrwk_4) %>%
   mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve))%>% 
-  rename(immunocomp = immunocompromised)
+         vax_stat_ve_acip = fct_rev(vax_stat_ve_acip))
 
 
-mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn +  
-                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+mod1_adj <- glmer(formula = caco ~ vax_stat_ve_acip + age + race_ethn +  immunocompromised +
+                    close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
                  family = binomial(link = "logit"),
                  control = glmerControl(optimizer = "bobyqa"),
                  data = analysis)
 
 
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
+tab_model(mod1_adj,  show.aic = T, show.obs = T)
 
 
 ```
 
-**CO & CT INCLUDED, Immunocomprimised EXCLUDED: Unadjusted (left-side OR) versus adjusted (right-side OR)**
+**IC-Yes (left-side OR), IC-No (right-side OR)**
 
 
 ```{r}
-analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "MD", "NYC", "NYS")) %>%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve))%>% 
-  rename(immunocomp = immunocompromised)
+
+analysis_ic_yes <- analysis %>% 
+  filter(immunocompromised == "Yes")
+
+analysis_ic_no <- analysis %>% 
+  filter(immunocompromised == "No")
 
 
-mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
+mod1_adj_ic_yes <- glmer(formula = caco ~ vax_stat_ve_acip + age + race_ethn + 
+                           close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                         family = binomial(link = "logit"),
+                         control = glmerControl(optimizer = "bobyqa"),
+                         data = analysis_ic_yes)
 
-mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn + 
-                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
+mod1_adj_ic_no <- glmer(formula = caco ~ vax_stat_ve_acip + age + race_ethn +  
+                          close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                        family = binomial(link = "logit"),
+                        control = glmerControl(optimizer = "bobyqa"),
+                        data = analysis_ic_no)
 
 
-```
-
-
-**CO & CT INCLUDED, immunocompromised INCLUDED: Unadjusted (left-side OR) versus adjusted (right-side OR)**
-
-
-```{r}
-analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "MD", "NYC", "NYS")) %>%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve))%>% 
-  rename(immunocomp = immunocompromised)
-
-
-mod1_crude_mlm <- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-mod1_adj_mlm <- glmer(formula = caco ~ vax_stat_ve + age + race_ethn + immunocomp + 
-                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
-                 family = binomial(link = "logit"),
-                 control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)
+tab_model(mod1_adj_ic_yes, mod1_adj_ic_no, show.aic = T, show.obs = T)
 
 
 ```

@@ -7,7 +7,7 @@
 
         <meta name="author" content="Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response" />
     
-        <meta name="date" content="2023-02-09" />
+        <meta name="date" content="2023-02-13" />
     
     <title>Preliminary Results: ACIP Meeting</title>
 
@@ -1889,9 +1889,11 @@ margin-left: 0 !important;
             <ul>
             <li><a href="#report-objective" id="toc-report-objective"><strong>Report
             objective</strong></a></li>
+            <li><a href="#vaccination-status" id="toc-vaccination-status"><strong>Vaccination
+            Status</strong></a></li>
             <li><a href="#descriptive-statistics" id="toc-descriptive-statistics"><strong>Descriptive
             Statistics</strong></a></li>
-            <li><a href="#model-1-results" id="toc-model-1-results"><strong>Model 1
+            <li><a href="#adjusted-model-1-results" id="toc-adjusted-model-1-results"><strong>Adjusted Model 1
             Results</strong></a></li>
             <li><a href="#section" id="toc-section"></a></li>
             </ul>
@@ -1919,7 +1921,7 @@ Case-Control VE Public Health Evaluation</h1>
 Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox
 Response
       </p>
-         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 09
+         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 13
 February 2023</p>
            
 
@@ -2227,9 +2229,29 @@ mpoxve &lt;- raw %&gt;%
           
           # Vax status: Site
           vax_stat_na = as.character(NA),
+          vax_stat_acip = fct_relevel(as_factor(case_when(!is.na(index_date) &amp; 
+                                                            (vax1_yesno == 0 &amp;  # no documented vaccination OR Post index event vax
+                                                                 (vax2_yesno == 0 | is.na(vax2_yesno))) ~ &quot;S1: No documentation&quot;,
+                                                          vax1_date &gt;= index_date ~ &quot;S2: Post-IE&quot;,
+                                                          vax1_yesno == 1 &amp;                 
+                                                             dose1index_days &lt;= 13    ~ &quot;S3: PEP, IE based&quot;,
+                                                          (vax1_yesno == 1 &amp; vax2_yesno != 1 &amp; 
+                                                            dose1index_days &gt;= 14)   ~ &quot;S4: Partial, D1 only&quot;,
+                                                          (vax1_yesno == 1 &amp; vax2_yesno == 1 &amp;  
+                                                             dose1index_days &gt;= 14 &amp; dose_int &lt;24) ~ &quot;S5: Partial, D1-D2 interval &lt;24d&quot;,
+                                                          (vax2_yesno == 1 &amp;                 
+                                                             dose1index_days &gt;= 14 &amp;          
+                                                             dose_int &gt;=24 &amp; dose2index_days &lt; 14) ~ &quot;S6: Partial, D2 &lt;14 before IE&quot;,
+                                                     (vax2_yesno == 1 &amp;
+                                                        dose_int &gt;=24 &amp; dose2index_days &gt;= 14) ~ &quot;S7: Full&quot;,  
+                                                     TRUE ~ as.character(vax_stat_na))),
+                                 &quot;S1: No documentation&quot;, &quot;S2: Post-IE&quot;, &quot;S3: PEP, IE based&quot;, 
+                                 &quot;S4: Partial, D1 only&quot;, &quot;S5: Partial, D1-D2 interval &lt;24d&quot;,
+                                 &quot;S6: Partial, D2 &lt;14 before IE&quot;, &quot;S7: Full&quot;),
+  
           vax_stat = fct_relevel(as_factor(case_when(!is.na(index_date) &amp; 
                                                        ((vax1_yesno == 0 &amp;  # no documented vaccination OR Post index event vax
-                                                                 is.na(vax2_yesno))|
+                                                                (vax2_yesno == 0 | is.na(vax2_yesno)))|
                                                           (vax1_date &gt;= index_date)) ~ &quot;Unvaccinated&quot;,
                                                      (vax1_yesno == 1 &amp;                   # 1 dose but dose1-index date interval &lt; 14 days
                                                            dose1index_days &lt;= 13)    ~ &quot;PEP&quot;,
@@ -2248,9 +2270,16 @@ mpoxve &lt;- raw %&gt;%
     
          # Exclude those who had 2 doses but D1 is &lt;24 days before D2 for VE analysis
          vax_stat_ve = case_when((vax1_yesno == 1 &amp; vax2_yesno == 1 &amp; 
-                                 dose1index_days &gt;= 14 &amp; dose_int &lt;24) | # Scenario 5
-                                  vax_stat == &quot;PEP&quot; ~ NA_character_,
+                                 dose1index_days &gt;= 14 &amp; dose_int &lt;24) | # S5: Partial, D1-D2 interval &lt;24d
+                                  vax_stat == &quot;PEP&quot; ~ NA_character_,     # S3: PEP, IE based
                                  TRUE ~ as.character(vax_stat)),
+  
+        vax_stat_ve_acip = case_when((vax1_yesno == 1 &amp; vax2_yesno == 1 &amp; 
+                                   dose1index_days &gt;= 14 &amp; dose_int &lt;24) | # S5: Partial, D1-D2 interval &lt;24d
+                                  (vax2_yesno == 1 &amp; dose1index_days &gt;= 14 &amp;  
+                                     dose_int &gt;=24 &amp; dose2index_days &lt; 14) |   # S6: Partial, D2 &lt;14 before IE,
+                                  vax_stat == &quot;PEP&quot; ~ NA_character_,     # S3: PEP, IE based
+                                TRUE ~ as.character(vax_stat)),
   
          # Post-exposure prophylaxis
           pep_stat_ve = fct_relevel(as_factor(case_when(why_vax___1 == 1 ~ &quot;PEP-Vaccinated&quot;,
@@ -2498,27 +2527,34 @@ mpoxve &lt;- raw %&gt;%
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------  
-# aa &lt;- mpoxve %&gt;% 
-#         mutate(gonorrhea == )
-#       
-#  tt &lt;- mpoxve %&gt;%
-#         pfreq(caco, sti_case___1, sti_case___2, sti_case___3, sti_case___4, sti_case___5, sti_case_spec)</code></pre>
+  vax_linelist &lt;- mpoxve %&gt;%
+        filter(minset_vars == &quot;Complete&quot;) %&gt;% 
+        pfreq(vax_stat, vax_stat_acip, vax1_yesno, vax1_date, index_date, dose1index_days, vax2_yesno,
+              vax2_date, dose2index_days, dose_int) %&gt;% 
+        select(-n, -pct)
+      
+   write.csv(vax_linelist, &quot;vax_linelist_2023-02-13.csv&quot;, na = &quot;&quot;)
+   
+    # export as csv 
+      
+  analysis_export &lt;- mpoxve %&gt;%
+        filter(minset_vars == &quot;Complete&quot;)
+      
+  write.csv(analysis_export, &quot;data/mpoxve_analysis_2023-02-10_na_blanks.csv&quot;, na = &quot;&quot;)</code></pre>
 </div>
-<div id="descriptive-statistics" class="section level2">
-<h2><strong>Descriptive Statistics</strong></h2>
-<p><strong>Table 1. Study participant characteristics by case
-status</strong></p>
+<div id="vaccination-status" class="section level2">
+<h2><strong>Vaccination Status</strong></h2>
+<p><strong>Table 1. Study participant characteristics by case status
+(All sites)</strong></p>
 <pre class="r"><code>mpoxve %&gt;%
   filter(minset_vars == &quot;Complete&quot;) %&gt;%
-  select(caco, age_cat, race_ethn_cat, immunocompromised, sex_part_num_cat, close_contact_dx_cat, vax_stat_ve) %&gt;%
+  select(caco, vax_stat_acip, vax_stat_ve_acip, vax_stat, vax_stat_ve) %&gt;%
   tbl_summary(
     by = caco,
-    label = list(age_cat ~ &quot;Age categories&quot;,
-                 race_ethn_cat ~ &quot;Ethnicity, race&quot;,
-                 immunocompromised ~ &quot;Immunocompromised&quot;,
-                 sex_part_num_cat ~ &quot;Number of sexual partners*&quot;,
-                 close_contact_dx_cat ~ &quot;Close contact w/conf. or prob. mpox case*&quot;,
-                 vax_stat_ve ~ &quot;Vaccination status**&quot;),
+    label = list(vax_stat_acip ~ &quot;Scenarios: 2023-02-13&quot;,
+                 vax_stat_ve_acip ~ &quot;VE analysis: 2023-02-13*&quot;,
+                 vax_stat ~ &quot;Categories: Pre 2023-02-13 Call&quot;,
+                 vax_stat_ve ~ &quot;VE analysis: Pre 2023-02-13 Call**&quot;),
     #missing = &quot;always&quot;,
     missing_text = &quot;Missing&quot;
 
@@ -2527,13 +2563,13 @@ status</strong></p>
   add_overall() %&gt;%
   bold_labels() %&gt;% 
   as_gt()%&gt;%
-  gt::tab_source_note(gt::md(&quot;*Three weeks before diagnosis (case) or clinic visit (controls).&quot;))%&gt;%
-  gt::tab_source_note(gt::md(&quot;**Missing represent those with &lt;13 days between dose 1 &amp; index event date or &lt;24 days between doses.&quot;))</code></pre>
-<div id="mpmqrftrho" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+  gt::tab_source_note(gt::md(&quot;*Missing represent scenarios 3, 5 &amp; 6.&quot;))%&gt;%
+  gt::tab_source_note(gt::md(&quot;**Missing represent scenarios 3 &amp; 5.&quot;))</code></pre>
+<div id="jkmcotaygs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
-#mpmqrftrho .gt_table {
+#jkmcotaygs .gt_table {
 display: table;
 border-collapse: collapse;
 margin-left: auto;
@@ -2557,7 +2593,7 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#mpmqrftrho .gt_heading {
+#jkmcotaygs .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -2568,11 +2604,11 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#mpmqrftrho .gt_caption {
+#jkmcotaygs .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#mpmqrftrho .gt_title {
+#jkmcotaygs .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -2583,7 +2619,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#mpmqrftrho .gt_subtitle {
+#jkmcotaygs .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -2594,12 +2630,12 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#mpmqrftrho .gt_bottom_border {
+#jkmcotaygs .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#mpmqrftrho .gt_col_headings {
+#jkmcotaygs .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -2613,7 +2649,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#mpmqrftrho .gt_col_heading {
+#jkmcotaygs .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -2632,7 +2668,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#mpmqrftrho .gt_column_spanner_outer {
+#jkmcotaygs .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -2643,13 +2679,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#mpmqrftrho .gt_column_spanner_outer:first-child {
+#jkmcotaygs .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#mpmqrftrho .gt_column_spanner_outer:last-child {
+#jkmcotaygs .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#mpmqrftrho .gt_column_spanner {
+#jkmcotaygs .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -2660,7 +2696,7 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#mpmqrftrho .gt_group_heading {
+#jkmcotaygs .gt_group_heading {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -2685,7 +2721,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#mpmqrftrho .gt_empty_group_heading {
+#jkmcotaygs .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -2699,13 +2735,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#mpmqrftrho .gt_from_md > :first-child {
+#jkmcotaygs .gt_from_md > :first-child {
 margin-top: 0;
 }
-#mpmqrftrho .gt_from_md > :last-child {
+#jkmcotaygs .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#mpmqrftrho .gt_row {
+#jkmcotaygs .gt_row {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -2723,7 +2759,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#mpmqrftrho .gt_stub {
+#jkmcotaygs .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -2735,7 +2771,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mpmqrftrho .gt_stub_row_group {
+#jkmcotaygs .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -2748,10 +2784,10 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#mpmqrftrho .gt_row_group_first td {
+#jkmcotaygs .gt_row_group_first td {
 border-top-width: 2px;
 }
-#mpmqrftrho .gt_summary_row {
+#jkmcotaygs .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -2760,14 +2796,14 @@ padding-bottom: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mpmqrftrho .gt_first_summary_row {
+#jkmcotaygs .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#mpmqrftrho .gt_first_summary_row.thick {
+#jkmcotaygs .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#mpmqrftrho .gt_last_summary_row {
+#jkmcotaygs .gt_last_summary_row {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -2776,7 +2812,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#mpmqrftrho .gt_grand_summary_row {
+#jkmcotaygs .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -2785,7 +2821,7 @@ padding-bottom: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mpmqrftrho .gt_first_grand_summary_row {
+#jkmcotaygs .gt_first_grand_summary_row {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -2794,10 +2830,10 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#mpmqrftrho .gt_striped {
+#jkmcotaygs .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#mpmqrftrho .gt_table_body {
+#jkmcotaygs .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -2805,7 +2841,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#mpmqrftrho .gt_footnotes {
+#jkmcotaygs .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -2818,7 +2854,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#mpmqrftrho .gt_footnote {
+#jkmcotaygs .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-left: 1px;
@@ -2826,7 +2862,7 @@ padding-right: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mpmqrftrho .gt_sourcenotes {
+#jkmcotaygs .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -2839,58 +2875,58 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#mpmqrftrho .gt_sourcenote {
+#jkmcotaygs .gt_sourcenote {
 font-size: 90%;
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mpmqrftrho .gt_left {
+#jkmcotaygs .gt_left {
 text-align: left;
 }
-#mpmqrftrho .gt_center {
+#jkmcotaygs .gt_center {
 text-align: center;
 }
-#mpmqrftrho .gt_right {
+#jkmcotaygs .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#mpmqrftrho .gt_font_normal {
+#jkmcotaygs .gt_font_normal {
 font-weight: normal;
 }
-#mpmqrftrho .gt_font_bold {
+#jkmcotaygs .gt_font_bold {
 font-weight: bold;
 }
-#mpmqrftrho .gt_font_italic {
+#jkmcotaygs .gt_font_italic {
 font-style: italic;
 }
-#mpmqrftrho .gt_super {
+#jkmcotaygs .gt_super {
 font-size: 65%;
 }
-#mpmqrftrho .gt_footnote_marks {
+#jkmcotaygs .gt_footnote_marks {
 font-style: italic;
 font-weight: normal;
 font-size: 75%;
 vertical-align: 0.4em;
 }
-#mpmqrftrho .gt_asterisk {
+#jkmcotaygs .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#mpmqrftrho .gt_indent_1 {
+#jkmcotaygs .gt_indent_1 {
 text-indent: 5px;
 }
-#mpmqrftrho .gt_indent_2 {
+#jkmcotaygs .gt_indent_2 {
 text-indent: 10px;
 }
-#mpmqrftrho .gt_indent_3 {
+#jkmcotaygs .gt_indent_3 {
 text-indent: 15px;
 }
-#mpmqrftrho .gt_indent_4 {
+#jkmcotaygs .gt_indent_4 {
 text-indent: 20px;
 }
-#mpmqrftrho .gt_indent_5 {
+#jkmcotaygs .gt_indent_5 {
 text-indent: 25px;
 }
 </style>
@@ -2906,138 +2942,98 @@ text-indent: 25px;
     </tr>
   </thead>
   <tbody class="gt_table_body">
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Age categories, n (%)</td>
-<td headers="n" class="gt_row gt_center">601</td>
-<td headers="stat_0" class="gt_row gt_center"></td>
-<td headers="stat_1" class="gt_row gt_center"></td>
-<td headers="stat_2" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    18-29</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">153 (25)</td>
-<td headers="stat_1" class="gt_row gt_center">46 (22)</td>
-<td headers="stat_2" class="gt_row gt_center">107 (27)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    30-39</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">295 (49)</td>
-<td headers="stat_1" class="gt_row gt_center">101 (48)</td>
-<td headers="stat_2" class="gt_row gt_center">194 (49)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    40-49</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">153 (25)</td>
-<td headers="stat_1" class="gt_row gt_center">62 (30)</td>
-<td headers="stat_2" class="gt_row gt_center">91 (23)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Missing</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">1</td>
-<td headers="stat_1" class="gt_row gt_center">1</td>
-<td headers="stat_2" class="gt_row gt_center">0</td></tr>
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Ethnicity, race, n (%)</td>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Scenarios: 2023-02-13, n (%)</td>
 <td headers="n" class="gt_row gt_center">602</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Black</td>
+    <tr><td headers="label" class="gt_row gt_left">    S1: No documentation</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">103 (17)</td>
-<td headers="stat_1" class="gt_row gt_center">53 (25)</td>
-<td headers="stat_2" class="gt_row gt_center">50 (13)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    White</td>
+<td headers="stat_0" class="gt_row gt_center">166 (28)</td>
+<td headers="stat_1" class="gt_row gt_center">124 (59)</td>
+<td headers="stat_2" class="gt_row gt_center">42 (11)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    S2: Post-IE</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">281 (47)</td>
-<td headers="stat_1" class="gt_row gt_center">67 (32)</td>
-<td headers="stat_2" class="gt_row gt_center">214 (55)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Hispanic</td>
+<td headers="stat_0" class="gt_row gt_center">87 (14)</td>
+<td headers="stat_1" class="gt_row gt_center">18 (8.6)</td>
+<td headers="stat_2" class="gt_row gt_center">69 (18)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    S3: PEP, IE based</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">148 (25)</td>
-<td headers="stat_1" class="gt_row gt_center">69 (33)</td>
-<td headers="stat_2" class="gt_row gt_center">79 (20)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Asian</td>
+<td headers="stat_0" class="gt_row gt_center">55 (9.1)</td>
+<td headers="stat_1" class="gt_row gt_center">24 (11)</td>
+<td headers="stat_2" class="gt_row gt_center">31 (7.9)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    S4: Partial, D1 only</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">26 (4.3)</td>
-<td headers="stat_1" class="gt_row gt_center">5 (2.4)</td>
-<td headers="stat_2" class="gt_row gt_center">21 (5.4)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Native Hawaiin/Pacific Islander</td>
+<td headers="stat_0" class="gt_row gt_center">34 (5.6)</td>
+<td headers="stat_1" class="gt_row gt_center">19 (9.0)</td>
+<td headers="stat_2" class="gt_row gt_center">15 (3.8)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    S5: Partial, D1-D2 interval &lt;24d</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">3 (0.5)</td>
-<td headers="stat_1" class="gt_row gt_center">3 (1.4)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    American Indian/Alaska Native</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">5 (0.8)</td>
-<td headers="stat_1" class="gt_row gt_center">2 (1.0)</td>
-<td headers="stat_2" class="gt_row gt_center">3 (0.8)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Multiracial</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">25 (4.2)</td>
-<td headers="stat_1" class="gt_row gt_center">6 (2.9)</td>
-<td headers="stat_2" class="gt_row gt_center">19 (4.8)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Other</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">11 (1.8)</td>
-<td headers="stat_1" class="gt_row gt_center">5 (2.4)</td>
+<td headers="stat_0" class="gt_row gt_center">6 (1.0)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0)</td>
 <td headers="stat_2" class="gt_row gt_center">6 (1.5)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Immunocompromised, n (%)</td>
-<td headers="n" class="gt_row gt_center">602</td>
-<td headers="stat_0" class="gt_row gt_center">197 (33)</td>
-<td headers="stat_1" class="gt_row gt_center">104 (50)</td>
-<td headers="stat_2" class="gt_row gt_center">93 (24)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Number of sexual partners*, n (%)</td>
-<td headers="n" class="gt_row gt_center">516</td>
+    <tr><td headers="label" class="gt_row gt_left">    S6: Partial, D2 &lt;14 before IE</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">119 (20)</td>
+<td headers="stat_1" class="gt_row gt_center">6 (2.9)</td>
+<td headers="stat_2" class="gt_row gt_center">113 (29)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    S7: Full</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">135 (22)</td>
+<td headers="stat_1" class="gt_row gt_center">19 (9.0)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (30)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">VE analysis: 2023-02-13*, n (%)</td>
+<td headers="n" class="gt_row gt_center">422</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    0</td>
+    <tr><td headers="label" class="gt_row gt_left">    Fully vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">20 (3.9)</td>
-<td headers="stat_1" class="gt_row gt_center">12 (6.2)</td>
-<td headers="stat_2" class="gt_row gt_center">8 (2.5)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
+<td headers="stat_0" class="gt_row gt_center">135 (32)</td>
+<td headers="stat_1" class="gt_row gt_center">19 (11)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (48)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Partially vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">99 (19)</td>
-<td headers="stat_1" class="gt_row gt_center">36 (18)</td>
-<td headers="stat_2" class="gt_row gt_center">63 (20)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    2</td>
+<td headers="stat_0" class="gt_row gt_center">34 (8.1)</td>
+<td headers="stat_1" class="gt_row gt_center">19 (11)</td>
+<td headers="stat_2" class="gt_row gt_center">15 (6.2)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unvaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">121 (23)</td>
-<td headers="stat_1" class="gt_row gt_center">42 (22)</td>
-<td headers="stat_2" class="gt_row gt_center">79 (25)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    3</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">96 (19)</td>
-<td headers="stat_1" class="gt_row gt_center">42 (22)</td>
-<td headers="stat_2" class="gt_row gt_center">54 (17)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    ≥4</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">180 (35)</td>
-<td headers="stat_1" class="gt_row gt_center">63 (32)</td>
-<td headers="stat_2" class="gt_row gt_center">117 (36)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">253 (60)</td>
+<td headers="stat_1" class="gt_row gt_center">142 (79)</td>
+<td headers="stat_2" class="gt_row gt_center">111 (46)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Missing</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">86</td>
-<td headers="stat_1" class="gt_row gt_center">15</td>
-<td headers="stat_2" class="gt_row gt_center">71</td></tr>
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Close contact w/conf. or prob. mpox case*, n (%)</td>
+<td headers="stat_0" class="gt_row gt_center">180</td>
+<td headers="stat_1" class="gt_row gt_center">30</td>
+<td headers="stat_2" class="gt_row gt_center">150</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Categories: Pre 2023-02-13 Call, n (%)</td>
 <td headers="n" class="gt_row gt_center">602</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Yes</td>
+    <tr><td headers="label" class="gt_row gt_left">    Fully vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">65 (11)</td>
-<td headers="stat_1" class="gt_row gt_center">48 (23)</td>
-<td headers="stat_2" class="gt_row gt_center">17 (4.3)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    No</td>
+<td headers="stat_0" class="gt_row gt_center">135 (22)</td>
+<td headers="stat_1" class="gt_row gt_center">19 (9.0)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (30)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Partially vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">321 (53)</td>
-<td headers="stat_1" class="gt_row gt_center">61 (29)</td>
-<td headers="stat_2" class="gt_row gt_center">260 (66)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Don&#39;t know</td>
+<td headers="stat_0" class="gt_row gt_center">159 (26)</td>
+<td headers="stat_1" class="gt_row gt_center">25 (12)</td>
+<td headers="stat_2" class="gt_row gt_center">134 (34)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    PEP</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">216 (36)</td>
-<td headers="stat_1" class="gt_row gt_center">101 (48)</td>
-<td headers="stat_2" class="gt_row gt_center">115 (29)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Vaccination status**, n (%)</td>
-<td headers="n" class="gt_row gt_center">538</td>
+<td headers="stat_0" class="gt_row gt_center">55 (9.1)</td>
+<td headers="stat_1" class="gt_row gt_center">24 (11)</td>
+<td headers="stat_2" class="gt_row gt_center">31 (7.9)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unvaccinated</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">253 (42)</td>
+<td headers="stat_1" class="gt_row gt_center">142 (68)</td>
+<td headers="stat_2" class="gt_row gt_center">111 (28)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">VE analysis: Pre 2023-02-13 Call**, n (%)</td>
+<td headers="n" class="gt_row gt_center">541</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
@@ -3049,25 +3045,25 @@ text-indent: 25px;
     <tr><td headers="label" class="gt_row gt_left">    Partially vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
 <td headers="stat_0" class="gt_row gt_center">153 (28)</td>
-<td headers="stat_1" class="gt_row gt_center">25 (14)</td>
+<td headers="stat_1" class="gt_row gt_center">25 (13)</td>
 <td headers="stat_2" class="gt_row gt_center">128 (36)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unvaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">250 (46)</td>
-<td headers="stat_1" class="gt_row gt_center">139 (76)</td>
+<td headers="stat_0" class="gt_row gt_center">253 (47)</td>
+<td headers="stat_1" class="gt_row gt_center">142 (76)</td>
 <td headers="stat_2" class="gt_row gt_center">111 (31)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Missing</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">64</td>
-<td headers="stat_1" class="gt_row gt_center">27</td>
+<td headers="stat_0" class="gt_row gt_center">61</td>
+<td headers="stat_1" class="gt_row gt_center">24</td>
 <td headers="stat_2" class="gt_row gt_center">37</td></tr>
   </tbody>
   <tfoot class="gt_sourcenotes">
     <tr>
-      <td class="gt_sourcenote" colspan="5">*Three weeks before diagnosis (case) or clinic visit (controls).</td>
+      <td class="gt_sourcenote" colspan="5">*Missing represent scenarios 3, 5 &amp; 6.</td>
     </tr>
     <tr>
-      <td class="gt_sourcenote" colspan="5">**Missing represent those with &lt;13 days between dose 1 &amp; index event date or &lt;24 days between doses.</td>
+      <td class="gt_sourcenote" colspan="5">**Missing represent scenarios 3 &amp; 5.</td>
     </tr>
   </tfoot>
   <tfoot class="gt_footnotes">
@@ -3077,19 +3073,23 @@ text-indent: 25px;
   </tfoot>
 </table>
 </div>
+</div>
+<div id="descriptive-statistics" class="section level2">
+<h2><strong>Descriptive Statistics</strong></h2>
 <p><strong>Table 2. Study participant characteristics by case status
 (excluded sites with no cases or controls)</strong></p>
 <pre class="r"><code>mpoxve %&gt;%
-  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;, &quot;DC&quot;, &quot;MD&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
-    select(caco, age_cat, race_ethn_cat, immunocompromised, sex_part_num_cat, close_contact_dx_cat, vax_stat_ve) %&gt;%
+  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;, &quot;DC&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
+  select(caco, age_cat, race_ethn_cat, immunocompromised, #sex_part_num_cat,
+         close_contact_dx_cat, vax_stat_ve_acip) %&gt;%
   tbl_summary(
     by = caco,
     label = list(age_cat ~ &quot;Age categories&quot;,
                  race_ethn_cat ~ &quot;Ethnicity, race&quot;,
                  immunocompromised ~ &quot;Immunocompromised&quot;,
-                 sex_part_num_cat ~ &quot;Number of sexual partners*&quot;,
+                 #sex_part_num_cat ~ &quot;Number of sexual partners*&quot;,
                  close_contact_dx_cat ~ &quot;Close contact w/conf. or prob. mpox case*&quot;,
-                 vax_stat_ve ~ &quot;Vaccination status**&quot;),
+                 vax_stat_ve_acip ~ &quot;Vaccination status**&quot;),
     #missing = &quot;always&quot;,
     missing_text = &quot;Missing&quot;
 
@@ -3099,12 +3099,12 @@ text-indent: 25px;
   bold_labels() %&gt;% 
   as_gt()%&gt;%
   gt::tab_source_note(gt::md(&quot;*Three weeks before diagnosis (case) or clinic visit (controls).&quot;))%&gt;%
-  gt::tab_source_note(gt::md(&quot;**Missing represent those with &lt;13 days between dose 1 &amp; index event date or &lt;24 days between doses.&quot;))</code></pre>
-<div id="mucarrmqzd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+  gt::tab_source_note(gt::md(&quot;**Missing represent scenarios 3, 5 &amp; 6.&quot;))</code></pre>
+<div id="xmalwxzstt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
-#mucarrmqzd .gt_table {
+#xmalwxzstt .gt_table {
 display: table;
 border-collapse: collapse;
 margin-left: auto;
@@ -3128,7 +3128,7 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#mucarrmqzd .gt_heading {
+#xmalwxzstt .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -3139,11 +3139,11 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#mucarrmqzd .gt_caption {
+#xmalwxzstt .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#mucarrmqzd .gt_title {
+#xmalwxzstt .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -3154,7 +3154,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#mucarrmqzd .gt_subtitle {
+#xmalwxzstt .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -3165,12 +3165,12 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#mucarrmqzd .gt_bottom_border {
+#xmalwxzstt .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#mucarrmqzd .gt_col_headings {
+#xmalwxzstt .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -3184,7 +3184,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#mucarrmqzd .gt_col_heading {
+#xmalwxzstt .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3203,7 +3203,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#mucarrmqzd .gt_column_spanner_outer {
+#xmalwxzstt .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3214,13 +3214,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#mucarrmqzd .gt_column_spanner_outer:first-child {
+#xmalwxzstt .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#mucarrmqzd .gt_column_spanner_outer:last-child {
+#xmalwxzstt .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#mucarrmqzd .gt_column_spanner {
+#xmalwxzstt .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -3231,7 +3231,7 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#mucarrmqzd .gt_group_heading {
+#xmalwxzstt .gt_group_heading {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -3256,7 +3256,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#mucarrmqzd .gt_empty_group_heading {
+#xmalwxzstt .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -3270,13 +3270,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#mucarrmqzd .gt_from_md > :first-child {
+#xmalwxzstt .gt_from_md > :first-child {
 margin-top: 0;
 }
-#mucarrmqzd .gt_from_md > :last-child {
+#xmalwxzstt .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#mucarrmqzd .gt_row {
+#xmalwxzstt .gt_row {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -3294,7 +3294,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#mucarrmqzd .gt_stub {
+#xmalwxzstt .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3306,7 +3306,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mucarrmqzd .gt_stub_row_group {
+#xmalwxzstt .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -3319,10 +3319,10 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#mucarrmqzd .gt_row_group_first td {
+#xmalwxzstt .gt_row_group_first td {
 border-top-width: 2px;
 }
-#mucarrmqzd .gt_summary_row {
+#xmalwxzstt .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -3331,14 +3331,14 @@ padding-bottom: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mucarrmqzd .gt_first_summary_row {
+#xmalwxzstt .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#mucarrmqzd .gt_first_summary_row.thick {
+#xmalwxzstt .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#mucarrmqzd .gt_last_summary_row {
+#xmalwxzstt .gt_last_summary_row {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -3347,7 +3347,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#mucarrmqzd .gt_grand_summary_row {
+#xmalwxzstt .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -3356,7 +3356,7 @@ padding-bottom: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mucarrmqzd .gt_first_grand_summary_row {
+#xmalwxzstt .gt_first_grand_summary_row {
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
@@ -3365,10 +3365,10 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#mucarrmqzd .gt_striped {
+#xmalwxzstt .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#mucarrmqzd .gt_table_body {
+#xmalwxzstt .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -3376,7 +3376,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#mucarrmqzd .gt_footnotes {
+#xmalwxzstt .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -3389,7 +3389,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#mucarrmqzd .gt_footnote {
+#xmalwxzstt .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-left: 1px;
@@ -3397,7 +3397,7 @@ padding-right: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mucarrmqzd .gt_sourcenotes {
+#xmalwxzstt .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -3410,58 +3410,58 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#mucarrmqzd .gt_sourcenote {
+#xmalwxzstt .gt_sourcenote {
 font-size: 90%;
 padding-top: 1px;
 padding-bottom: 1px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#mucarrmqzd .gt_left {
+#xmalwxzstt .gt_left {
 text-align: left;
 }
-#mucarrmqzd .gt_center {
+#xmalwxzstt .gt_center {
 text-align: center;
 }
-#mucarrmqzd .gt_right {
+#xmalwxzstt .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#mucarrmqzd .gt_font_normal {
+#xmalwxzstt .gt_font_normal {
 font-weight: normal;
 }
-#mucarrmqzd .gt_font_bold {
+#xmalwxzstt .gt_font_bold {
 font-weight: bold;
 }
-#mucarrmqzd .gt_font_italic {
+#xmalwxzstt .gt_font_italic {
 font-style: italic;
 }
-#mucarrmqzd .gt_super {
+#xmalwxzstt .gt_super {
 font-size: 65%;
 }
-#mucarrmqzd .gt_footnote_marks {
+#xmalwxzstt .gt_footnote_marks {
 font-style: italic;
 font-weight: normal;
 font-size: 75%;
 vertical-align: 0.4em;
 }
-#mucarrmqzd .gt_asterisk {
+#xmalwxzstt .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#mucarrmqzd .gt_indent_1 {
+#xmalwxzstt .gt_indent_1 {
 text-indent: 5px;
 }
-#mucarrmqzd .gt_indent_2 {
+#xmalwxzstt .gt_indent_2 {
 text-indent: 10px;
 }
-#mucarrmqzd .gt_indent_3 {
+#xmalwxzstt .gt_indent_3 {
 text-indent: 15px;
 }
-#mucarrmqzd .gt_indent_4 {
+#xmalwxzstt .gt_indent_4 {
 text-indent: 20px;
 }
-#mucarrmqzd .gt_indent_5 {
+#xmalwxzstt .gt_indent_5 {
 text-indent: 25px;
 }
 </style>
@@ -3471,174 +3471,668 @@ text-indent: 25px;
     <tr>
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Characteristic&lt;/strong&gt;"><strong>Characteristic</strong></th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;N&lt;/strong&gt;"><strong>N</strong></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Overall&lt;/strong&gt;, N = 561&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>Overall</strong>, N = 561<sup class="gt_footnote_marks">1</sup></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Case&lt;/strong&gt;, N = 176"><strong>Case</strong>, N = 176</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Control&lt;/strong&gt;, N = 385"><strong>Control</strong>, N = 385</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Overall&lt;/strong&gt;, N = 582&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>Overall</strong>, N = 582<sup class="gt_footnote_marks">1</sup></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Case&lt;/strong&gt;, N = 190"><strong>Case</strong>, N = 190</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Control&lt;/strong&gt;, N = 392"><strong>Control</strong>, N = 392</th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Age categories, n (%)</td>
-<td headers="n" class="gt_row gt_center">560</td>
+<td headers="n" class="gt_row gt_center">581</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    18-29</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">145 (26)</td>
-<td headers="stat_1" class="gt_row gt_center">41 (23)</td>
-<td headers="stat_2" class="gt_row gt_center">104 (27)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">148 (25)</td>
+<td headers="stat_1" class="gt_row gt_center">41 (22)</td>
+<td headers="stat_2" class="gt_row gt_center">107 (27)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    30-39</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">276 (49)</td>
-<td headers="stat_1" class="gt_row gt_center">86 (49)</td>
-<td headers="stat_2" class="gt_row gt_center">190 (49)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">287 (49)</td>
+<td headers="stat_1" class="gt_row gt_center">93 (49)</td>
+<td headers="stat_2" class="gt_row gt_center">194 (49)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    40-49</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">139 (25)</td>
-<td headers="stat_1" class="gt_row gt_center">48 (27)</td>
-<td headers="stat_2" class="gt_row gt_center">91 (24)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">146 (25)</td>
+<td headers="stat_1" class="gt_row gt_center">55 (29)</td>
+<td headers="stat_2" class="gt_row gt_center">91 (23)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Missing</td>
 <td headers="n" class="gt_row gt_center"></td>
 <td headers="stat_0" class="gt_row gt_center">1</td>
 <td headers="stat_1" class="gt_row gt_center">1</td>
 <td headers="stat_2" class="gt_row gt_center">0</td></tr>
     <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Ethnicity, race, n (%)</td>
-<td headers="n" class="gt_row gt_center">561</td>
+<td headers="n" class="gt_row gt_center">582</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Black</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">94 (17)</td>
-<td headers="stat_1" class="gt_row gt_center">45 (26)</td>
-<td headers="stat_2" class="gt_row gt_center">49 (13)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">101 (17)</td>
+<td headers="stat_1" class="gt_row gt_center">51 (27)</td>
+<td headers="stat_2" class="gt_row gt_center">50 (13)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    White</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">259 (46)</td>
-<td headers="stat_1" class="gt_row gt_center">51 (29)</td>
-<td headers="stat_2" class="gt_row gt_center">208 (54)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">269 (46)</td>
+<td headers="stat_1" class="gt_row gt_center">55 (29)</td>
+<td headers="stat_2" class="gt_row gt_center">214 (55)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Hispanic</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">143 (25)</td>
-<td headers="stat_1" class="gt_row gt_center">64 (36)</td>
-<td headers="stat_2" class="gt_row gt_center">79 (21)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">145 (25)</td>
+<td headers="stat_1" class="gt_row gt_center">66 (35)</td>
+<td headers="stat_2" class="gt_row gt_center">79 (20)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">26 (4.6)</td>
-<td headers="stat_1" class="gt_row gt_center">5 (2.8)</td>
-<td headers="stat_2" class="gt_row gt_center">21 (5.5)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">26 (4.5)</td>
+<td headers="stat_1" class="gt_row gt_center">5 (2.6)</td>
+<td headers="stat_2" class="gt_row gt_center">21 (5.4)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Native Hawaiin/Pacific Islander</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">2 (0.4)</td>
-<td headers="stat_1" class="gt_row gt_center">2 (1.1)</td>
+<td headers="stat_0" class="gt_row gt_center">3 (0.5)</td>
+<td headers="stat_1" class="gt_row gt_center">3 (1.6)</td>
 <td headers="stat_2" class="gt_row gt_center">0 (0)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    American Indian/Alaska Native</td>
 <td headers="n" class="gt_row gt_center"></td>
 <td headers="stat_0" class="gt_row gt_center">4 (0.7)</td>
-<td headers="stat_1" class="gt_row gt_center">1 (0.6)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (0.5)</td>
 <td headers="stat_2" class="gt_row gt_center">3 (0.8)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Multiracial</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">24 (4.3)</td>
-<td headers="stat_1" class="gt_row gt_center">5 (2.8)</td>
-<td headers="stat_2" class="gt_row gt_center">19 (4.9)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">24 (4.1)</td>
+<td headers="stat_1" class="gt_row gt_center">5 (2.6)</td>
+<td headers="stat_2" class="gt_row gt_center">19 (4.8)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Other</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">9 (1.6)</td>
-<td headers="stat_1" class="gt_row gt_center">3 (1.7)</td>
-<td headers="stat_2" class="gt_row gt_center">6 (1.6)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">10 (1.7)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (2.1)</td>
+<td headers="stat_2" class="gt_row gt_center">6 (1.5)</td></tr>
     <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Immunocompromised, n (%)</td>
-<td headers="n" class="gt_row gt_center">561</td>
-<td headers="stat_0" class="gt_row gt_center">183 (33)</td>
-<td headers="stat_1" class="gt_row gt_center">91 (52)</td>
-<td headers="stat_2" class="gt_row gt_center">92 (24)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Number of sexual partners*, n (%)</td>
-<td headers="n" class="gt_row gt_center">478</td>
-<td headers="stat_0" class="gt_row gt_center"></td>
-<td headers="stat_1" class="gt_row gt_center"></td>
-<td headers="stat_2" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">19 (4.0)</td>
-<td headers="stat_1" class="gt_row gt_center">11 (6.7)</td>
-<td headers="stat_2" class="gt_row gt_center">8 (2.5)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">93 (19)</td>
-<td headers="stat_1" class="gt_row gt_center">30 (18)</td>
-<td headers="stat_2" class="gt_row gt_center">63 (20)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    2</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">111 (23)</td>
-<td headers="stat_1" class="gt_row gt_center">33 (20)</td>
-<td headers="stat_2" class="gt_row gt_center">78 (25)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    3</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">88 (18)</td>
-<td headers="stat_1" class="gt_row gt_center">36 (22)</td>
-<td headers="stat_2" class="gt_row gt_center">52 (17)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    ≥4</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">167 (35)</td>
-<td headers="stat_1" class="gt_row gt_center">53 (33)</td>
-<td headers="stat_2" class="gt_row gt_center">114 (36)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Missing</td>
-<td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">83</td>
-<td headers="stat_1" class="gt_row gt_center">13</td>
-<td headers="stat_2" class="gt_row gt_center">70</td></tr>
+<td headers="n" class="gt_row gt_center">582</td>
+<td headers="stat_0" class="gt_row gt_center">191 (33)</td>
+<td headers="stat_1" class="gt_row gt_center">98 (52)</td>
+<td headers="stat_2" class="gt_row gt_center">93 (24)</td></tr>
     <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Close contact w/conf. or prob. mpox case*, n (%)</td>
-<td headers="n" class="gt_row gt_center">561</td>
+<td headers="n" class="gt_row gt_center">582</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Yes</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">53 (9.4)</td>
-<td headers="stat_1" class="gt_row gt_center">37 (21)</td>
-<td headers="stat_2" class="gt_row gt_center">16 (4.2)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">59 (10)</td>
+<td headers="stat_1" class="gt_row gt_center">42 (22)</td>
+<td headers="stat_2" class="gt_row gt_center">17 (4.3)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    No</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">310 (55)</td>
-<td headers="stat_1" class="gt_row gt_center">54 (31)</td>
-<td headers="stat_2" class="gt_row gt_center">256 (66)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">317 (54)</td>
+<td headers="stat_1" class="gt_row gt_center">57 (30)</td>
+<td headers="stat_2" class="gt_row gt_center">260 (66)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Don&#39;t know</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">198 (35)</td>
-<td headers="stat_1" class="gt_row gt_center">85 (48)</td>
-<td headers="stat_2" class="gt_row gt_center">113 (29)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">206 (35)</td>
+<td headers="stat_1" class="gt_row gt_center">91 (48)</td>
+<td headers="stat_2" class="gt_row gt_center">115 (29)</td></tr>
     <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Vaccination status**, n (%)</td>
-<td headers="n" class="gt_row gt_center">503</td>
+<td headers="n" class="gt_row gt_center">403</td>
 <td headers="stat_0" class="gt_row gt_center"></td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Fully vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">124 (25)</td>
-<td headers="stat_1" class="gt_row gt_center">12 (7.8)</td>
-<td headers="stat_2" class="gt_row gt_center">112 (32)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">130 (32)</td>
+<td headers="stat_1" class="gt_row gt_center">14 (8.7)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (48)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Partially vaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">148 (29)</td>
-<td headers="stat_1" class="gt_row gt_center">20 (13)</td>
-<td headers="stat_2" class="gt_row gt_center">128 (37)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">33 (8.2)</td>
+<td headers="stat_1" class="gt_row gt_center">18 (11)</td>
+<td headers="stat_2" class="gt_row gt_center">15 (6.2)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unvaccinated</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">231 (46)</td>
-<td headers="stat_1" class="gt_row gt_center">121 (79)</td>
-<td headers="stat_2" class="gt_row gt_center">110 (31)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">240 (60)</td>
+<td headers="stat_1" class="gt_row gt_center">129 (80)</td>
+<td headers="stat_2" class="gt_row gt_center">111 (46)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Missing</td>
 <td headers="n" class="gt_row gt_center"></td>
-<td headers="stat_0" class="gt_row gt_center">58</td>
-<td headers="stat_1" class="gt_row gt_center">23</td>
-<td headers="stat_2" class="gt_row gt_center">35</td></tr>
+<td headers="stat_0" class="gt_row gt_center">179</td>
+<td headers="stat_1" class="gt_row gt_center">29</td>
+<td headers="stat_2" class="gt_row gt_center">150</td></tr>
   </tbody>
   <tfoot class="gt_sourcenotes">
     <tr>
       <td class="gt_sourcenote" colspan="5">*Three weeks before diagnosis (case) or clinic visit (controls).</td>
     </tr>
     <tr>
-      <td class="gt_sourcenote" colspan="5">**Missing represent those with &lt;13 days between dose 1 &amp; index event date or &lt;24 days between doses.</td>
+      <td class="gt_sourcenote" colspan="5">**Missing represent scenarios 3, 5 &amp; 6.</td>
+    </tr>
+  </tfoot>
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="5"><sup class="gt_footnote_marks">1</sup> n (%)</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+<p><strong>Table 3. Study participant characteristics by case status
+(complete data in model)</strong></p>
+<pre class="r"><code>mpoxve %&gt;%
+  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;, &quot;DC&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
+  drop_na(caco, vax_stat_ve_acip, age, age_cat, race_ethn_cat, race_ethn, immunocompromised, 
+          close_contact_dx_cat, index_epiyrwk_4) %&gt;% 
+  select(caco, age_cat, race_ethn_cat, immunocompromised, #sex_part_num_cat,
+         close_contact_dx_cat, vax_stat_ve_acip) %&gt;%
+  tbl_summary(
+    by = caco,
+    label = list(age_cat ~ &quot;Age categories&quot;,
+                 race_ethn_cat ~ &quot;Ethnicity, race&quot;,
+                 immunocompromised ~ &quot;Immunocompromised&quot;,
+                 #sex_part_num_cat ~ &quot;Number of sexual partners*&quot;,
+                 close_contact_dx_cat ~ &quot;Close contact w/conf. or prob. mpox case*&quot;,
+                 vax_stat_ve_acip ~ &quot;Vaccination status**&quot;),
+    #missing = &quot;always&quot;,
+    missing_text = &quot;Missing&quot;
+
+  )  %&gt;%
+  add_n() %&gt;%
+  add_overall() %&gt;%
+  bold_labels() %&gt;% 
+  as_gt()%&gt;%
+  gt::tab_source_note(gt::md(&quot;*Three weeks before diagnosis (case) or clinic visit (controls).&quot;))%&gt;%
+  gt::tab_source_note(gt::md(&quot;**Missing represent scenarios 3, 5 &amp; 6.&quot;))</code></pre>
+<div id="uzysrkajgy" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+#uzysrkajgy .gt_table {
+display: table;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 13px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#uzysrkajgy .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#uzysrkajgy .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#uzysrkajgy .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#uzysrkajgy .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 0;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#uzysrkajgy .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#uzysrkajgy .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#uzysrkajgy .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#uzysrkajgy .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#uzysrkajgy .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#uzysrkajgy .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#uzysrkajgy .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#uzysrkajgy .gt_group_heading {
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#uzysrkajgy .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#uzysrkajgy .gt_from_md > :first-child {
+margin-top: 0;
+}
+#uzysrkajgy .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#uzysrkajgy .gt_row {
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#uzysrkajgy .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#uzysrkajgy .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#uzysrkajgy .gt_row_group_first td {
+border-top-width: 2px;
+}
+#uzysrkajgy .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#uzysrkajgy .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#uzysrkajgy .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#uzysrkajgy .gt_last_summary_row {
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#uzysrkajgy .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#uzysrkajgy .gt_first_grand_summary_row {
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#uzysrkajgy .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#uzysrkajgy .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#uzysrkajgy .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#uzysrkajgy .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-left: 1px;
+padding-right: 1px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#uzysrkajgy .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#uzysrkajgy .gt_sourcenote {
+font-size: 90%;
+padding-top: 1px;
+padding-bottom: 1px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#uzysrkajgy .gt_left {
+text-align: left;
+}
+#uzysrkajgy .gt_center {
+text-align: center;
+}
+#uzysrkajgy .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#uzysrkajgy .gt_font_normal {
+font-weight: normal;
+}
+#uzysrkajgy .gt_font_bold {
+font-weight: bold;
+}
+#uzysrkajgy .gt_font_italic {
+font-style: italic;
+}
+#uzysrkajgy .gt_super {
+font-size: 65%;
+}
+#uzysrkajgy .gt_footnote_marks {
+font-style: italic;
+font-weight: normal;
+font-size: 75%;
+vertical-align: 0.4em;
+}
+#uzysrkajgy .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#uzysrkajgy .gt_indent_1 {
+text-indent: 5px;
+}
+#uzysrkajgy .gt_indent_2 {
+text-indent: 10px;
+}
+#uzysrkajgy .gt_indent_3 {
+text-indent: 15px;
+}
+#uzysrkajgy .gt_indent_4 {
+text-indent: 20px;
+}
+#uzysrkajgy .gt_indent_5 {
+text-indent: 25px;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Characteristic&lt;/strong&gt;"><strong>Characteristic</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;N&lt;/strong&gt;"><strong>N</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Overall&lt;/strong&gt;, N = 402&lt;sup class=&quot;gt_footnote_marks&quot;&gt;1&lt;/sup&gt;"><strong>Overall</strong>, N = 402<sup class="gt_footnote_marks">1</sup></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Case&lt;/strong&gt;, N = 160"><strong>Case</strong>, N = 160</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Control&lt;/strong&gt;, N = 242"><strong>Control</strong>, N = 242</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Age categories, n (%)</td>
+<td headers="n" class="gt_row gt_center">402</td>
+<td headers="stat_0" class="gt_row gt_center"></td>
+<td headers="stat_1" class="gt_row gt_center"></td>
+<td headers="stat_2" class="gt_row gt_center"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    18-29</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">103 (26)</td>
+<td headers="stat_1" class="gt_row gt_center">37 (23)</td>
+<td headers="stat_2" class="gt_row gt_center">66 (27)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    30-39</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">198 (49)</td>
+<td headers="stat_1" class="gt_row gt_center">76 (48)</td>
+<td headers="stat_2" class="gt_row gt_center">122 (50)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    40-49</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">101 (25)</td>
+<td headers="stat_1" class="gt_row gt_center">47 (29)</td>
+<td headers="stat_2" class="gt_row gt_center">54 (22)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Ethnicity, race, n (%)</td>
+<td headers="n" class="gt_row gt_center">402</td>
+<td headers="stat_0" class="gt_row gt_center"></td>
+<td headers="stat_1" class="gt_row gt_center"></td>
+<td headers="stat_2" class="gt_row gt_center"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Black</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">74 (18)</td>
+<td headers="stat_1" class="gt_row gt_center">43 (27)</td>
+<td headers="stat_2" class="gt_row gt_center">31 (13)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    White</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">179 (45)</td>
+<td headers="stat_1" class="gt_row gt_center">48 (30)</td>
+<td headers="stat_2" class="gt_row gt_center">131 (54)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Hispanic</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">107 (27)</td>
+<td headers="stat_1" class="gt_row gt_center">56 (35)</td>
+<td headers="stat_2" class="gt_row gt_center">51 (21)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Asian</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">17 (4.2)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (2.5)</td>
+<td headers="stat_2" class="gt_row gt_center">13 (5.4)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Native Hawaiin/Pacific Islander</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">1 (0.2)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (0.6)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    American Indian/Alaska Native</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">2 (0.5)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (0.6)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (0.4)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Multiracial</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">14 (3.5)</td>
+<td headers="stat_1" class="gt_row gt_center">3 (1.9)</td>
+<td headers="stat_2" class="gt_row gt_center">11 (4.5)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Other</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">8 (2.0)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (2.5)</td>
+<td headers="stat_2" class="gt_row gt_center">4 (1.7)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Immunocompromised, n (%)</td>
+<td headers="n" class="gt_row gt_center">402</td>
+<td headers="stat_0" class="gt_row gt_center">143 (36)</td>
+<td headers="stat_1" class="gt_row gt_center">82 (51)</td>
+<td headers="stat_2" class="gt_row gt_center">61 (25)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Close contact w/conf. or prob. mpox case*, n (%)</td>
+<td headers="n" class="gt_row gt_center">402</td>
+<td headers="stat_0" class="gt_row gt_center"></td>
+<td headers="stat_1" class="gt_row gt_center"></td>
+<td headers="stat_2" class="gt_row gt_center"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Yes</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">41 (10)</td>
+<td headers="stat_1" class="gt_row gt_center">33 (21)</td>
+<td headers="stat_2" class="gt_row gt_center">8 (3.3)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    No</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">208 (52)</td>
+<td headers="stat_1" class="gt_row gt_center">46 (29)</td>
+<td headers="stat_2" class="gt_row gt_center">162 (67)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Don&#39;t know</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">153 (38)</td>
+<td headers="stat_1" class="gt_row gt_center">81 (51)</td>
+<td headers="stat_2" class="gt_row gt_center">72 (30)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">Vaccination status**, n (%)</td>
+<td headers="n" class="gt_row gt_center">402</td>
+<td headers="stat_0" class="gt_row gt_center"></td>
+<td headers="stat_1" class="gt_row gt_center"></td>
+<td headers="stat_2" class="gt_row gt_center"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Fully vaccinated</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">130 (32)</td>
+<td headers="stat_1" class="gt_row gt_center">14 (8.8)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (48)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Partially vaccinated</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">33 (8.2)</td>
+<td headers="stat_1" class="gt_row gt_center">18 (11)</td>
+<td headers="stat_2" class="gt_row gt_center">15 (6.2)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unvaccinated</td>
+<td headers="n" class="gt_row gt_center"></td>
+<td headers="stat_0" class="gt_row gt_center">239 (59)</td>
+<td headers="stat_1" class="gt_row gt_center">128 (80)</td>
+<td headers="stat_2" class="gt_row gt_center">111 (46)</td></tr>
+  </tbody>
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="5">*Three weeks before diagnosis (case) or clinic visit (controls).</td>
+    </tr>
+    <tr>
+      <td class="gt_sourcenote" colspan="5">**Missing represent scenarios 3, 5 &amp; 6.</td>
     </tr>
   </tfoot>
   <tfoot class="gt_footnotes">
@@ -3649,37 +4143,29 @@ text-indent: 25px;
 </table>
 </div>
 </div>
-<div id="model-1-results" class="section level2">
-<h2><strong>Model 1 Results</strong></h2>
-<p><strong>Results from this yesterday/this morning: Unadjusted
-(left-side OR) versus adjusted (right-side OR)</strong></p>
+<div id="adjusted-model-1-results" class="section level2">
+<h2><strong>Adjusted Model 1 Results</strong></h2>
+<p><strong>Overall</strong></p>
 <pre class="r"><code>analysis &lt;- mpoxve %&gt;%
-  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;,&quot;CO&quot;, &quot;CT&quot;, &quot;DC&quot;, &quot;MD&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
+  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;, &quot;DC&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
+  drop_na(caco, vax_stat_ve_acip, age, age_cat, race_ethn_cat, race_ethn, immunocompromised, 
+         close_contact_dx_cat, index_epiyrwk_4) %&gt;%
   mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve)) %&gt;% 
-  rename(immunocomp = immunocompromised)
+         vax_stat_ve_acip = fct_rev(vax_stat_ve_acip))
 
 
-mod1_crude_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
-
-mod1_adj_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + age + race_ethn +  
-                    sex_part_num_cat + close_contact_dx_cat + index_yrmo + (1 | jid),
+mod1_adj &lt;- glmer(formula = caco ~ vax_stat_ve_acip + age + race_ethn +  immunocompromised +
+                    close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
                  family = binomial(link = &quot;logit&quot;),
                  control = glmerControl(optimizer = &quot;bobyqa&quot;),
                  data = analysis)
 
 
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)</code></pre>
+tab_model(mod1_adj,  show.aic = T, show.obs = T)</code></pre>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
  
-</th>
-<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-caco
 </th>
 <th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
 caco
@@ -3698,1106 +4184,52 @@ CI
 <td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
 p
 </td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Odds Ratios
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-CI
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
-p
-</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
 (Intercept)
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.01
+6.53
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.60 – 1.71
+0.95 – 44.94
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.958
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-5.96
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.78 – 45.20
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.084
+0.056
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Partially<br>vaccinated]
+vax stat ve acip<br>[Partially vaccinated]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14
+2.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 0.25
+0.76 – 5.34
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.15
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 0.31
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
+0.156
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Fully<br>vaccinated]
+vax stat ve acip [Fully<br>vaccinated]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.10
+0.22
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.20
+0.10 – 0.48
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.17
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.07 – 0.43
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 <strong>&lt;0.001</strong>
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
 age
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.02
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.98 – 1.06
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.304
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-race ethn [White]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.44
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.19 – 1.04
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.060
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-race ethn [Hispanic]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.35 – 2.16
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.766
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-race ethn [Other]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 0.96
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.043</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [1]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.46
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.12 – 1.74
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.255
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [2]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.34
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 1.26
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.107
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [3]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.87
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.23 – 3.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.837
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [≥4]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.58
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.16 – 2.13
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.415
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-close contact dx cat [No]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.15
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.06 – 0.38
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-close contact dx cat<br>[Don’t know]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.14
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.43 – 3.04
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.789
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_yrmo2022-09
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.48
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.71 – 3.05
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.293
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_yrmo2022-10
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.34
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14 – 0.82
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.016</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_yrmo2022-11
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.54
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.16 – 1.81
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.320
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_yrmo2022-12
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00 – Inf
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.994
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_yrmo2023-01
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00 – Inf
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.998
-</td>
-</tr>
-<tr>
-<td colspan="7" style="font-weight:bold; text-align:left; padding-top:.8em;">
-Random Effects
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-σ<sup>2</sup>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-3.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-3.29
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-τ<sub>00</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.24 <sub>jid</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.06 <sub>jid</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-ICC
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.07
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.02
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-N
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-5 <sub>jid</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-5 <sub>jid</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
-Observations
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-486
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-413
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.243 / 0.295
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.916 / 0.917
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-AIC
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-480.246
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-346.033
-</td>
-</tr>
-</table>
-<p><strong>Results from this yesterday/this morning w/4 weeks:
-Unadjusted (left-side OR) versus adjusted (right-side OR)</strong></p>
-<pre class="r"><code>analysis &lt;- mpoxve %&gt;%
-  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;,&quot;CO&quot;, &quot;CT&quot;, &quot;DC&quot;, &quot;MD&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve))%&gt;% 
-  rename(immunocomp = immunocompromised)
-
-
-mod1_crude_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
-
-mod1_adj_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + age + race_ethn +  
-                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
-
-
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)</code></pre>
-<table style="border-collapse:collapse; border:none;">
-<tr>
-<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
- 
-</th>
-<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-caco
-</th>
-<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-caco
-</th>
-</tr>
-<tr>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
-Predictors
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Odds Ratios
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-CI
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-p
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Odds Ratios
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-CI
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
-p
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-(Intercept)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.01
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.60 – 1.71
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.958
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-7.90
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.06 – 58.63
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.043</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Partially<br>vaccinated]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 0.25
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.16
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 0.33
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Fully<br>vaccinated]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.10
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.20
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.19
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 0.47
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-age
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.02
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.99 – 1.07
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.217
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-race ethn [White]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.47
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.20 – 1.11
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.085
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-race ethn [Hispanic]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.01
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.41 – 2.49
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.975
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-race ethn [Other]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.36
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.11 – 1.15
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.085
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [1]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.35
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 1.30
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.117
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [2]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.30
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 1.13
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.076
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [3]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.71
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.19 – 2.70
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.619
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [≥4]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.45
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.12 – 1.69
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.239
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-close contact dx cat [No]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.13
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.33
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-close contact dx cat<br>[Don’t know]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.05
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.40 – 2.75
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.917
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_epiyrwk_42022: 45-48
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.31
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 1.05
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.061
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_epiyrwk_42022: 41-44
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.28
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.11 – 0.72
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.008</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_epiyrwk_42023: 1-4
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00 – Inf
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.997
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_epiyrwk_42022: 37-40
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.74
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.38 – 1.46
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.386
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-index_epiyrwk_42022: 49-52
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00 – Inf
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.991
-</td>
-</tr>
-<tr>
-<td colspan="7" style="font-weight:bold; text-align:left; padding-top:.8em;">
-Random Effects
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-σ<sup>2</sup>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-3.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-3.29
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-τ<sub>00</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.24 <sub>jid</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.07 <sub>jid</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-ICC
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.07
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.02
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-N
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-5 <sub>jid</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-5 <sub>jid</sub>
-</td>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
-Observations
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-486
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-413
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.243 / 0.295
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.891 / 0.893
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-AIC
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-480.246
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-352.877
-</td>
-</tr>
-</table>
-<p><strong>CO &amp; CT INCLUDED, Immunocomprimised EXCLUDED: Unadjusted
-(left-side OR) versus adjusted (right-side OR)</strong></p>
-<pre class="r"><code>analysis &lt;- mpoxve %&gt;%
-  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;, &quot;DC&quot;, &quot;MD&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve))%&gt;% 
-  rename(immunocomp = immunocompromised)
-
-
-mod1_crude_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
-
-mod1_adj_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + age + race_ethn + 
-                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
-
-
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)</code></pre>
-<table style="border-collapse:collapse; border:none;">
-<tr>
-<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
- 
-</th>
-<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-caco
-</th>
-<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
-caco
-</th>
-</tr>
-<tr>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
-Predictors
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Odds Ratios
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-CI
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-p
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-Odds Ratios
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
-CI
-</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  col7">
-p
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-(Intercept)
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.29
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.71 – 2.36
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.402
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-6.34
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.86 – 46.54
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.069
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Partially<br>vaccinated]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.16
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 0.28
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.19
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.10 – 0.37
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Fully<br>vaccinated]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.10
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.20
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.17
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.07 – 0.42
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-age
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 1.03
@@ -4805,8 +4237,8 @@ age
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.99 – 1.07
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.180
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.152
 </td>
 </tr>
 <tr>
@@ -4814,19 +4246,13 @@ age
 race ethn [White]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.55
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.24 – 1.24
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.52
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.22 – 1.23
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.139
+0.150
 </td>
 </tr>
 <tr>
@@ -4834,19 +4260,13 @@ race ethn [White]
 race ethn [Hispanic]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+1.21
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.52 – 2.86
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.17
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.48 – 2.84
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.731
+0.657
 </td>
 </tr>
 <tr>
@@ -4854,99 +4274,27 @@ race ethn [Hispanic]
 race ethn [Other]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.36
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.13 – 1.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.31
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 0.98
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.047</strong>
+0.054
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [1]
+immunocompromised [No]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.46
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.25 – 0.84
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.39
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.10 – 1.43
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.155
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [2]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.28
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 1.07
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.064
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [3]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.73
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.20 – 2.74
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.644
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [≥4]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.51
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14 – 1.89
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.316
+<strong>0.011</strong>
 </td>
 </tr>
 <tr>
@@ -4954,18 +4302,12 @@ sex part num cat [≥4]
 close contact dx cat [No]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.13
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.05 – 0.35
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.15
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.06 – 0.36
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 <strong>&lt;0.001</strong>
 </td>
 </tr>
@@ -4974,19 +4316,13 @@ close contact dx cat [No]
 close contact dx cat<br>[Don’t know]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.32
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.12 – 0.84
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.16
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.45 – 3.02
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.757
+<strong>0.020</strong>
 </td>
 </tr>
 <tr>
@@ -4994,19 +4330,13 @@ close contact dx cat<br>[Don’t know]
 index_epiyrwk_42022: 45-48
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.34
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.11 – 1.07
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.31
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 1.04
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.057
+0.065
 </td>
 </tr>
 <tr>
@@ -5014,19 +4344,13 @@ index_epiyrwk_42022: 45-48
 index_epiyrwk_42022: 41-44
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.59
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.24 – 1.42
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.34
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14 – 0.83
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.018</strong>
+0.238
 </td>
 </tr>
 <tr>
@@ -5034,19 +4358,13 @@ index_epiyrwk_42022: 41-44
 index_epiyrwk_42023: 1-4
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.10
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01 – 1.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.01 – 1.67
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.119
+0.053
 </td>
 </tr>
 <tr>
@@ -5054,19 +4372,13 @@ index_epiyrwk_42023: 1-4
 index_epiyrwk_42022: 37-40
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.76
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.40 – 1.43
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.82
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.42 – 1.58
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.546
+0.394
 </td>
 </tr>
 <tr>
@@ -5074,23 +4386,17 @@ index_epiyrwk_42022: 37-40
 index_epiyrwk_42022: 49-52
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00 – 0.38
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00 – Inf
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.991
+<strong>0.009</strong>
 </td>
 </tr>
 <tr>
-<td colspan="7" style="font-weight:bold; text-align:left; padding-top:.8em;">
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
 Random Effects
 </td>
 </tr>
@@ -5101,49 +4407,34 @@ Random Effects
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
 3.29
 </td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-3.29
-</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-τ<sub>00</sub>
+τ<sub>00</sub> <sub>jid</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.40 <sub>jid</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.12 <sub>jid</sub>
+0.54
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 ICC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.11
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.04
+0.14
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-N
+N <sub>jid</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-7 <sub>jid</sub>
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-7 <sub>jid</sub>
+8
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
 Observations
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-503
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-426
+402
 </td>
 </tr>
 <tr>
@@ -5151,10 +4442,7 @@ Observations
 Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.226 / 0.311
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.882 / 0.886
+0.514 / 0.583
 </td>
 </tr>
 <tr>
@@ -5162,35 +4450,32 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 AIC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-508.788
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-372.031
+402.988
 </td>
 </tr>
 </table>
-<p><strong>CO &amp; CT INCLUDED, immunocompromised INCLUDED: Unadjusted
-(left-side OR) versus adjusted (right-side OR)</strong></p>
-<pre class="r"><code>analysis &lt;- mpoxve %&gt;%
-  filter(minset_vars == &quot;Complete&quot; &amp; !jid %in% c(&quot;CA&quot;, &quot;DC&quot;, &quot;MD&quot;, &quot;NYC&quot;, &quot;NYS&quot;)) %&gt;%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve = fct_rev(vax_stat_ve))%&gt;% 
-  rename(immunocomp = immunocompromised)
+<p><strong>IC-Yes (left-side OR), IC-No (right-side OR)</strong></p>
+<pre class="r"><code>analysis_ic_yes &lt;- analysis %&gt;% 
+  filter(immunocompromised == &quot;Yes&quot;)
+
+analysis_ic_no &lt;- analysis %&gt;% 
+  filter(immunocompromised == &quot;No&quot;)
 
 
-mod1_crude_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
+mod1_adj_ic_yes &lt;- glmer(formula = caco ~ vax_stat_ve_acip + age + race_ethn + 
+                           close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                         family = binomial(link = &quot;logit&quot;),
+                         control = glmerControl(optimizer = &quot;bobyqa&quot;),
+                         data = analysis_ic_yes)
 
-mod1_adj_mlm &lt;- glmer(formula = caco ~ vax_stat_ve + age + race_ethn + immunocomp + 
-                    sex_part_num_cat + close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
-                 family = binomial(link = &quot;logit&quot;),
-                 control = glmerControl(optimizer = &quot;bobyqa&quot;),
-                 data = analysis)
+mod1_adj_ic_no &lt;- glmer(formula = caco ~ vax_stat_ve_acip + age + race_ethn +  
+                          close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
+                        family = binomial(link = &quot;logit&quot;),
+                        control = glmerControl(optimizer = &quot;bobyqa&quot;),
+                        data = analysis_ic_no)
 
 
-tab_model(mod1_crude_mlm, mod1_adj_mlm, show.aic = T, show.obs = T)</code></pre>
+tab_model(mod1_adj_ic_yes, mod1_adj_ic_no, show.aic = T, show.obs = T)</code></pre>
 <table style="border-collapse:collapse; border:none;">
 <tr>
 <th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
@@ -5231,68 +4516,68 @@ p
 (Intercept)
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.29
+3.58
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.71 – 2.36
+0.12 – 102.58
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.402
+0.456
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-26.81
+15.83
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-3.08 – 233.20
+0.91 – 274.81
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.003</strong>
+0.058
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Partially<br>vaccinated]
+vax stat ve acip<br>[Partially vaccinated]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.16
+1.17
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 0.28
+0.19 – 7.19
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
+0.862
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.21
+1.96
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.11 – 0.41
+0.50 – 7.69
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
+0.336
 </td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-vax stat ve [Fully<br>vaccinated]
+vax stat ve acip [Fully<br>vaccinated]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.10
+0.43
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.20
+0.11 – 1.69
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-<strong>&lt;0.001</strong>
+0.229
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.22
+0.09
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 0.54
+0.03 – 0.31
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.001</strong>
+<strong>&lt;0.001</strong>
 </td>
 </tr>
 <tr>
@@ -5300,19 +4585,22 @@ vax stat ve [Fully<br>vaccinated]
 age
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+1.05
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.98 – 1.14
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.169
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.01
+1.03
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.97 – 1.05
+0.98 – 1.09
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.765
+0.262
 </td>
 </tr>
 <tr>
@@ -5320,19 +4608,22 @@ age
 race ethn [White]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.87
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.23 – 3.25
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.837
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.84
+0.10
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.36 – 1.97
+0.02 – 0.47
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.686
+<strong>0.004</strong>
 </td>
 </tr>
 <tr>
@@ -5340,19 +4631,22 @@ race ethn [White]
 race ethn [Hispanic]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+3.44
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.88 – 13.49
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.076
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.93
+0.22
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.77 – 4.84
+0.04 – 1.15
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.159
+0.072
 </td>
 </tr>
 <tr>
@@ -5360,119 +4654,22 @@ race ethn [Hispanic]
 race ethn [Other]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.97
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.48 – 18.18
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.239
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.46
+0.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14 – 1.54
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.208
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-immunocomp [No]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.27
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.14 – 0.52
+0.00 – 0.14
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
 <strong>&lt;0.001</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [1]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.28
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.08 – 1.07
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.064
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [2]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.21
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.81
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.024</strong>
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [3]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.58
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.15 – 2.20
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.423
-</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
-sex part num cat [≥4]
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.43
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.12 – 1.61
-</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.213
 </td>
 </tr>
 <tr>
@@ -5480,19 +4677,22 @@ sex part num cat [≥4]
 close contact dx cat [No]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.17
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04 – 0.86
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.031</strong>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.13
+0.10
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.05 – 0.34
+0.02 – 0.41
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>&lt;0.001</strong>
+<strong>0.002</strong>
 </td>
 </tr>
 <tr>
@@ -5500,19 +4700,22 @@ close contact dx cat [No]
 close contact dx cat<br>[Don’t know]
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.41
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.08 – 1.99
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.269
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-1.11
+0.27
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.41 – 3.01
+0.07 – 1.08
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.834
+0.064
 </td>
 </tr>
 <tr>
@@ -5520,19 +4723,22 @@ close contact dx cat<br>[Don’t know]
 index_epiyrwk_42022: 45-48
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00 – 0.30
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.002</strong>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.25
+1.87
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.07 – 0.85
+0.36 – 9.80
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.026</strong>
+0.461
 </td>
 </tr>
 <tr>
@@ -5540,19 +4746,22 @@ index_epiyrwk_42022: 45-48
 index_epiyrwk_42022: 41-44
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.12
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.03 – 0.54
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.006</strong>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.24
+2.15
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.09 – 0.62
+0.57 – 8.12
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-<strong>0.003</strong>
+0.257
 </td>
 </tr>
 <tr>
@@ -5560,19 +4769,22 @@ index_epiyrwk_42022: 41-44
 index_epiyrwk_42023: 1-4
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00 – Inf
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.993
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.12
+0.37
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.01 – 1.33
+0.02 – 8.53
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.085
+0.536
 </td>
 </tr>
 <tr>
@@ -5580,19 +4792,22 @@ index_epiyrwk_42023: 1-4
 index_epiyrwk_42022: 37-40
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.15
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04 – 0.55
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.004</strong>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.77
+1.89
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.39 – 1.51
+0.73 – 4.92
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.442
+0.189
 </td>
 </tr>
 <tr>
@@ -5600,19 +4815,22 @@ index_epiyrwk_42022: 37-40
 index_epiyrwk_42022: 49-52
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00 – 0.45
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.015</strong>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
 0.00
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
-0.00 – 143197903794654298440880048222268448822204040804824442606886206226200464486240846882006246640806604084406264644000000880842400640404668420464424620646842668042008082264468.00
+0.00 – Inf
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  col7">
-0.932
+0.995
 </td>
 </tr>
 <tr>
@@ -5636,40 +4854,40 @@ Random Effects
 τ<sub>00</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.40 <sub>jid</sub>
+1.16 <sub>jid</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.01 <sub>jid</sub>
+1.43 <sub>jid</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 ICC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.11
+0.26
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.00
+0.30
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 N
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-7 <sub>jid</sub>
+8 <sub>jid</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-7 <sub>jid</sub>
+8 <sub>jid</sub>
 </td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
 Observations
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-503
+143
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
-426
+259
 </td>
 </tr>
 <tr>
@@ -5677,10 +4895,10 @@ Observations
 Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.226 / 0.311
+0.705 / 0.782
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-0.888 / 0.889
+0.888 / 0.922
 </td>
 </tr>
 <tr>
@@ -5688,10 +4906,10 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 AIC
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-508.788
+153.688
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
-359.082
+223.683
 </td>
 </tr>
 </table>
