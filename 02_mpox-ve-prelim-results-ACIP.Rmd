@@ -680,7 +680,7 @@ mpoxve %>%
 
 ```{r}
 mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC", "NYS")) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC")) %>%
   select(caco, age_cat, race_ethn_cat, immunocompromised, #sex_part_num_cat,
          close_contact_dx_cat, vax_stat_ve_acip) %>%
   tbl_summary(
@@ -708,7 +708,7 @@ mpoxve %>%
 
 ```{r}
 mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC", "NYS")) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC")) %>%
   drop_na(caco, vax_stat_ve_acip, age, age_cat, race_ethn_cat, race_ethn, immunocompromised, 
           close_contact_dx_cat, index_epiyrwk_4) %>% 
   select(caco, age_cat, race_ethn_cat, immunocompromised, #sex_part_num_cat,
@@ -740,7 +740,7 @@ mpoxve %>%
 
 ```{r}
 analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC", "NYS")) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC", "NYC")) %>%
   drop_na(caco, vax_stat_ve_acip, age, age_cat, race_ethn_cat, race_ethn, immunocompromised, 
          close_contact_dx_cat, index_epiyrwk_4) %>%
   mutate(caco = fct_rev(caco),

@@ -8,485 +8,532 @@
 "7","Fully vaccinated","S7: Full",1,2022-07-15,2022-10-01,78,1,2022-08-14,48,30
 "8","Fully vaccinated","S7: Full",1,2022-07-15,2022-11-17,125,1,2022-08-16,93,32
 "9","Fully vaccinated","S7: Full",1,2022-07-16,2022-08-28,43,1,2022-08-13,15,28
-"10","Fully vaccinated","S7: Full",1,2022-07-17,2022-11-09,115,1,2022-08-23,78,37
-"11","Fully vaccinated","S7: Full",1,2022-07-18,2022-09-20,64,1,2022-08-23,28,36
-"12","Fully vaccinated","S7: Full",1,2022-07-19,2022-09-14,57,1,2022-08-16,29,28
-"13","Fully vaccinated","S7: Full",1,2022-07-19,2022-10-10,83,1,2022-08-16,55,28
-"14","Fully vaccinated","S7: Full",1,2022-07-19,2022-11-16,120,1,2022-08-23,85,35
-"15","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-07,49,1,2022-08-24,14,35
-"16","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-12,54,1,2022-08-18,25,29
-"17","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-22,64,1,2022-08-22,31,33
-"18","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-24,66,1,2022-08-16,39,27
-"19","Fully vaccinated","S7: Full",1,2022-07-20,2022-10-11,83,1,2022-09-21,20,63
-"20","Fully vaccinated","S7: Full",1,2022-07-20,2022-10-12,84,1,2022-08-31,42,42
-"21","Fully vaccinated","S7: Full",1,2022-07-20,2022-10-19,91,1,2022-08-19,61,30
-"22","Fully vaccinated","S7: Full",1,2022-07-20,2022-11-17,120,1,2022-08-17,92,28
-"23","Fully vaccinated","S7: Full",1,2022-07-20,2022-12-02,135,1,2022-08-18,106,29
-"24","Fully vaccinated","S7: Full",1,2022-07-20,2022-12-02,135,1,2022-08-31,93,42
-"25","Fully vaccinated","S7: Full",1,2022-07-20,2022-12-19,152,1,2022-09-21,89,63
-"26","Fully vaccinated","S7: Full",1,2022-07-21,2022-09-15,56,1,2022-08-29,17,39
-"27","Fully vaccinated","S7: Full",1,2022-07-21,2022-09-25,66,1,2022-08-18,38,28
-"28","Fully vaccinated","S7: Full",1,2022-07-21,2022-10-10,81,1,2022-08-18,53,28
-"29","Fully vaccinated","S7: Full",1,2022-07-21,2022-10-18,89,1,2022-08-30,49,40
-"30","Fully vaccinated","S7: Full",1,2022-07-21,2022-10-26,97,1,2022-08-18,69,28
-"31","Fully vaccinated","S7: Full",1,2022-07-21,2022-12-16,148,1,2022-08-20,118,30
-"32","Fully vaccinated","S7: Full",1,2022-07-23,2022-09-22,61,1,2022-08-20,33,28
-"33","Fully vaccinated","S7: Full",1,2022-07-23,2022-09-30,69,1,2022-08-20,41,28
-"34","Fully vaccinated","S7: Full",1,2022-07-23,2022-10-05,74,1,2022-08-20,46,28
-"35","Fully vaccinated","S7: Full",1,2022-07-23,2022-10-24,93,1,2022-09-10,44,49
-"36","Fully vaccinated","S7: Full",1,2022-07-24,2022-09-27,65,1,2022-08-24,34,31
-"37","Fully vaccinated","S7: Full",1,2022-07-24,2022-11-29,128,1,2022-08-23,98,30
-"38","Fully vaccinated","S7: Full",1,2022-07-24,2022-11-30,129,1,2022-08-23,99,30
-"39","Fully vaccinated","S7: Full",1,2022-07-25,2022-09-21,58,1,2022-08-22,30,28
-"40","Fully vaccinated","S7: Full",1,2022-07-25,2022-09-29,66,1,2022-08-24,36,30
-"41","Fully vaccinated","S7: Full",1,2022-07-25,2022-10-11,78,1,2022-08-22,50,28
-"42","Fully vaccinated","S7: Full",1,2022-07-25,2022-11-09,107,1,2022-08-25,76,31
-"43","Fully vaccinated","S7: Full",1,2022-07-25,2022-12-03,131,1,2022-08-23,102,29
-"44","Fully vaccinated","S7: Full",1,2022-07-26,2022-09-20,56,1,2022-08-30,21,35
-"45","Fully vaccinated","S7: Full",1,2022-07-26,2022-10-03,69,1,2022-08-29,35,34
-"46","Fully vaccinated","S7: Full",1,2022-07-26,2022-10-06,72,1,2022-08-25,42,30
-"47","Fully vaccinated","S7: Full",1,2022-07-26,2022-11-14,111,1,2022-08-24,82,29
-"48","Fully vaccinated","S7: Full",1,2022-07-27,2022-09-13,48,1,2022-08-26,18,30
-"49","Fully vaccinated","S7: Full",1,2022-07-27,2022-09-23,58,1,2022-08-23,31,27
-"50","Fully vaccinated","S7: Full",1,2022-07-27,2022-11-30,126,1,2022-08-26,96,30
-"51","Fully vaccinated","S7: Full",1,2022-07-28,2022-09-12,46,1,2022-08-25,18,28
-"52","Fully vaccinated","S7: Full",1,2022-07-28,2022-10-09,73,1,2022-09-01,38,35
-"53","Fully vaccinated","S7: Full",1,2022-07-28,2022-10-24,88,1,2022-08-30,55,33
-"54","Fully vaccinated","S7: Full",1,2022-07-28,2022-10-31,95,1,2022-08-26,66,29
-"55","Fully vaccinated","S7: Full",1,2022-07-28,2022-11-02,97,1,2022-08-25,69,28
-"56","Fully vaccinated","S7: Full",1,2022-07-28,2022-11-03,98,1,2022-08-30,65,33
-"57","Fully vaccinated","S7: Full",1,2022-07-28,2022-12-05,130,1,2022-08-26,101,29
-"58","Fully vaccinated","S7: Full",1,2022-07-29,2022-10-01,64,1,2022-08-25,37,27
-"59","Fully vaccinated","S7: Full",1,2022-07-29,2022-10-20,83,1,2022-09-01,49,34
-"60","Fully vaccinated","S7: Full",1,2022-07-29,2022-11-22,116,1,2022-08-29,85,31
-"61","Fully vaccinated","S7: Full",1,2022-07-30,2022-10-05,67,1,2022-09-21,14,53
-"62","Fully vaccinated","S7: Full",1,2022-07-30,2023-01-04,158,1,2022-08-30,127,31
-"63","Fully vaccinated","S7: Full",1,2022-07-31,2022-10-03,64,1,2022-08-28,36,28
-"64","Fully vaccinated","S7: Full",1,2022-08-01,2022-10-20,80,1,2022-08-29,52,28
-"65","Fully vaccinated","S7: Full",1,2022-08-01,2022-11-03,94,1,2022-08-31,64,30
-"66","Fully vaccinated","S7: Full",1,2022-08-01,2022-11-07,98,1,2022-08-31,68,30
-"67","Fully vaccinated","S7: Full",1,2022-08-01,2022-11-21,112,1,2022-08-29,84,28
-"68","Fully vaccinated","S7: Full",1,2022-08-01,2022-12-02,123,1,2022-08-29,95,28
-"69","Fully vaccinated","S7: Full",1,2022-08-01,2022-12-12,133,1,2022-08-29,105,28
-"70","Fully vaccinated","S7: Full",1,2022-08-01,2022-12-20,141,1,2022-08-29,113,28
-"71","Fully vaccinated","S7: Full",1,2022-08-02,2022-09-30,59,1,2022-08-30,31,28
-"72","Fully vaccinated","S7: Full",1,2022-08-02,2022-11-01,91,1,2022-09-10,52,39
-"73","Fully vaccinated","S7: Full",1,2022-08-02,2022-12-12,132,1,2022-08-31,103,29
-"74","Fully vaccinated","S7: Full",1,2022-08-03,2022-09-17,45,1,2022-08-31,17,28
-"75","Fully vaccinated","S7: Full",1,2022-08-03,2022-10-07,65,1,2022-09-04,33,32
-"76","Fully vaccinated","S7: Full",1,2022-08-03,2022-11-01,90,1,2022-08-31,62,28
-"77","Fully vaccinated","S7: Full",1,2022-08-03,2022-12-20,139,1,2022-09-04,107,32
-"78","Fully vaccinated","S7: Full",1,2022-08-04,2022-12-05,123,1,2022-08-30,97,26
-"79","Fully vaccinated","S7: Full",1,2022-08-05,2022-11-01,88,1,2022-09-08,54,34
-"80","Fully vaccinated","S7: Full",1,2022-08-05,2022-11-05,92,1,2022-09-02,64,28
-"81","Fully vaccinated","S7: Full",1,2022-08-05,2022-11-29,116,1,2022-09-07,83,33
-"82","Fully vaccinated","S7: Full",1,2022-08-05,2022-12-16,133,1,2022-10-18,59,74
-"83","Fully vaccinated","S7: Full",1,2022-08-08,2022-10-28,81,1,2022-10-07,21,60
-"84","Fully vaccinated","S7: Full",1,2022-08-08,2022-10-29,82,1,2022-09-06,53,29
-"85","Fully vaccinated","S7: Full",1,2022-08-08,2022-10-31,84,1,2022-09-13,48,36
-"86","Fully vaccinated","S7: Full",1,2022-08-09,2022-10-19,71,1,2022-09-17,32,39
-"87","Fully vaccinated","S7: Full",1,2022-08-09,2022-10-25,77,1,2022-09-07,48,29
-"88","Fully vaccinated","S7: Full",1,2022-08-09,2022-11-01,84,1,2022-09-28,34,50
-"89","Fully vaccinated","S7: Full",1,2022-08-09,2022-11-04,87,1,2022-09-17,48,39
-"90","Fully vaccinated","S7: Full",1,2022-08-09,2022-12-05,118,1,2022-09-07,89,29
-"91","Fully vaccinated","S7: Full",1,2022-08-09,2022-12-10,123,1,2022-10-20,51,72
-"92","Fully vaccinated","S7: Full",1,2022-08-10,2022-10-14,65,1,2022-09-08,36,29
-"93","Fully vaccinated","S7: Full",1,2022-08-11,2022-10-01,51,1,2022-09-08,23,28
-"94","Fully vaccinated","S7: Full",1,2022-08-11,2022-10-12,62,1,2022-09-08,34,28
-"95","Fully vaccinated","S7: Full",1,2022-08-11,2022-10-20,70,1,2022-09-08,42,28
-"96","Fully vaccinated","S7: Full",1,2022-08-11,2022-11-02,83,1,2022-09-16,47,36
-"97","Fully vaccinated","S7: Full",1,2022-08-12,2022-10-07,56,1,2022-09-14,23,33
-"98","Fully vaccinated","S7: Full",1,2022-08-12,2022-11-02,82,1,2022-10-12,21,61
-"99","Fully vaccinated","S7: Full",1,2022-08-12,2022-11-23,103,1,2022-09-16,68,35
-"100","Fully vaccinated","S7: Full",1,2022-08-12,2022-12-14,124,1,2022-09-10,95,29
-"101","Fully vaccinated","S7: Full",1,2022-08-12,2022-12-21,131,1,2022-09-20,92,39
-"102","Fully vaccinated","S7: Full",1,2022-08-13,2022-10-25,73,1,2022-09-20,35,38
-"103","Fully vaccinated","S7: Full",1,2022-08-14,2022-11-28,106,1,2022-09-12,77,29
-"104","Fully vaccinated","S7: Full",1,2022-08-15,2022-10-14,60,1,2022-09-11,33,27
-"105","Fully vaccinated","S7: Full",1,2022-08-15,2022-11-18,95,1,2022-09-20,59,36
-"106","Fully vaccinated","S7: Full",1,2022-08-16,2022-10-01,46,1,2022-09-17,14,32
-"107","Fully vaccinated","S7: Full",1,2022-08-16,2022-10-17,62,1,2022-09-16,31,31
-"108","Fully vaccinated","S7: Full",1,2022-08-16,2022-11-10,86,1,2022-09-16,55,31
-"109","Fully vaccinated","S7: Full",1,2022-08-16,2022-11-22,98,1,2022-09-21,62,36
-"110","Fully vaccinated","S7: Full",1,2022-08-17,2022-10-27,71,1,2022-09-21,36,35
-"111","Fully vaccinated","S7: Full",1,2022-08-18,2022-11-09,83,1,2022-09-22,48,35
-"112","Fully vaccinated","S7: Full",1,2022-08-18,2022-11-10,84,1,2022-10-25,16,68
-"113","Fully vaccinated","S7: Full",1,2022-08-19,2022-10-27,69,1,2022-09-28,29,40
-"114","Fully vaccinated","S7: Full",1,2022-08-19,2022-11-08,81,1,2022-09-28,41,40
-"115","Fully vaccinated","S7: Full",1,2022-08-19,2022-11-15,88,1,2022-10-03,43,45
-"116","Fully vaccinated","S7: Full",1,2022-08-19,2022-11-21,94,1,2022-09-28,54,40
-"117","Fully vaccinated","S7: Full",1,2022-08-19,2022-12-06,109,1,2022-09-27,70,39
-"118","Fully vaccinated","S7: Full",1,2022-08-19,2022-12-08,111,1,2022-09-30,69,42
-"119","Fully vaccinated","S7: Full",1,2022-08-19,2022-12-19,122,1,2022-09-19,91,31
-"120","Fully vaccinated","S7: Full",1,2022-08-23,2022-10-19,57,1,2022-09-30,19,38
-"121","Fully vaccinated","S7: Full",1,2022-08-23,2022-12-18,117,1,2022-09-30,79,38
-"122","Fully vaccinated","S7: Full",1,2022-08-24,2022-10-07,44,1,2022-09-22,15,29
-"123","Fully vaccinated","S7: Full",1,2022-08-24,2022-11-07,75,1,2022-10-08,30,45
-"124","Fully vaccinated","S7: Full",1,2022-08-24,2022-11-20,88,1,2022-09-21,60,28
-"125","Fully vaccinated","S7: Full",1,2022-08-25,2022-11-10,77,1,2022-10-06,35,42
-"126","Fully vaccinated","S7: Full",1,2022-08-26,2022-10-08,43,1,2022-09-23,15,28
-"127","Fully vaccinated","S7: Full",1,2022-08-26,2022-11-23,89,1,2022-10-20,34,55
-"128","Fully vaccinated","S7: Full",1,2022-08-29,2022-10-27,59,1,2022-10-05,22,37
-"129","Fully vaccinated","S7: Full",1,2022-08-30,2022-11-17,79,1,2022-09-27,51,28
-"130","Fully vaccinated","S7: Full",1,2022-08-31,2022-11-01,62,1,2022-10-10,22,40
-"131","Fully vaccinated","S7: Full",1,2022-08-31,2022-11-10,71,1,2022-09-28,43,28
-"132","Fully vaccinated","S7: Full",1,2022-09-08,2022-10-24,46,1,2022-10-06,18,28
-"133","Fully vaccinated","S7: Full",1,2022-09-09,2022-11-11,63,1,2022-10-19,23,40
-"134","Fully vaccinated","S7: Full",1,2022-10-12,2022-12-05,54,1,2022-11-09,26,28
-"135","Partially vaccinated","S4: Partial, D1 only",1,2022-07-17,2022-09-03,48,0,,,
-"136","Partially vaccinated","S4: Partial, D1 only",1,2022-07-17,2022-09-15,60,0,,,
-"137","Partially vaccinated","S4: Partial, D1 only",1,2022-07-27,2022-09-02,37,0,,,
-"138","Partially vaccinated","S4: Partial, D1 only",1,2022-07-28,2022-09-09,43,0,,,
-"139","Partially vaccinated","S4: Partial, D1 only",1,2022-08-01,2022-08-26,25,0,,,
-"140","Partially vaccinated","S4: Partial, D1 only",1,2022-08-02,2022-08-26,24,0,,,
-"141","Partially vaccinated","S4: Partial, D1 only",1,2022-08-02,2022-08-31,29,0,,,
-"142","Partially vaccinated","S4: Partial, D1 only",1,2022-08-02,2023-01-04,155,0,,,
-"143","Partially vaccinated","S4: Partial, D1 only",1,2022-08-04,2022-10-10,67,0,,,
-"144","Partially vaccinated","S4: Partial, D1 only",1,2022-08-05,2022-09-09,35,0,,,
-"145","Partially vaccinated","S4: Partial, D1 only",1,2022-08-09,2022-10-29,81,0,,,
-"146","Partially vaccinated","S4: Partial, D1 only",1,2022-08-11,2022-08-29,18,0,,,
-"147","Partially vaccinated","S4: Partial, D1 only",1,2022-08-11,2022-10-05,55,0,,,
-"148","Partially vaccinated","S4: Partial, D1 only",1,2022-08-11,2022-11-16,97,0,,,
-"149","Partially vaccinated","S4: Partial, D1 only",1,2022-08-13,2022-11-26,105,0,,,
-"150","Partially vaccinated","S4: Partial, D1 only",1,2022-08-14,2022-08-31,17,0,,,
-"151","Partially vaccinated","S4: Partial, D1 only",1,2022-08-16,2022-09-14,29,0,,,
-"152","Partially vaccinated","S4: Partial, D1 only",1,2022-08-19,2022-12-19,122,0,,,
-"153","Partially vaccinated","S4: Partial, D1 only",1,2022-08-21,2022-10-01,41,0,,,
-"154","Partially vaccinated","S4: Partial, D1 only",1,2022-08-21,2022-10-07,47,0,,,
-"155","Partially vaccinated","S4: Partial, D1 only",1,2022-08-24,2022-09-30,37,0,,,
-"156","Partially vaccinated","S4: Partial, D1 only",1,2022-08-24,2022-12-08,106,0,,,
-"157","Partially vaccinated","S4: Partial, D1 only",1,2022-08-25,2022-09-14,20,0,,,
-"158","Partially vaccinated","S4: Partial, D1 only",1,2022-08-25,2022-10-04,40,0,,,
-"159","Partially vaccinated","S4: Partial, D1 only",1,2022-08-26,2022-09-12,17,0,,,
-"160","Partially vaccinated","S4: Partial, D1 only",1,2022-08-26,2022-09-13,18,0,,,
-"161","Partially vaccinated","S4: Partial, D1 only",1,2022-09-01,2022-12-01,91,0,,,
-"162","Partially vaccinated","S4: Partial, D1 only",1,2022-09-02,2022-09-16,14,0,,,
-"163","Partially vaccinated","S4: Partial, D1 only",1,2022-09-09,2022-11-14,66,0,,,
-"164","Partially vaccinated","S4: Partial, D1 only",1,2022-09-09,2022-12-19,101,0,,,
-"165","Partially vaccinated","S4: Partial, D1 only",1,2022-09-10,2022-10-03,23,0,,,
-"166","Partially vaccinated","S4: Partial, D1 only",1,2022-09-12,2022-12-05,84,0,,,
-"167","Partially vaccinated","S4: Partial, D1 only",1,2022-09-19,2022-12-19,91,0,,,
-"168","Partially vaccinated","S4: Partial, D1 only",1,2022-09-27,2022-10-26,29,0,,,
-"169","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-07-15,2022-11-09,117,1,2022-08-02,99,18
-"170","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-08-12,2022-09-21,40,1,2022-08-29,23,17
-"171","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-08-18,2022-09-14,27,1,2022-08-12,33,-6
-"172","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-08-22,2022-09-12,21,1,2022-09-12,0,21
-"173","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-09-07,2022-09-27,20,1,2022-09-07,20,0
-"174","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-09-18,2022-10-11,23,1,2022-09-18,23,0
-"175","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-05,2022-09-06,63,1,2022-08-25,12,51
-"176","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-08-24,35,1,2022-08-18,6,29
-"177","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-08-26,37,1,2022-08-24,2,35
-"178","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-09-20,62,1,2022-09-20,0,62
-"179","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-21,2022-08-20,30,1,2022-08-16,4,26
-"180","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-22,2022-08-23,32,1,2022-08-23,0,32
-"181","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-22,2022-08-29,38,1,2022-08-19,10,28
-"182","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-22,2022-09-01,41,1,2022-09-06,-5,46
-"183","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-08-22,28,1,2022-08-22,0,28
-"184","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-08-23,29,1,2022-08-23,0,29
-"185","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-08-25,31,1,2022-08-25,0,31
-"186","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-09-01,38,1,2022-08-23,9,29
-"187","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-08-19,24,1,2022-08-29,-10,34
-"188","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-08-24,29,1,2022-08-24,0,29
-"189","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-09-01,37,1,2022-08-25,7,30
-"190","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-12-02,129,1,2022-12-02,0,129
-"191","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-08-26,30,1,2022-08-26,0,30
-"192","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-08-29,33,1,2022-08-25,4,29
-"193","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-08-31,35,1,2022-08-31,0,35
-"194","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-09-20,55,1,2022-09-10,10,45
-"195","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-08-25,28,1,2022-08-30,-5,33
-"196","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-08-26,29,1,2022-09-02,-7,36
-"197","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-08-31,34,1,2022-09-11,-11,45
-"198","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-09-09,43,1,2022-08-27,13,30
-"199","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-26,28,1,2022-08-26,0,28
-"200","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-29,31,1,2022-08-29,0,31
-"201","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-30,32,1,2022-08-30,0,32
-"202","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-31,33,1,2022-08-31,0,33
-"203","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-09-01,34,1,2022-08-26,6,28
-"204","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-09-02,35,1,2022-09-21,-19,54
-"205","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-09-12,45,1,2022-09-01,11,34
-"206","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-10-30,93,1,2022-10-20,10,83
-"207","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-30,2022-08-31,32,1,2022-08-27,4,28
-"208","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-31,2022-09-07,38,1,2022-09-07,0,38
-"209","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-08-29,28,1,2022-08-29,0,28
-"210","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-08-31,30,1,2022-08-30,1,29
-"211","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-09-01,31,1,2022-08-30,2,29
-"212","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-09-19,49,1,2022-09-19,0,49
-"213","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-08-29,27,1,2022-08-30,-1,28
-"214","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-08-30,28,1,2022-08-30,0,28
-"215","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-09-01,30,1,2022-08-30,2,28
-"216","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-09-02,31,1,2022-09-02,0,31
-"217","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-08-31,28,1,2022-08-31,0,28
-"218","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-09-02,30,1,2022-09-02,0,30
-"219","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-09-09,37,1,2022-09-06,3,34
-"220","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-09-11,39,1,2022-09-07,4,35
-"221","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-04,2022-09-01,28,1,2022-08-31,1,27
-"222","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-08-30,25,1,2022-09-09,-10,35
-"223","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-06,32,1,2022-09-06,0,32
-"224","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-10,36,1,2022-08-31,10,26
-"225","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-27,53,1,2022-09-27,0,53
-"226","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-06,2022-09-09,34,1,2022-09-06,3,31
-"227","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-08,2022-09-01,24,1,2022-09-09,-8,32
-"228","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-08,2022-09-20,43,1,2022-09-20,0,43
-"229","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-09-14,36,1,2022-09-07,7,29
-"230","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-09-15,37,1,2022-09-08,7,30
-"231","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-09-28,50,1,2022-09-15,13,37
-"232","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-10-15,67,1,2022-10-27,-12,79
-"233","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-10,2022-09-12,33,1,2022-09-12,0,33
-"234","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-09-01,21,1,2022-09-09,-8,29
-"235","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-09-01,21,1,2022-09-10,-9,30
-"236","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-09-13,33,1,2022-09-05,8,25
-"237","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-10-07,57,1,2022-10-20,-13,70
-"238","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-10-18,68,1,2022-10-18,0,68
-"239","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-09-13,32,1,2022-09-30,-17,49
-"240","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-09-18,37,1,2022-09-09,9,28
-"241","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-09-22,41,1,2022-09-22,0,41
-"242","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-10-06,55,1,2022-10-06,0,55
-"243","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-12-05,115,1,2022-12-05,0,115
-"244","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-09-13,31,1,2022-09-10,3,28
-"245","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-09-14,32,1,2022-09-27,-13,45
-"246","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-09-21,39,1,2022-09-21,0,39
-"247","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-10-13,61,1,2022-10-05,8,53
-"248","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-15,2022-08-31,16,1,2022-09-12,-12,28
-"249","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-15,2022-09-15,31,1,2022-09-15,0,31
-"250","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-16,2022-09-12,27,1,2022-09-12,0,27
-"251","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-17,2022-09-05,19,1,2022-09-26,-21,40
-"252","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-17,2022-10-03,47,1,2022-10-04,-1,48
-"253","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-18,2022-09-13,26,1,2022-10-06,-23,49
-"254","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-09-27,39,1,2022-09-27,0,39
-"255","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-10-01,43,1,2022-09-27,4,39
-"256","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-10-10,52,1,2022-10-10,0,52
-"257","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-10-13,55,1,2022-10-13,0,55
-"258","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-12-02,105,1,2022-12-02,0,105
-"259","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-20,2022-09-30,41,1,2022-09-17,13,28
-"260","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-22,2022-09-05,14,1,2022-10-13,-38,52
-"261","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-22,2022-09-26,35,1,2022-10-03,-7,42
-"262","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-22,2022-12-07,107,1,2022-12-07,0,107
-"263","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-23,2022-09-08,16,1,2022-09-26,-18,34
-"264","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-24,2022-09-12,19,1,2022-09-21,-9,28
-"265","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-25,2022-09-14,20,1,2022-09-21,-7,27
-"266","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-25,2022-09-19,25,1,2022-09-22,-3,28
-"267","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-25,2022-09-19,25,1,2022-10-10,-21,46
-"268","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-26,2022-10-05,40,1,2022-10-05,0,40
-"269","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-29,2022-09-29,31,1,2022-09-26,3,28
-"270","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-30,2022-10-14,45,1,2022-10-07,7,38
-"271","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-31,2022-09-14,14,1,2022-09-28,-14,28
-"272","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-31,2022-10-05,35,1,2022-10-14,-9,44
-"273","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-03,2022-10-07,34,1,2022-10-01,6,28
-"274","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-07,2022-10-13,36,1,2022-10-05,8,28
-"275","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-09,2022-10-01,22,1,2022-10-07,-6,28
-"276","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-09,2022-11-15,67,1,2022-11-15,0,67
-"277","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-19,2022-10-24,35,1,2022-10-24,0,35
-"278","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-20,2022-10-28,38,1,2022-10-28,0,38
-"279","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-23,2022-10-12,19,1,2022-10-25,-13,32
-"280","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-27,2022-10-15,18,1,2022-12-07,-53,71
-"281","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-28,2022-11-15,48,1,2022-12-16,-31,79
-"282","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-09,2022-11-07,29,1,2022-11-07,0,29
-"283","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-20,2022-11-17,28,1,2022-11-17,0,28
-"284","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-28,2022-12-13,46,1,2022-11-30,13,33
-"285","PEP","S3: PEP, IE based",1,2022-08-10,2022-08-19,9,0,,,
-"286","PEP","S3: PEP, IE based",1,2022-08-10,2022-08-23,13,0,,,
-"287","PEP","S3: PEP, IE based",1,2022-08-12,2022-08-23,11,1,2022-12-07,-106,117
-"288","PEP","S3: PEP, IE based",1,2022-08-12,2022-08-24,12,1,2022-09-09,-16,28
-"289","PEP","S3: PEP, IE based",1,2022-08-13,2022-08-19,6,1,2022-09-22,-34,40
-"290","PEP","S3: PEP, IE based",1,2022-08-16,2022-08-23,7,0,,,
-"291","PEP","S3: PEP, IE based",1,2022-08-18,2022-08-19,1,0,,,
-"292","PEP","S3: PEP, IE based",1,2022-08-18,2022-08-26,8,0,,,
-"293","PEP","S3: PEP, IE based",1,2022-08-19,2022-08-21,2,1,2022-09-16,-26,28
-"294","PEP","S3: PEP, IE based",1,2022-08-19,2022-08-22,3,1,2022-09-22,-31,34
-"295","PEP","S3: PEP, IE based",1,2022-08-19,2022-08-31,12,1,2022-09-28,-28,40
-"296","PEP","S3: PEP, IE based",1,2022-08-20,2022-08-21,1,1,2022-10-25,-65,66
-"297","PEP","S3: PEP, IE based",1,2022-08-21,2022-08-31,10,0,,,
-"298","PEP","S3: PEP, IE based",1,2022-08-22,2022-08-31,9,1,2022-09-28,-28,37
-"299","PEP","S3: PEP, IE based",1,2022-08-22,2022-09-01,10,1,2022-09-29,-28,38
-"300","PEP","S3: PEP, IE based",1,2022-08-23,2022-08-31,8,0,,,
-"301","PEP","S3: PEP, IE based",1,2022-08-23,2022-09-01,9,1,2022-09-29,-28,37
-"302","PEP","S3: PEP, IE based",1,2022-08-23,2022-09-04,12,1,2022-12-14,-101,113
-"303","PEP","S3: PEP, IE based",1,2022-08-24,2022-09-01,8,0,,,
-"304","PEP","S3: PEP, IE based",1,2022-08-24,2022-09-01,8,1,2022-10-04,-33,41
-"305","PEP","S3: PEP, IE based",1,2022-08-24,2022-09-01,8,1,2022-10-05,-34,42
-"306","PEP","S3: PEP, IE based",1,2022-08-25,2022-08-31,6,0,,,
-"307","PEP","S3: PEP, IE based",1,2022-08-25,2022-08-31,6,1,2022-09-29,-29,35
-"308","PEP","S3: PEP, IE based",1,2022-08-25,2022-09-01,7,0,,,
-"309","PEP","S3: PEP, IE based",1,2022-08-25,2022-09-01,7,1,2022-09-25,-24,31
-"310","PEP","S3: PEP, IE based",1,2022-08-25,2022-09-02,8,0,,,
-"311","PEP","S3: PEP, IE based",1,2022-08-26,2022-09-05,10,1,2022-10-05,-30,40
-"312","PEP","S3: PEP, IE based",1,2022-08-28,2022-09-01,4,0,,,
-"313","PEP","S3: PEP, IE based",1,2022-08-30,2022-09-09,10,0,,,
-"314","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-01,1,1,2022-10-10,-39,40
-"315","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-01,1,1,2022-10-12,-41,42
-"316","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-09,9,1,2022-10-20,-41,50
-"317","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-12,12,0,,,
-"318","PEP","S3: PEP, IE based",1,2022-09-01,2022-09-02,1,1,2022-09-29,-27,28
-"319","PEP","S3: PEP, IE based",1,2022-09-01,2022-09-07,6,1,2022-09-30,-23,29
-"320","PEP","S3: PEP, IE based",1,2022-09-01,2022-09-10,9,0,,,
-"321","PEP","S3: PEP, IE based",1,2022-09-06,2022-09-07,1,1,2022-10-07,-30,31
-"322","PEP","S3: PEP, IE based",1,2022-09-07,2022-09-08,1,0,,,
-"323","PEP","S3: PEP, IE based",1,2022-09-07,2022-09-10,3,1,2022-10-05,-25,28
-"324","PEP","S3: PEP, IE based",1,2022-09-07,2022-09-14,7,0,,,
-"325","PEP","S3: PEP, IE based",1,2022-09-09,2022-09-13,4,1,2022-09-09,4,0
-"326","PEP","S3: PEP, IE based",1,2022-09-10,2022-09-23,13,1,2022-10-29,-36,49
-"327","PEP","S3: PEP, IE based",1,2022-09-19,2022-09-21,2,1,2022-10-28,-37,39
-"328","PEP","S3: PEP, IE based",1,2022-09-19,2022-09-23,4,0,,,
-"329","PEP","S3: PEP, IE based",1,2022-09-22,2022-09-30,8,0,,,
-"330","PEP","S3: PEP, IE based",1,2022-10-03,2022-10-04,1,1,2022-11-30,-57,58
-"331","PEP","S3: PEP, IE based",1,2022-10-05,2022-10-12,7,1,2022-11-14,-33,40
-"332","PEP","S3: PEP, IE based",1,2022-10-09,2022-10-14,5,0,,,
-"333","PEP","S3: PEP, IE based",1,2022-10-14,2022-10-18,4,1,2022-11-11,-24,28
-"334","PEP","S3: PEP, IE based",1,2022-10-19,2022-10-26,7,0,,,
-"335","PEP","S3: PEP, IE based",1,2022-11-09,2022-11-11,2,1,2022-12-06,-25,27
-"336","Unvaccinated","S1: No documentation",0,,2022-08-19,,,,,
-"337","Unvaccinated","S1: No documentation",0,,2022-08-20,,,,,
-"338","Unvaccinated","S1: No documentation",0,,2022-08-22,,,,,
-"339","Unvaccinated","S1: No documentation",0,,2022-08-23,,,,,
-"340","Unvaccinated","S1: No documentation",0,,2022-08-24,,,,,
-"341","Unvaccinated","S1: No documentation",0,,2022-08-25,,,,,
-"342","Unvaccinated","S1: No documentation",0,,2022-08-26,,,,,
-"343","Unvaccinated","S1: No documentation",0,,2022-08-27,,,,,
-"344","Unvaccinated","S1: No documentation",0,,2022-08-28,,,,,
-"345","Unvaccinated","S1: No documentation",0,,2022-08-29,,,,,
-"346","Unvaccinated","S1: No documentation",0,,2022-08-30,,,,,
-"347","Unvaccinated","S1: No documentation",0,,2022-08-31,,,,,
-"348","Unvaccinated","S1: No documentation",0,,2022-09-01,,,,,
-"349","Unvaccinated","S1: No documentation",0,,2022-09-02,,,,,
-"350","Unvaccinated","S1: No documentation",0,,2022-09-03,,,,,
-"351","Unvaccinated","S1: No documentation",0,,2022-09-05,,,,,
-"352","Unvaccinated","S1: No documentation",0,,2022-09-06,,,,,
-"353","Unvaccinated","S1: No documentation",0,,2022-09-07,,,,,
-"354","Unvaccinated","S1: No documentation",0,,2022-09-08,,,,,
-"355","Unvaccinated","S1: No documentation",0,,2022-09-09,,,,,
-"356","Unvaccinated","S1: No documentation",0,,2022-09-10,,,,,
-"357","Unvaccinated","S1: No documentation",0,,2022-09-11,,,,,
-"358","Unvaccinated","S1: No documentation",0,,2022-09-12,,,,,
-"359","Unvaccinated","S1: No documentation",0,,2022-09-13,,,,,
-"360","Unvaccinated","S1: No documentation",0,,2022-09-14,,,,,
-"361","Unvaccinated","S1: No documentation",0,,2022-09-15,,,,,
-"362","Unvaccinated","S1: No documentation",0,,2022-09-16,,,,,
-"363","Unvaccinated","S1: No documentation",0,,2022-09-17,,0,,,
-"364","Unvaccinated","S1: No documentation",0,,2022-09-17,,,,,
-"365","Unvaccinated","S1: No documentation",0,,2022-09-19,,,,,
-"366","Unvaccinated","S1: No documentation",0,,2022-09-20,,,,,
-"367","Unvaccinated","S1: No documentation",0,,2022-09-21,,,,,
-"368","Unvaccinated","S1: No documentation",0,,2022-09-22,,,,,
-"369","Unvaccinated","S1: No documentation",0,,2022-09-23,,,,,
-"370","Unvaccinated","S1: No documentation",0,,2022-09-26,,,,,
-"371","Unvaccinated","S1: No documentation",0,,2022-09-27,,,,,
-"372","Unvaccinated","S1: No documentation",0,,2022-09-29,,,,,
-"373","Unvaccinated","S1: No documentation",0,,2022-10-02,,,,,
-"374","Unvaccinated","S1: No documentation",0,,2022-10-03,,,,,
-"375","Unvaccinated","S1: No documentation",0,,2022-10-04,,,,,
-"376","Unvaccinated","S1: No documentation",0,,2022-10-05,,,,,
-"377","Unvaccinated","S1: No documentation",0,,2022-10-08,,,,,
-"378","Unvaccinated","S1: No documentation",0,,2022-10-09,,,,,
-"379","Unvaccinated","S1: No documentation",0,,2022-10-10,,,,,
-"380","Unvaccinated","S1: No documentation",0,,2022-10-11,,0,,,
-"381","Unvaccinated","S1: No documentation",0,,2022-10-11,,,,,
-"382","Unvaccinated","S1: No documentation",0,,2022-10-12,,,,,
-"383","Unvaccinated","S1: No documentation",0,,2022-10-13,,,,,
-"384","Unvaccinated","S1: No documentation",0,,2022-10-14,,,,,
-"385","Unvaccinated","S1: No documentation",0,,2022-10-19,,,,,
-"386","Unvaccinated","S1: No documentation",0,,2022-10-20,,,,,
-"387","Unvaccinated","S1: No documentation",0,,2022-10-24,,,,,
-"388","Unvaccinated","S1: No documentation",0,,2022-10-26,,,,,
-"389","Unvaccinated","S1: No documentation",0,,2022-10-27,,,,,
-"390","Unvaccinated","S1: No documentation",0,,2022-11-01,,,,,
-"391","Unvaccinated","S1: No documentation",0,,2022-11-06,,,,,
-"392","Unvaccinated","S1: No documentation",0,,2022-11-08,,,,,
-"393","Unvaccinated","S1: No documentation",0,,2022-11-16,,,,,
-"394","Unvaccinated","S1: No documentation",0,,2022-11-17,,,,,
-"395","Unvaccinated","S1: No documentation",0,,2022-11-19,,,,,
-"396","Unvaccinated","S1: No documentation",0,,2022-11-27,,,,,
-"397","Unvaccinated","S1: No documentation",0,,2022-11-29,,,,,
-"398","Unvaccinated","S1: No documentation",0,,2022-12-01,,,,,
-"399","Unvaccinated","S1: No documentation",0,,2022-12-05,,,,,
-"400","Unvaccinated","S1: No documentation",0,,2022-12-06,,0,,,
-"401","Unvaccinated","S1: No documentation",0,,2022-12-12,,,,,
-"402","Unvaccinated","S1: No documentation",0,,2022-12-15,,,,,
-"403","Unvaccinated","S1: No documentation",0,,2022-12-20,,,,,
-"404","Unvaccinated","S1: No documentation",0,,2023-01-09,,,,,
-"405","Unvaccinated","S1: No documentation",0,,2023-01-15,,,,,
-"406","Unvaccinated","S1: No documentation",0,,2023-01-18,,,,,
-"407","Unvaccinated","S1: No documentation",0,,2023-01-23,,,,,
-"408","Unvaccinated","S2: Post-IE",1,2022-08-19,2022-08-19,0,1,2022-09-28,-40,40
-"409","Unvaccinated","S2: Post-IE",1,2022-08-19,2022-08-19,0,1,2022-09-30,-42,42
-"410","Unvaccinated","S2: Post-IE",1,2022-08-20,2022-08-20,0,1,2023-01-14,-147,147
-"411","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,0,,,
-"412","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,1,2022-09-29,-38,38
-"413","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,1,2022-10-03,-42,42
-"414","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,1,2022-11-07,-77,77
-"415","Unvaccinated","S2: Post-IE",1,2022-08-23,2022-08-23,0,1,2022-09-20,-28,28
-"416","Unvaccinated","S2: Post-IE",1,2022-08-24,2022-08-24,0,1,2022-09-30,-37,37
-"417","Unvaccinated","S2: Post-IE",1,2022-08-24,2022-08-24,0,1,2022-10-04,-41,41
-"418","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-08-25,0,0
-"419","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-09-23,-29,29
-"420","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-09-26,-32,32
-"421","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-11-28,-95,95
-"422","Unvaccinated","S2: Post-IE",1,2022-08-26,2022-08-24,-2,0,,,
-"423","Unvaccinated","S2: Post-IE",1,2022-08-26,2022-08-25,-1,1,2022-09-28,-34,33
-"424","Unvaccinated","S2: Post-IE",1,2022-08-26,2022-08-26,0,1,2022-10-07,-42,42
-"425","Unvaccinated","S2: Post-IE",1,2022-08-27,2022-08-26,-1,1,2022-09-24,-29,28
-"426","Unvaccinated","S2: Post-IE",1,2022-08-29,2022-08-29,0,1,2022-09-26,-28,28
-"427","Unvaccinated","S2: Post-IE",1,2022-08-29,2022-08-29,0,1,2022-10-05,-37,37
-"428","Unvaccinated","S2: Post-IE",1,2022-08-29,2022-08-29,0,1,2022-11-29,-92,92
-"429","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-22,-8,1,2022-09-27,-36,28
-"430","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,0,,,
-"431","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-09-27,-28,28
-"432","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-10-06,-37,37
-"433","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-10-10,-41,41
-"434","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-12-02,-94,94
-"435","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-22,-9,1,2022-09-26,-35,26
-"436","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-29,-2,1,2022-12-02,-95,93
-"437","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-31,0,1,2022-10-06,-36,36
-"438","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-31,0,1,2022-10-07,-37,37
-"439","Unvaccinated","S2: Post-IE",1,2022-09-01,2022-08-26,-6,0,,,
-"440","Unvaccinated","S2: Post-IE",1,2022-09-01,2022-09-01,0,0,,,
-"441","Unvaccinated","S2: Post-IE",1,2022-09-06,2022-09-06,0,0,,,
-"442","Unvaccinated","S2: Post-IE",1,2022-09-06,2022-09-06,0,1,2022-10-06,-30,30
-"443","Unvaccinated","S2: Post-IE",1,2022-09-07,2022-08-31,-7,1,2022-09-09,-9,2
-"444","Unvaccinated","S2: Post-IE",1,2022-09-08,2022-08-29,-10,0,,,
-"445","Unvaccinated","S2: Post-IE",1,2022-09-08,2022-09-08,0,0,,,
-"446","Unvaccinated","S2: Post-IE",1,2022-09-08,2022-09-08,0,1,2022-10-14,-36,36
-"447","Unvaccinated","S2: Post-IE",1,2022-09-09,2022-09-09,0,0,,,
-"448","Unvaccinated","S2: Post-IE",1,2022-09-12,2022-08-31,-12,1,2022-10-10,-40,28
-"449","Unvaccinated","S2: Post-IE",1,2022-09-12,2022-09-12,0,1,2022-10-10,-28,28
-"450","Unvaccinated","S2: Post-IE",1,2022-09-13,2022-09-13,0,0,,,
-"451","Unvaccinated","S2: Post-IE",1,2022-09-15,2022-09-12,-3,0,,,
-"452","Unvaccinated","S2: Post-IE",1,2022-09-16,2022-08-22,-25,1,2022-09-10,-19,-6
-"453","Unvaccinated","S2: Post-IE",1,2022-09-19,2022-09-19,0,1,2022-10-21,-32,32
-"454","Unvaccinated","S2: Post-IE",1,2022-09-21,2022-09-02,-19,1,2022-10-19,-47,28
-"455","Unvaccinated","S2: Post-IE",1,2022-09-22,2022-09-19,-3,1,2022-10-20,-31,28
-"456","Unvaccinated","S2: Post-IE",1,2022-09-23,2022-09-12,-11,1,2022-10-21,-39,28
-"457","Unvaccinated","S2: Post-IE",1,2022-09-26,2022-09-05,-21,1,2022-10-26,-51,30
-"458","Unvaccinated","S2: Post-IE",1,2022-09-26,2022-09-08,-18,0,,,
-"459","Unvaccinated","S2: Post-IE",1,2022-09-27,2022-09-27,0,1,2022-11-03,-37,37
-"460","Unvaccinated","S2: Post-IE",1,2022-09-29,2022-09-22,-7,1,2022-10-28,-36,29
-"461","Unvaccinated","S2: Post-IE",1,2022-09-30,2022-09-12,-18,1,2022-09-30,-18,0
-"462","Unvaccinated","S2: Post-IE",1,2022-09-30,2022-09-30,0,0,,,
-"463","Unvaccinated","S2: Post-IE",1,2022-10-02,2022-09-09,-23,1,2022-11-05,-57,34
-"464","Unvaccinated","S2: Post-IE",1,2022-10-03,2022-10-03,0,0,,,
-"465","Unvaccinated","S2: Post-IE",1,2022-10-04,2022-10-04,0,0,,,
-"466","Unvaccinated","S2: Post-IE",1,2022-10-05,2022-09-07,-28,0,,,
-"467","Unvaccinated","S2: Post-IE",1,2022-10-06,2022-09-01,-35,1,2022-10-10,-39,4
-"468","Unvaccinated","S2: Post-IE",1,2022-10-06,2022-10-06,0,1,2022-11-29,-54,54
-"469","Unvaccinated","S2: Post-IE",1,2022-10-07,2022-10-07,0,1,2022-11-09,-33,33
-"470","Unvaccinated","S2: Post-IE",1,2022-10-10,2022-10-10,0,1,2022-11-17,-38,38
-"471","Unvaccinated","S2: Post-IE",1,2022-10-12,2022-10-12,0,1,2022-12-29,-78,78
-"472","Unvaccinated","S2: Post-IE",1,2022-10-13,2022-08-26,-48,1,2022-10-17,-52,4
-"473","Unvaccinated","S2: Post-IE",1,2022-10-13,2022-10-12,-1,0,,,
-"474","Unvaccinated","S2: Post-IE",1,2022-10-18,2022-10-18,0,0,,,
-"475","Unvaccinated","S2: Post-IE",1,2022-10-19,2022-10-19,0,0,,,
-"476","Unvaccinated","S2: Post-IE",1,2022-10-25,2022-09-02,-53,0,,,
-"477","Unvaccinated","S2: Post-IE",1,2022-10-25,2022-09-14,-41,0,,,
-"478","Unvaccinated","S2: Post-IE",1,2022-10-25,2022-10-25,0,0,,,
-"479","Unvaccinated","S2: Post-IE",1,2022-11-04,2022-08-28,-68,0,,,
-"480","Unvaccinated","S2: Post-IE",1,2022-11-05,2022-09-12,-54,0,,,
-"481","Unvaccinated","S2: Post-IE",1,2022-11-09,2022-10-06,-34,1,2022-10-26,-20,-14
-"482","Unvaccinated","S2: Post-IE",1,2022-11-14,2022-08-25,-81,0,,,
-"483","Unvaccinated","S2: Post-IE",1,2022-11-15,2022-09-28,-48,1,2022-12-20,-83,35
-"484","Unvaccinated","S2: Post-IE",1,2022-12-06,2022-12-06,0,0,,,
-"485","Unvaccinated","S2: Post-IE",1,2022-12-07,2022-12-07,0,0,,,
-"486","Unvaccinated","S2: Post-IE",1,2022-12-15,2022-11-05,-40,1,2022-12-27,-52,12
-"487","Unvaccinated","S2: Post-IE",1,2022-12-16,2022-12-16,0,1,2023-01-17,-32,32
-"488","Unvaccinated","S2: Post-IE",1,2022-12-26,2022-09-04,-113,0,,,
-"489","Unvaccinated","S2: Post-IE",1,2022-12-26,2022-09-07,-110,0,,,
-"490","Unvaccinated","S2: Post-IE",1,2023-01-02,2022-10-04,-90,0,,,
-"491","Unvaccinated","S2: Post-IE",1,2023-05-11,2022-08-27,-257,1,2023-06-17,-294,37
+"10","Fully vaccinated","S7: Full",1,2022-07-16,2022-12-30,167,1,2022-09-03,118,49
+"11","Fully vaccinated","S7: Full",1,2022-07-17,2022-09-06,51,1,2022-08-23,14,37
+"12","Fully vaccinated","S7: Full",1,2022-07-17,2022-11-09,115,1,2022-08-23,78,37
+"13","Fully vaccinated","S7: Full",1,2022-07-18,2022-09-20,64,1,2022-08-23,28,36
+"14","Fully vaccinated","S7: Full",1,2022-07-18,2022-10-20,94,1,2022-08-11,70,24
+"15","Fully vaccinated","S7: Full",1,2022-07-19,2022-09-14,57,1,2022-08-16,29,28
+"16","Fully vaccinated","S7: Full",1,2022-07-19,2022-10-10,83,1,2022-08-16,55,28
+"17","Fully vaccinated","S7: Full",1,2022-07-19,2022-11-16,120,1,2022-08-23,85,35
+"18","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-07,49,1,2022-08-24,14,35
+"19","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-12,54,1,2022-08-18,25,29
+"20","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-22,64,1,2022-08-22,31,33
+"21","Fully vaccinated","S7: Full",1,2022-07-20,2022-09-24,66,1,2022-08-16,39,27
+"22","Fully vaccinated","S7: Full",1,2022-07-20,2022-10-11,83,1,2022-09-21,20,63
+"23","Fully vaccinated","S7: Full",1,2022-07-20,2022-10-12,84,1,2022-08-31,42,42
+"24","Fully vaccinated","S7: Full",1,2022-07-20,2022-10-19,91,1,2022-08-19,61,30
+"25","Fully vaccinated","S7: Full",1,2022-07-20,2022-11-17,120,1,2022-08-17,92,28
+"26","Fully vaccinated","S7: Full",1,2022-07-20,2022-12-02,135,1,2022-08-18,106,29
+"27","Fully vaccinated","S7: Full",1,2022-07-20,2022-12-02,135,1,2022-08-31,93,42
+"28","Fully vaccinated","S7: Full",1,2022-07-20,2022-12-19,152,1,2022-09-21,89,63
+"29","Fully vaccinated","S7: Full",1,2022-07-21,2022-09-15,56,1,2022-08-29,17,39
+"30","Fully vaccinated","S7: Full",1,2022-07-21,2022-09-25,66,1,2022-08-18,38,28
+"31","Fully vaccinated","S7: Full",1,2022-07-21,2022-10-10,81,1,2022-08-18,53,28
+"32","Fully vaccinated","S7: Full",1,2022-07-21,2022-10-18,89,1,2022-08-30,49,40
+"33","Fully vaccinated","S7: Full",1,2022-07-21,2022-10-26,97,1,2022-08-18,69,28
+"34","Fully vaccinated","S7: Full",1,2022-07-21,2022-12-16,148,1,2022-08-20,118,30
+"35","Fully vaccinated","S7: Full",1,2022-07-23,2022-09-22,61,1,2022-08-20,33,28
+"36","Fully vaccinated","S7: Full",1,2022-07-23,2022-09-30,69,1,2022-08-20,41,28
+"37","Fully vaccinated","S7: Full",1,2022-07-23,2022-10-05,74,1,2022-08-20,46,28
+"38","Fully vaccinated","S7: Full",1,2022-07-23,2022-10-24,93,1,2022-09-10,44,49
+"39","Fully vaccinated","S7: Full",1,2022-07-24,2022-09-27,65,1,2022-08-24,34,31
+"40","Fully vaccinated","S7: Full",1,2022-07-24,2022-11-29,128,1,2022-08-23,98,30
+"41","Fully vaccinated","S7: Full",1,2022-07-24,2022-11-30,129,1,2022-08-23,99,30
+"42","Fully vaccinated","S7: Full",1,2022-07-25,2022-09-21,58,1,2022-08-22,30,28
+"43","Fully vaccinated","S7: Full",1,2022-07-25,2022-09-29,66,1,2022-08-24,36,30
+"44","Fully vaccinated","S7: Full",1,2022-07-25,2022-10-11,78,1,2022-08-22,50,28
+"45","Fully vaccinated","S7: Full",1,2022-07-25,2022-11-09,107,1,2022-08-25,76,31
+"46","Fully vaccinated","S7: Full",1,2022-07-25,2022-12-03,131,1,2022-08-23,102,29
+"47","Fully vaccinated","S7: Full",1,2022-07-26,2022-09-20,56,1,2022-08-30,21,35
+"48","Fully vaccinated","S7: Full",1,2022-07-26,2022-09-26,62,1,2022-08-23,34,28
+"49","Fully vaccinated","S7: Full",1,2022-07-26,2022-10-03,69,1,2022-08-29,35,34
+"50","Fully vaccinated","S7: Full",1,2022-07-26,2022-10-06,72,1,2022-08-25,42,30
+"51","Fully vaccinated","S7: Full",1,2022-07-26,2022-11-14,111,1,2022-08-24,82,29
+"52","Fully vaccinated","S7: Full",1,2022-07-27,2022-09-13,48,1,2022-08-26,18,30
+"53","Fully vaccinated","S7: Full",1,2022-07-27,2022-09-23,58,1,2022-08-23,31,27
+"54","Fully vaccinated","S7: Full",1,2022-07-27,2022-11-14,110,1,2022-08-29,77,33
+"55","Fully vaccinated","S7: Full",1,2022-07-27,2022-11-30,126,1,2022-08-26,96,30
+"56","Fully vaccinated","S7: Full",1,2022-07-27,2023-01-26,183,1,2022-08-30,149,34
+"57","Fully vaccinated","S7: Full",1,2022-07-28,2022-09-12,46,1,2022-08-25,18,28
+"58","Fully vaccinated","S7: Full",1,2022-07-28,2022-10-09,73,1,2022-09-01,38,35
+"59","Fully vaccinated","S7: Full",1,2022-07-28,2022-10-24,88,1,2022-08-30,55,33
+"60","Fully vaccinated","S7: Full",1,2022-07-28,2022-10-31,95,1,2022-08-26,66,29
+"61","Fully vaccinated","S7: Full",1,2022-07-28,2022-11-02,97,1,2022-08-25,69,28
+"62","Fully vaccinated","S7: Full",1,2022-07-28,2022-11-03,98,1,2022-08-30,65,33
+"63","Fully vaccinated","S7: Full",1,2022-07-28,2022-12-05,130,1,2022-08-26,101,29
+"64","Fully vaccinated","S7: Full",1,2022-07-29,2022-10-01,64,1,2022-08-25,37,27
+"65","Fully vaccinated","S7: Full",1,2022-07-29,2022-10-07,70,1,2022-08-26,42,28
+"66","Fully vaccinated","S7: Full",1,2022-07-29,2022-10-20,83,1,2022-09-01,49,34
+"67","Fully vaccinated","S7: Full",1,2022-07-29,2022-11-22,116,1,2022-08-29,85,31
+"68","Fully vaccinated","S7: Full",1,2022-07-30,2022-10-05,67,1,2022-09-21,14,53
+"69","Fully vaccinated","S7: Full",1,2022-07-30,2023-01-04,158,1,2022-08-30,127,31
+"70","Fully vaccinated","S7: Full",1,2022-07-31,2022-10-03,64,1,2022-08-28,36,28
+"71","Fully vaccinated","S7: Full",1,2022-08-01,2022-10-20,80,1,2022-08-29,52,28
+"72","Fully vaccinated","S7: Full",1,2022-08-01,2022-11-03,94,1,2022-08-31,64,30
+"73","Fully vaccinated","S7: Full",1,2022-08-01,2022-11-07,98,1,2022-08-31,68,30
+"74","Fully vaccinated","S7: Full",1,2022-08-01,2022-11-21,112,1,2022-08-29,84,28
+"75","Fully vaccinated","S7: Full",1,2022-08-01,2022-12-02,123,1,2022-08-29,95,28
+"76","Fully vaccinated","S7: Full",1,2022-08-01,2022-12-12,133,1,2022-08-29,105,28
+"77","Fully vaccinated","S7: Full",1,2022-08-01,2022-12-20,141,1,2022-08-29,113,28
+"78","Fully vaccinated","S7: Full",1,2022-08-02,2022-09-30,59,1,2022-08-30,31,28
+"79","Fully vaccinated","S7: Full",1,2022-08-02,2022-11-01,91,1,2022-09-10,52,39
+"80","Fully vaccinated","S7: Full",1,2022-08-02,2022-12-12,132,1,2022-08-31,103,29
+"81","Fully vaccinated","S7: Full",1,2022-08-02,2022-12-15,135,1,2022-10-17,59,76
+"82","Fully vaccinated","S7: Full",1,2022-08-03,2022-09-17,45,1,2022-08-31,17,28
+"83","Fully vaccinated","S7: Full",1,2022-08-03,2022-10-07,65,1,2022-09-04,33,32
+"84","Fully vaccinated","S7: Full",1,2022-08-03,2022-11-01,90,1,2022-08-31,62,28
+"85","Fully vaccinated","S7: Full",1,2022-08-03,2022-12-20,139,1,2022-09-04,107,32
+"86","Fully vaccinated","S7: Full",1,2022-08-03,2023-01-31,181,1,2022-09-06,147,34
+"87","Fully vaccinated","S7: Full",1,2022-08-04,2022-10-18,75,1,2022-09-08,40,35
+"88","Fully vaccinated","S7: Full",1,2022-08-04,2022-12-05,123,1,2022-08-30,97,26
+"89","Fully vaccinated","S7: Full",1,2022-08-05,2022-11-01,88,1,2022-09-08,54,34
+"90","Fully vaccinated","S7: Full",1,2022-08-05,2022-11-05,92,1,2022-09-02,64,28
+"91","Fully vaccinated","S7: Full",1,2022-08-05,2022-11-29,116,1,2022-09-07,83,33
+"92","Fully vaccinated","S7: Full",1,2022-08-05,2022-12-16,133,1,2022-10-18,59,74
+"93","Fully vaccinated","S7: Full",1,2022-08-08,2022-10-28,81,1,2022-10-07,21,60
+"94","Fully vaccinated","S7: Full",1,2022-08-08,2022-10-29,82,1,2022-09-06,53,29
+"95","Fully vaccinated","S7: Full",1,2022-08-08,2022-10-31,84,1,2022-09-13,48,36
+"96","Fully vaccinated","S7: Full",1,2022-08-09,2022-10-19,71,1,2022-09-17,32,39
+"97","Fully vaccinated","S7: Full",1,2022-08-09,2022-10-25,77,1,2022-09-07,48,29
+"98","Fully vaccinated","S7: Full",1,2022-08-09,2022-11-01,84,1,2022-09-28,34,50
+"99","Fully vaccinated","S7: Full",1,2022-08-09,2022-11-04,87,1,2022-09-17,48,39
+"100","Fully vaccinated","S7: Full",1,2022-08-09,2022-12-05,118,1,2022-09-07,89,29
+"101","Fully vaccinated","S7: Full",1,2022-08-09,2022-12-10,123,1,2022-10-20,51,72
+"102","Fully vaccinated","S7: Full",1,2022-08-10,2022-10-14,65,1,2022-09-08,36,29
+"103","Fully vaccinated","S7: Full",1,2022-08-11,2022-10-01,51,1,2022-09-08,23,28
+"104","Fully vaccinated","S7: Full",1,2022-08-11,2022-10-12,62,1,2022-09-08,34,28
+"105","Fully vaccinated","S7: Full",1,2022-08-11,2022-10-20,70,1,2022-09-08,42,28
+"106","Fully vaccinated","S7: Full",1,2022-08-11,2022-11-02,83,1,2022-09-16,47,36
+"107","Fully vaccinated","S7: Full",1,2022-08-12,2022-10-07,56,1,2022-09-14,23,33
+"108","Fully vaccinated","S7: Full",1,2022-08-12,2022-11-02,82,1,2022-10-12,21,61
+"109","Fully vaccinated","S7: Full",1,2022-08-12,2022-11-23,103,1,2022-09-16,68,35
+"110","Fully vaccinated","S7: Full",1,2022-08-12,2022-12-14,124,1,2022-09-10,95,29
+"111","Fully vaccinated","S7: Full",1,2022-08-12,2022-12-21,131,1,2022-09-20,92,39
+"112","Fully vaccinated","S7: Full",1,2022-08-13,2022-10-25,73,1,2022-09-20,35,38
+"113","Fully vaccinated","S7: Full",1,2022-08-14,2022-11-28,106,1,2022-09-12,77,29
+"114","Fully vaccinated","S7: Full",1,2022-08-15,2022-10-14,60,1,2022-09-11,33,27
+"115","Fully vaccinated","S7: Full",1,2022-08-15,2022-11-18,95,1,2022-09-20,59,36
+"116","Fully vaccinated","S7: Full",1,2022-08-16,2022-10-01,46,1,2022-09-17,14,32
+"117","Fully vaccinated","S7: Full",1,2022-08-16,2022-10-17,62,1,2022-09-16,31,31
+"118","Fully vaccinated","S7: Full",1,2022-08-16,2022-11-10,86,1,2022-09-16,55,31
+"119","Fully vaccinated","S7: Full",1,2022-08-16,2022-11-22,98,1,2022-09-21,62,36
+"120","Fully vaccinated","S7: Full",1,2022-08-16,2023-01-01,138,1,2022-09-23,100,38
+"121","Fully vaccinated","S7: Full",1,2022-08-17,2022-10-27,71,1,2022-09-21,36,35
+"122","Fully vaccinated","S7: Full",1,2022-08-18,2022-11-09,83,1,2022-09-22,48,35
+"123","Fully vaccinated","S7: Full",1,2022-08-18,2022-11-10,84,1,2022-10-25,16,68
+"124","Fully vaccinated","S7: Full",1,2022-08-19,2022-10-27,69,1,2022-09-28,29,40
+"125","Fully vaccinated","S7: Full",1,2022-08-19,2022-11-08,81,1,2022-09-28,41,40
+"126","Fully vaccinated","S7: Full",1,2022-08-19,2022-11-15,88,1,2022-10-03,43,45
+"127","Fully vaccinated","S7: Full",1,2022-08-19,2022-11-21,94,1,2022-09-28,54,40
+"128","Fully vaccinated","S7: Full",1,2022-08-19,2022-12-06,109,1,2022-09-27,70,39
+"129","Fully vaccinated","S7: Full",1,2022-08-19,2022-12-08,111,1,2022-09-30,69,42
+"130","Fully vaccinated","S7: Full",1,2022-08-19,2022-12-19,122,1,2022-09-19,91,31
+"131","Fully vaccinated","S7: Full",1,2022-08-23,2022-10-19,57,1,2022-09-30,19,38
+"132","Fully vaccinated","S7: Full",1,2022-08-23,2022-12-18,117,1,2022-09-30,79,38
+"133","Fully vaccinated","S7: Full",1,2022-08-24,2022-10-07,44,1,2022-09-22,15,29
+"134","Fully vaccinated","S7: Full",1,2022-08-24,2022-11-07,75,1,2022-10-08,30,45
+"135","Fully vaccinated","S7: Full",1,2022-08-24,2022-11-20,88,1,2022-09-21,60,28
+"136","Fully vaccinated","S7: Full",1,2022-08-25,2022-11-10,77,1,2022-10-06,35,42
+"137","Fully vaccinated","S7: Full",1,2022-08-25,2022-12-06,103,1,2022-09-23,74,29
+"138","Fully vaccinated","S7: Full",1,2022-08-26,2022-10-08,43,1,2022-09-23,15,28
+"139","Fully vaccinated","S7: Full",1,2022-08-26,2022-11-23,89,1,2022-10-20,34,55
+"140","Fully vaccinated","S7: Full",1,2022-08-29,2022-10-27,59,1,2022-10-05,22,37
+"141","Fully vaccinated","S7: Full",1,2022-08-30,2022-11-17,79,1,2022-09-27,51,28
+"142","Fully vaccinated","S7: Full",1,2022-08-31,2022-11-01,62,1,2022-10-10,22,40
+"143","Fully vaccinated","S7: Full",1,2022-08-31,2022-11-10,71,1,2022-09-28,43,28
+"144","Fully vaccinated","S7: Full",1,2022-09-01,2022-11-01,61,1,2022-10-06,26,35
+"145","Fully vaccinated","S7: Full",1,2022-09-08,2022-10-24,46,1,2022-10-06,18,28
+"146","Fully vaccinated","S7: Full",1,2022-09-09,2022-11-11,63,1,2022-10-19,23,40
+"147","Fully vaccinated","S7: Full",1,2022-10-12,2022-12-05,54,1,2022-11-09,26,28
+"148","Partially vaccinated","S4: Partial, D1 only",1,2021-10-29,2022-09-11,317,0,,,
+"149","Partially vaccinated","S4: Partial, D1 only",1,2022-07-17,2022-09-03,48,0,,,
+"150","Partially vaccinated","S4: Partial, D1 only",1,2022-07-17,2022-09-15,60,0,,,
+"151","Partially vaccinated","S4: Partial, D1 only",1,2022-07-27,2022-09-02,37,0,,,
+"152","Partially vaccinated","S4: Partial, D1 only",1,2022-07-28,2022-09-09,43,0,,,
+"153","Partially vaccinated","S4: Partial, D1 only",1,2022-08-01,2022-08-26,25,0,,,
+"154","Partially vaccinated","S4: Partial, D1 only",1,2022-08-02,2022-08-26,24,0,,,
+"155","Partially vaccinated","S4: Partial, D1 only",1,2022-08-02,2022-08-31,29,0,,,
+"156","Partially vaccinated","S4: Partial, D1 only",1,2022-08-02,2023-01-04,155,0,,,
+"157","Partially vaccinated","S4: Partial, D1 only",1,2022-08-04,2022-10-10,67,0,,,
+"158","Partially vaccinated","S4: Partial, D1 only",1,2022-08-05,2022-09-09,35,0,,,
+"159","Partially vaccinated","S4: Partial, D1 only",1,2022-08-09,2022-10-29,81,0,,,
+"160","Partially vaccinated","S4: Partial, D1 only",1,2022-08-11,2022-08-29,18,0,,,
+"161","Partially vaccinated","S4: Partial, D1 only",1,2022-08-11,2022-10-05,55,0,,,
+"162","Partially vaccinated","S4: Partial, D1 only",1,2022-08-11,2022-11-16,97,0,,,
+"163","Partially vaccinated","S4: Partial, D1 only",1,2022-08-13,2022-11-26,105,0,,,
+"164","Partially vaccinated","S4: Partial, D1 only",1,2022-08-14,2022-08-31,17,0,,,
+"165","Partially vaccinated","S4: Partial, D1 only",1,2022-08-15,2022-09-02,18,0,,,
+"166","Partially vaccinated","S4: Partial, D1 only",1,2022-08-16,2022-09-14,29,0,,,
+"167","Partially vaccinated","S4: Partial, D1 only",1,2022-08-19,2022-12-19,122,0,,,
+"168","Partially vaccinated","S4: Partial, D1 only",1,2022-08-21,2022-10-01,41,0,,,
+"169","Partially vaccinated","S4: Partial, D1 only",1,2022-08-21,2022-10-07,47,0,,,
+"170","Partially vaccinated","S4: Partial, D1 only",1,2022-08-23,2022-09-07,15,0,,,
+"171","Partially vaccinated","S4: Partial, D1 only",1,2022-08-24,2022-09-30,37,0,,,
+"172","Partially vaccinated","S4: Partial, D1 only",1,2022-08-24,2022-12-08,106,0,,,
+"173","Partially vaccinated","S4: Partial, D1 only",1,2022-08-25,2022-09-14,20,0,,,
+"174","Partially vaccinated","S4: Partial, D1 only",1,2022-08-25,2022-10-04,40,0,,,
+"175","Partially vaccinated","S4: Partial, D1 only",1,2022-08-26,2022-09-12,17,0,,,
+"176","Partially vaccinated","S4: Partial, D1 only",1,2022-08-26,2022-09-13,18,0,,,
+"177","Partially vaccinated","S4: Partial, D1 only",1,2022-09-01,2022-12-01,91,0,,,
+"178","Partially vaccinated","S4: Partial, D1 only",1,2022-09-02,2022-09-16,14,0,,,
+"179","Partially vaccinated","S4: Partial, D1 only",1,2022-09-08,2022-09-27,19,0,,,
+"180","Partially vaccinated","S4: Partial, D1 only",1,2022-09-09,2022-11-14,66,0,,,
+"181","Partially vaccinated","S4: Partial, D1 only",1,2022-09-09,2022-12-19,101,0,,,
+"182","Partially vaccinated","S4: Partial, D1 only",1,2022-09-10,2022-10-03,23,0,,,
+"183","Partially vaccinated","S4: Partial, D1 only",1,2022-09-12,2022-12-05,84,0,,,
+"184","Partially vaccinated","S4: Partial, D1 only",1,2022-09-19,2022-12-19,91,0,,,
+"185","Partially vaccinated","S4: Partial, D1 only",1,2022-09-27,2022-10-26,29,0,,,
+"186","Partially vaccinated","S4: Partial, D1 only",1,2022-10-06,2022-11-10,35,0,,,
+"187","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-07-15,2022-11-09,117,1,2022-08-02,99,18
+"188","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-08-12,2022-09-21,40,1,2022-08-29,23,17
+"189","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-08-18,2022-09-14,27,1,2022-08-12,33,-6
+"190","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-08-22,2022-09-12,21,1,2022-09-12,0,21
+"191","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-09-07,2022-09-27,20,1,2022-09-07,20,0
+"192","Partially vaccinated","S5: Partial, D1-D2 interval <24d",1,2022-09-18,2022-10-11,23,1,2022-09-18,23,0
+"193","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-05,2022-09-06,63,1,2022-08-25,12,51
+"194","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-15,2022-09-12,59,1,2022-09-07,5,54
+"195","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-15,2022-11-06,114,1,2022-10-27,10,104
+"196","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-08-24,35,1,2022-08-18,6,29
+"197","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-08-26,37,1,2022-08-24,2,35
+"198","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-08-31,42,1,2022-08-23,8,34
+"199","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-20,2022-09-20,62,1,2022-09-20,0,62
+"200","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-21,2022-08-20,30,1,2022-08-16,4,26
+"201","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-22,2022-08-23,32,1,2022-08-23,0,32
+"202","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-22,2022-08-29,38,1,2022-08-19,10,28
+"203","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-22,2022-09-01,41,1,2022-09-06,-5,46
+"204","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-08-22,28,1,2022-08-22,0,28
+"205","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-08-23,29,1,2022-08-23,0,29
+"206","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-08-25,31,1,2022-08-25,0,31
+"207","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-09-01,38,1,2022-08-23,9,29
+"208","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-25,2022-11-14,112,1,2023-09-03,-293,405
+"209","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-08-19,24,1,2022-08-29,-10,34
+"210","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-08-24,29,1,2022-08-24,0,29
+"211","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-09-01,37,1,2022-08-25,7,30
+"212","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-26,2022-12-02,129,1,2022-12-02,0,129
+"213","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-08-26,30,1,2022-08-26,0,30
+"214","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-08-29,33,1,2022-08-25,4,29
+"215","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-08-31,35,1,2022-08-31,0,35
+"216","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-27,2022-09-20,55,1,2022-09-10,10,45
+"217","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-08-25,28,1,2022-08-30,-5,33
+"218","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-08-26,29,1,2022-09-02,-7,36
+"219","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-08-31,34,1,2022-09-11,-11,45
+"220","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-28,2022-09-09,43,1,2022-08-27,13,30
+"221","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-26,28,1,2022-08-26,0,28
+"222","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-29,31,1,2022-08-29,0,31
+"223","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-30,32,1,2022-08-30,0,32
+"224","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-31,33,1,2022-08-31,0,33
+"225","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-08-31,33,1,2022-11-29,-90,123
+"226","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-09-01,34,1,2022-08-26,6,28
+"227","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-09-02,35,1,2022-09-21,-19,54
+"228","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-09-12,45,1,2022-09-01,11,34
+"229","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-29,2022-10-30,93,1,2022-10-20,10,83
+"230","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-30,2022-08-31,32,1,2022-08-27,4,28
+"231","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-07-31,2022-09-07,38,1,2022-09-07,0,38
+"232","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-08-29,28,1,2022-08-29,0,28
+"233","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-08-31,30,1,2022-08-30,1,29
+"234","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-09-01,31,1,2022-08-30,2,29
+"235","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-01,2022-09-19,49,1,2022-09-19,0,49
+"236","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-08-29,27,1,2022-08-30,-1,28
+"237","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-08-30,28,1,2022-08-30,0,28
+"238","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-09-01,30,1,2022-08-30,2,28
+"239","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-02,2022-09-02,31,1,2022-09-02,0,31
+"240","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-08-26,23,1,2022-09-18,-23,46
+"241","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-08-31,28,1,2022-08-31,0,28
+"242","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-09-02,30,1,2022-09-02,0,30
+"243","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-09-09,37,1,2022-09-06,3,34
+"244","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-03,2022-09-11,39,1,2022-09-07,4,35
+"245","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-04,2022-09-01,28,1,2022-08-31,1,27
+"246","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-08-30,25,1,2022-09-09,-10,35
+"247","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-06,32,1,2022-09-06,0,32
+"248","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-10,36,1,2022-08-31,10,26
+"249","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-10,36,1,2022-09-02,8,28
+"250","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-05,2022-09-27,53,1,2022-09-27,0,53
+"251","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-06,2022-09-09,34,1,2022-09-06,3,31
+"252","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-08,2022-09-01,24,1,2022-09-09,-8,32
+"253","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-08,2022-09-20,43,1,2022-09-20,0,43
+"254","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-09-14,36,1,2022-09-07,7,29
+"255","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-09-15,37,1,2022-09-08,7,30
+"256","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-09-28,50,1,2022-09-15,13,37
+"257","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-09,2022-10-15,67,1,2022-10-27,-12,79
+"258","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-10,2022-09-12,33,1,2022-09-12,0,33
+"259","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-09-01,21,1,2022-09-09,-8,29
+"260","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-09-01,21,1,2022-09-10,-9,30
+"261","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-09-13,33,1,2022-09-05,8,25
+"262","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-10-04,54,1,2022-10-04,0,54
+"263","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-10-07,57,1,2022-10-20,-13,70
+"264","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-11,2022-10-18,68,1,2022-10-18,0,68
+"265","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-09-13,32,1,2022-09-30,-17,49
+"266","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-09-18,37,1,2022-09-09,9,28
+"267","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-09-22,41,1,2022-09-22,0,41
+"268","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-10-06,55,1,2022-10-06,0,55
+"269","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-12,2022-12-05,115,1,2022-12-05,0,115
+"270","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-09-13,31,1,2022-09-10,3,28
+"271","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-09-14,32,1,2022-09-27,-13,45
+"272","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-09-21,39,1,2022-09-21,0,39
+"273","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-13,2022-10-13,61,1,2022-10-05,8,53
+"274","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-15,2022-08-31,16,1,2022-09-12,-12,28
+"275","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-15,2022-09-15,31,1,2022-09-15,0,31
+"276","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-16,2022-09-12,27,1,2022-09-12,0,27
+"277","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-17,2022-09-05,19,1,2022-09-26,-21,40
+"278","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-17,2022-10-03,47,1,2022-10-04,-1,48
+"279","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-18,2022-09-13,26,1,2022-10-06,-23,49
+"280","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-09-27,39,1,2022-09-27,0,39
+"281","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-10-01,43,1,2022-09-27,4,39
+"282","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-10-10,52,1,2022-10-10,0,52
+"283","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-10-13,55,1,2022-10-13,0,55
+"284","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-19,2022-12-02,105,1,2022-12-02,0,105
+"285","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-20,2022-09-30,41,1,2022-09-17,13,28
+"286","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-22,2022-09-05,14,1,2022-10-13,-38,52
+"287","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-22,2022-09-26,35,1,2022-10-03,-7,42
+"288","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-22,2022-12-07,107,1,2022-12-07,0,107
+"289","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-23,2022-09-08,16,1,2022-09-26,-18,34
+"290","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-24,2022-09-12,19,1,2022-09-21,-9,28
+"291","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-25,2022-09-14,20,1,2022-09-21,-7,27
+"292","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-25,2022-09-19,25,1,2022-09-22,-3,28
+"293","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-26,2022-10-05,40,1,2022-10-05,0,40
+"294","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-29,2022-09-29,31,1,2022-09-26,3,28
+"295","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-30,2022-09-19,20,1,2022-09-29,-10,30
+"296","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-30,2022-10-14,45,1,2022-10-07,7,38
+"297","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-31,2022-09-14,14,1,2022-09-28,-14,28
+"298","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-08-31,2022-10-05,35,1,2022-10-14,-9,44
+"299","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-03,2022-10-07,34,1,2022-10-01,6,28
+"300","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-07,2022-10-13,36,1,2022-10-05,8,28
+"301","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-09,2022-10-01,22,1,2022-10-07,-6,28
+"302","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-09,2022-11-15,67,1,2022-11-15,0,67
+"303","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-12,2022-12-16,95,1,2023-09-15,-273,368
+"304","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-14,2022-10-28,44,1,2023-10-12,-349,393
+"305","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-19,2022-10-24,35,1,2022-10-24,0,35
+"306","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-20,2022-10-28,38,1,2022-10-28,0,38
+"307","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-23,2022-10-12,19,1,2022-10-25,-13,32
+"308","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-27,2022-10-15,18,1,2022-12-07,-53,71
+"309","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-09-28,2022-11-15,48,1,2022-12-16,-31,79
+"310","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-05,2022-12-05,61,1,2022-12-13,-8,69
+"311","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-09,2022-11-07,29,1,2022-11-07,0,29
+"312","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-20,2022-11-17,28,1,2022-11-17,0,28
+"313","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-23,2023-02-01,101,1,2023-02-10,-9,110
+"314","Partially vaccinated","S6: Partial, D2 <14 before IE",1,2022-10-28,2022-12-13,46,1,2022-11-30,13,33
+"315","PEP","S3: PEP, IE based",1,2022-08-10,2022-08-19,9,0,,,
+"316","PEP","S3: PEP, IE based",1,2022-08-10,2022-08-23,13,0,,,
+"317","PEP","S3: PEP, IE based",1,2022-08-12,2022-08-23,11,1,2022-12-07,-106,117
+"318","PEP","S3: PEP, IE based",1,2022-08-12,2022-08-24,12,1,2022-09-09,-16,28
+"319","PEP","S3: PEP, IE based",1,2022-08-13,2022-08-19,6,1,2022-09-22,-34,40
+"320","PEP","S3: PEP, IE based",1,2022-08-16,2022-08-23,7,0,,,
+"321","PEP","S3: PEP, IE based",1,2022-08-18,2022-08-19,1,0,,,
+"322","PEP","S3: PEP, IE based",1,2022-08-18,2022-08-26,8,0,,,
+"323","PEP","S3: PEP, IE based",1,2022-08-19,2022-08-21,2,1,2022-09-16,-26,28
+"324","PEP","S3: PEP, IE based",1,2022-08-19,2022-08-22,3,1,2022-09-22,-31,34
+"325","PEP","S3: PEP, IE based",1,2022-08-19,2022-08-31,12,1,2022-09-28,-28,40
+"326","PEP","S3: PEP, IE based",1,2022-08-20,2022-08-21,1,1,2022-10-25,-65,66
+"327","PEP","S3: PEP, IE based",1,2022-08-21,2022-08-31,10,0,,,
+"328","PEP","S3: PEP, IE based",1,2022-08-22,2022-08-31,9,1,2022-09-28,-28,37
+"329","PEP","S3: PEP, IE based",1,2022-08-22,2022-09-01,10,1,2022-09-29,-28,38
+"330","PEP","S3: PEP, IE based",1,2022-08-23,2022-08-31,8,0,,,
+"331","PEP","S3: PEP, IE based",1,2022-08-23,2022-09-01,9,1,2022-09-01,0,9
+"332","PEP","S3: PEP, IE based",1,2022-08-23,2022-09-01,9,1,2022-09-29,-28,37
+"333","PEP","S3: PEP, IE based",1,2022-08-23,2022-09-04,12,1,2022-12-14,-101,113
+"334","PEP","S3: PEP, IE based",1,2022-08-24,2022-09-01,8,0,,,
+"335","PEP","S3: PEP, IE based",1,2022-08-24,2022-09-01,8,1,2022-10-04,-33,41
+"336","PEP","S3: PEP, IE based",1,2022-08-24,2022-09-01,8,1,2022-10-05,-34,42
+"337","PEP","S3: PEP, IE based",1,2022-08-25,2022-08-31,6,0,,,
+"338","PEP","S3: PEP, IE based",1,2022-08-25,2022-08-31,6,1,2022-09-29,-29,35
+"339","PEP","S3: PEP, IE based",1,2022-08-25,2022-09-01,7,0,,,
+"340","PEP","S3: PEP, IE based",1,2022-08-25,2022-09-01,7,1,2022-09-25,-24,31
+"341","PEP","S3: PEP, IE based",1,2022-08-25,2022-09-02,8,0,,,
+"342","PEP","S3: PEP, IE based",1,2022-08-26,2022-09-05,10,1,2022-10-05,-30,40
+"343","PEP","S3: PEP, IE based",1,2022-08-28,2022-09-01,4,0,,,
+"344","PEP","S3: PEP, IE based",1,2022-08-30,2022-09-09,10,0,,,
+"345","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-01,1,1,2022-10-10,-39,40
+"346","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-01,1,1,2022-10-12,-41,42
+"347","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-09,9,1,2022-10-20,-41,50
+"348","PEP","S3: PEP, IE based",1,2022-08-31,2022-09-12,12,0,,,
+"349","PEP","S3: PEP, IE based",1,2022-09-01,2022-09-02,1,1,2022-09-29,-27,28
+"350","PEP","S3: PEP, IE based",1,2022-09-01,2022-09-07,6,1,2022-09-30,-23,29
+"351","PEP","S3: PEP, IE based",1,2022-09-01,2022-09-10,9,0,,,
+"352","PEP","S3: PEP, IE based",1,2022-09-06,2022-09-07,1,1,2022-10-07,-30,31
+"353","PEP","S3: PEP, IE based",1,2022-09-07,2022-09-08,1,0,,,
+"354","PEP","S3: PEP, IE based",1,2022-09-07,2022-09-10,3,1,2022-10-05,-25,28
+"355","PEP","S3: PEP, IE based",1,2022-09-07,2022-09-14,7,0,,,
+"356","PEP","S3: PEP, IE based",1,2022-09-09,2022-09-13,4,1,2022-09-09,4,0
+"357","PEP","S3: PEP, IE based",1,2022-09-10,2022-09-23,13,1,2022-10-29,-36,49
+"358","PEP","S3: PEP, IE based",1,2022-09-14,2022-09-19,5,1,2022-10-12,-23,28
+"359","PEP","S3: PEP, IE based",1,2022-09-19,2022-09-21,2,1,2022-10-28,-37,39
+"360","PEP","S3: PEP, IE based",1,2022-09-19,2022-09-23,4,0,,,
+"361","PEP","S3: PEP, IE based",1,2022-09-22,2022-09-30,8,0,,,
+"362","PEP","S3: PEP, IE based",1,2022-10-03,2022-10-04,1,1,2022-11-30,-57,58
+"363","PEP","S3: PEP, IE based",1,2022-10-05,2022-10-12,7,1,2022-11-14,-33,40
+"364","PEP","S3: PEP, IE based",1,2022-10-09,2022-10-14,5,0,,,
+"365","PEP","S3: PEP, IE based",1,2022-10-14,2022-10-18,4,1,2022-11-11,-24,28
+"366","PEP","S3: PEP, IE based",1,2022-10-19,2022-10-26,7,0,,,
+"367","PEP","S3: PEP, IE based",1,2022-11-09,2022-11-11,2,1,2022-12-06,-25,27
+"368","Unvaccinated","S1: No documentation",0,,2022-08-19,,,,,
+"369","Unvaccinated","S1: No documentation",0,,2022-08-20,,,,,
+"370","Unvaccinated","S1: No documentation",0,,2022-08-22,,,,,
+"371","Unvaccinated","S1: No documentation",0,,2022-08-23,,,,,
+"372","Unvaccinated","S1: No documentation",0,,2022-08-24,,0,,,
+"373","Unvaccinated","S1: No documentation",0,,2022-08-24,,,,,
+"374","Unvaccinated","S1: No documentation",0,,2022-08-25,,,,,
+"375","Unvaccinated","S1: No documentation",0,,2022-08-26,,,,,
+"376","Unvaccinated","S1: No documentation",0,,2022-08-27,,,,,
+"377","Unvaccinated","S1: No documentation",0,,2022-08-28,,,,,
+"378","Unvaccinated","S1: No documentation",0,,2022-08-29,,,,,
+"379","Unvaccinated","S1: No documentation",0,,2022-08-30,,,,,
+"380","Unvaccinated","S1: No documentation",0,,2022-08-31,,,,,
+"381","Unvaccinated","S1: No documentation",0,,2022-09-01,,,,,
+"382","Unvaccinated","S1: No documentation",0,,2022-09-02,,,,,
+"383","Unvaccinated","S1: No documentation",0,,2022-09-03,,,,,
+"384","Unvaccinated","S1: No documentation",0,,2022-09-05,,,,,
+"385","Unvaccinated","S1: No documentation",0,,2022-09-06,,,,,
+"386","Unvaccinated","S1: No documentation",0,,2022-09-07,,,,,
+"387","Unvaccinated","S1: No documentation",0,,2022-09-08,,,,,
+"388","Unvaccinated","S1: No documentation",0,,2022-09-09,,,,,
+"389","Unvaccinated","S1: No documentation",0,,2022-09-10,,,,,
+"390","Unvaccinated","S1: No documentation",0,,2022-09-11,,,,,
+"391","Unvaccinated","S1: No documentation",0,,2022-09-12,,,,,
+"392","Unvaccinated","S1: No documentation",0,,2022-09-13,,,,,
+"393","Unvaccinated","S1: No documentation",0,,2022-09-14,,,,,
+"394","Unvaccinated","S1: No documentation",0,,2022-09-15,,,,,
+"395","Unvaccinated","S1: No documentation",0,,2022-09-16,,0,,,
+"396","Unvaccinated","S1: No documentation",0,,2022-09-16,,,,,
+"397","Unvaccinated","S1: No documentation",0,,2022-09-17,,0,,,
+"398","Unvaccinated","S1: No documentation",0,,2022-09-17,,,,,
+"399","Unvaccinated","S1: No documentation",0,,2022-09-18,,0,,,
+"400","Unvaccinated","S1: No documentation",0,,2022-09-19,,,,,
+"401","Unvaccinated","S1: No documentation",0,,2022-09-20,,,,,
+"402","Unvaccinated","S1: No documentation",0,,2022-09-21,,,,,
+"403","Unvaccinated","S1: No documentation",0,,2022-09-22,,,,,
+"404","Unvaccinated","S1: No documentation",0,,2022-09-23,,,,,
+"405","Unvaccinated","S1: No documentation",0,,2022-09-24,,0,,,
+"406","Unvaccinated","S1: No documentation",0,,2022-09-26,,,,,
+"407","Unvaccinated","S1: No documentation",0,,2022-09-27,,,,,
+"408","Unvaccinated","S1: No documentation",0,,2022-09-29,,,,,
+"409","Unvaccinated","S1: No documentation",0,,2022-10-01,,,,,
+"410","Unvaccinated","S1: No documentation",0,,2022-10-02,,,,,
+"411","Unvaccinated","S1: No documentation",0,,2022-10-03,,,,,
+"412","Unvaccinated","S1: No documentation",0,,2022-10-04,,,,,
+"413","Unvaccinated","S1: No documentation",0,,2022-10-05,,,,,
+"414","Unvaccinated","S1: No documentation",0,,2022-10-06,,,,,
+"415","Unvaccinated","S1: No documentation",0,,2022-10-08,,,,,
+"416","Unvaccinated","S1: No documentation",0,,2022-10-09,,,,,
+"417","Unvaccinated","S1: No documentation",0,,2022-10-10,,,,,
+"418","Unvaccinated","S1: No documentation",0,,2022-10-11,,0,,,
+"419","Unvaccinated","S1: No documentation",0,,2022-10-11,,,,,
+"420","Unvaccinated","S1: No documentation",0,,2022-10-12,,,,,
+"421","Unvaccinated","S1: No documentation",0,,2022-10-13,,,,,
+"422","Unvaccinated","S1: No documentation",0,,2022-10-14,,,,,
+"423","Unvaccinated","S1: No documentation",0,,2022-10-19,,,,,
+"424","Unvaccinated","S1: No documentation",0,,2022-10-20,,0,,,
+"425","Unvaccinated","S1: No documentation",0,,2022-10-20,,,,,
+"426","Unvaccinated","S1: No documentation",0,,2022-10-24,,,,,
+"427","Unvaccinated","S1: No documentation",0,,2022-10-26,,,,,
+"428","Unvaccinated","S1: No documentation",0,,2022-10-27,,,,,
+"429","Unvaccinated","S1: No documentation",0,,2022-11-01,,,,,
+"430","Unvaccinated","S1: No documentation",0,,2022-11-06,,,,,
+"431","Unvaccinated","S1: No documentation",0,,2022-11-16,,,,,
+"432","Unvaccinated","S1: No documentation",0,,2022-11-17,,,,,
+"433","Unvaccinated","S1: No documentation",0,,2022-11-19,,,,,
+"434","Unvaccinated","S1: No documentation",0,,2022-11-27,,,,,
+"435","Unvaccinated","S1: No documentation",0,,2022-11-29,,,,,
+"436","Unvaccinated","S1: No documentation",0,,2022-12-01,,,,,
+"437","Unvaccinated","S1: No documentation",0,,2022-12-05,,,,,
+"438","Unvaccinated","S1: No documentation",0,,2022-12-06,,0,,,
+"439","Unvaccinated","S1: No documentation",0,,2022-12-12,,,,,
+"440","Unvaccinated","S1: No documentation",0,,2022-12-15,,,,,
+"441","Unvaccinated","S1: No documentation",0,,2022-12-19,,,,,
+"442","Unvaccinated","S1: No documentation",0,,2022-12-20,,,,,
+"443","Unvaccinated","S1: No documentation",0,,2022-12-22,,,,,
+"444","Unvaccinated","S1: No documentation",0,,2023-01-09,,,,,
+"445","Unvaccinated","S1: No documentation",0,,2023-01-15,,,,,
+"446","Unvaccinated","S1: No documentation",0,,2023-01-18,,,,,
+"447","Unvaccinated","S1: No documentation",0,,2023-01-23,,,,,
+"448","Unvaccinated","S1: No documentation",0,,2023-01-25,,,,,
+"449","Unvaccinated","S1: No documentation",0,,2023-02-01,,,,,
+"450","Unvaccinated","S2: Post-IE",1,2022-08-19,2022-08-19,0,1,2022-09-28,-40,40
+"451","Unvaccinated","S2: Post-IE",1,2022-08-19,2022-08-19,0,1,2022-09-30,-42,42
+"452","Unvaccinated","S2: Post-IE",1,2022-08-20,2022-08-20,0,1,2023-01-14,-147,147
+"453","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,0,,,
+"454","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,1,2022-09-29,-38,38
+"455","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,1,2022-10-03,-42,42
+"456","Unvaccinated","S2: Post-IE",1,2022-08-22,2022-08-22,0,1,2022-11-07,-77,77
+"457","Unvaccinated","S2: Post-IE",1,2022-08-23,2022-08-23,0,1,2022-09-20,-28,28
+"458","Unvaccinated","S2: Post-IE",1,2022-08-24,2022-08-24,0,1,2022-09-30,-37,37
+"459","Unvaccinated","S2: Post-IE",1,2022-08-24,2022-08-24,0,1,2022-10-04,-41,41
+"460","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-08-25,0,0
+"461","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-09-23,-29,29
+"462","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-09-26,-32,32
+"463","Unvaccinated","S2: Post-IE",1,2022-08-25,2022-08-25,0,1,2022-11-28,-95,95
+"464","Unvaccinated","S2: Post-IE",1,2022-08-26,2022-08-24,-2,0,,,
+"465","Unvaccinated","S2: Post-IE",1,2022-08-26,2022-08-25,-1,1,2022-09-28,-34,33
+"466","Unvaccinated","S2: Post-IE",1,2022-08-26,2022-08-26,0,1,2022-10-07,-42,42
+"467","Unvaccinated","S2: Post-IE",1,2022-08-27,2022-08-26,-1,1,2022-09-24,-29,28
+"468","Unvaccinated","S2: Post-IE",1,2022-08-29,2022-08-29,0,1,2022-09-26,-28,28
+"469","Unvaccinated","S2: Post-IE",1,2022-08-29,2022-08-29,0,1,2022-10-05,-37,37
+"470","Unvaccinated","S2: Post-IE",1,2022-08-29,2022-08-29,0,1,2022-11-29,-92,92
+"471","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-22,-8,1,2022-09-27,-36,28
+"472","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,0,,,
+"473","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-09-27,-28,28
+"474","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-10-06,-37,37
+"475","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-10-10,-41,41
+"476","Unvaccinated","S2: Post-IE",1,2022-08-30,2022-08-30,0,1,2022-12-02,-94,94
+"477","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-22,-9,1,2022-09-26,-35,26
+"478","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-29,-2,1,2022-12-02,-95,93
+"479","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-31,0,1,2022-10-06,-36,36
+"480","Unvaccinated","S2: Post-IE",1,2022-08-31,2022-08-31,0,1,2022-10-07,-37,37
+"481","Unvaccinated","S2: Post-IE",1,2022-09-01,2022-08-26,-6,0,,,
+"482","Unvaccinated","S2: Post-IE",1,2022-09-01,2022-09-01,0,0,,,
+"483","Unvaccinated","S2: Post-IE",1,2022-09-06,2022-09-06,0,0,,,
+"484","Unvaccinated","S2: Post-IE",1,2022-09-06,2022-09-06,0,1,2022-10-06,-30,30
+"485","Unvaccinated","S2: Post-IE",1,2022-09-07,2022-08-31,-7,1,2022-09-09,-9,2
+"486","Unvaccinated","S2: Post-IE",1,2022-09-08,2022-08-29,-10,0,,,
+"487","Unvaccinated","S2: Post-IE",1,2022-09-08,2022-09-08,0,0,,,
+"488","Unvaccinated","S2: Post-IE",1,2022-09-08,2022-09-08,0,1,2022-10-14,-36,36
+"489","Unvaccinated","S2: Post-IE",1,2022-09-09,2022-09-09,0,0,,,
+"490","Unvaccinated","S2: Post-IE",1,2022-09-12,2022-08-31,-12,1,2022-10-10,-40,28
+"491","Unvaccinated","S2: Post-IE",1,2022-09-12,2022-09-12,0,1,2022-10-10,-28,28
+"492","Unvaccinated","S2: Post-IE",1,2022-09-13,2022-09-13,0,0,,,
+"493","Unvaccinated","S2: Post-IE",1,2022-09-15,2022-09-03,-12,0,,,
+"494","Unvaccinated","S2: Post-IE",1,2022-09-15,2022-09-12,-3,0,,,
+"495","Unvaccinated","S2: Post-IE",1,2022-09-16,2022-08-22,-25,1,2022-09-10,-19,-6
+"496","Unvaccinated","S2: Post-IE",1,2022-09-19,2022-09-19,0,1,2022-10-21,-32,32
+"497","Unvaccinated","S2: Post-IE",1,2022-09-20,2022-09-20,0,1,2022-10-18,-28,28
+"498","Unvaccinated","S2: Post-IE",1,2022-09-21,2022-09-02,-19,1,2022-10-19,-47,28
+"499","Unvaccinated","S2: Post-IE",1,2022-09-22,2022-09-12,-10,1,2022-09-12,0,-10
+"500","Unvaccinated","S2: Post-IE",1,2022-09-22,2022-09-19,-3,1,2022-10-20,-31,28
+"501","Unvaccinated","S2: Post-IE",1,2022-09-23,2022-09-12,-11,1,2022-10-21,-39,28
+"502","Unvaccinated","S2: Post-IE",1,2022-09-26,2022-09-05,-21,1,2022-10-26,-51,30
+"503","Unvaccinated","S2: Post-IE",1,2022-09-26,2022-09-08,-18,0,,,
+"504","Unvaccinated","S2: Post-IE",1,2022-09-27,2022-09-27,0,1,2022-11-03,-37,37
+"505","Unvaccinated","S2: Post-IE",1,2022-09-29,2022-09-22,-7,1,2022-10-28,-36,29
+"506","Unvaccinated","S2: Post-IE",1,2022-09-30,2022-09-12,-18,1,2022-09-30,-18,0
+"507","Unvaccinated","S2: Post-IE",1,2022-09-30,2022-09-30,0,0,,,
+"508","Unvaccinated","S2: Post-IE",1,2022-10-02,2022-09-09,-23,1,2022-11-05,-57,34
+"509","Unvaccinated","S2: Post-IE",1,2022-10-03,2022-10-03,0,0,,,
+"510","Unvaccinated","S2: Post-IE",1,2022-10-04,2022-10-04,0,0,,,
+"511","Unvaccinated","S2: Post-IE",1,2022-10-05,2022-09-07,-28,0,,,
+"512","Unvaccinated","S2: Post-IE",1,2022-10-06,2022-09-01,-35,1,2022-10-10,-39,4
+"513","Unvaccinated","S2: Post-IE",1,2022-10-06,2022-10-06,0,1,2022-11-29,-54,54
+"514","Unvaccinated","S2: Post-IE",1,2022-10-07,2022-10-07,0,1,2022-11-09,-33,33
+"515","Unvaccinated","S2: Post-IE",1,2022-10-10,2022-10-10,0,1,2022-11-17,-38,38
+"516","Unvaccinated","S2: Post-IE",1,2022-10-12,2022-10-12,0,1,2022-12-29,-78,78
+"517","Unvaccinated","S2: Post-IE",1,2022-10-13,2022-08-26,-48,1,2022-10-17,-52,4
+"518","Unvaccinated","S2: Post-IE",1,2022-10-13,2022-10-12,-1,0,,,
+"519","Unvaccinated","S2: Post-IE",1,2022-10-18,2022-10-18,0,0,,,
+"520","Unvaccinated","S2: Post-IE",1,2022-10-19,2022-10-19,0,0,,,
+"521","Unvaccinated","S2: Post-IE",1,2022-10-25,2022-09-02,-53,0,,,
+"522","Unvaccinated","S2: Post-IE",1,2022-10-25,2022-09-14,-41,0,,,
+"523","Unvaccinated","S2: Post-IE",1,2022-10-25,2022-10-25,0,0,,,
+"524","Unvaccinated","S2: Post-IE",1,2022-11-04,2022-08-28,-68,0,,,
+"525","Unvaccinated","S2: Post-IE",1,2022-11-05,2022-09-12,-54,0,,,
+"526","Unvaccinated","S2: Post-IE",1,2022-11-09,2022-10-06,-34,1,2022-10-26,-20,-14
+"527","Unvaccinated","S2: Post-IE",1,2022-11-14,2022-08-25,-81,0,,,
+"528","Unvaccinated","S2: Post-IE",1,2022-11-15,2022-09-28,-48,1,2022-12-20,-83,35
+"529","Unvaccinated","S2: Post-IE",1,2022-11-22,2022-11-22,0,0,,,
+"530","Unvaccinated","S2: Post-IE",1,2022-12-06,2022-12-06,0,0,,,
+"531","Unvaccinated","S2: Post-IE",1,2022-12-07,2022-12-07,0,0,,,
+"532","Unvaccinated","S2: Post-IE",1,2022-12-15,2022-11-05,-40,1,2022-12-27,-52,12
+"533","Unvaccinated","S2: Post-IE",1,2022-12-16,2022-12-16,0,1,2023-01-17,-32,32
+"534","Unvaccinated","S2: Post-IE",1,2022-12-26,2022-09-04,-113,0,,,
+"535","Unvaccinated","S2: Post-IE",1,2022-12-26,2022-09-07,-110,0,,,
+"536","Unvaccinated","S2: Post-IE",1,2023-01-02,2022-10-04,-90,0,,,
+"537","Unvaccinated","S2: Post-IE",1,2023-01-12,2022-12-26,-17,1,2023-02-06,-42,25
+"538","Unvaccinated","S2: Post-IE",1,2023-05-11,2022-08-27,-257,1,2023-06-17,-294,37
