@@ -44,7 +44,9 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
     -   Distribution of variables under consideration in the models by case status
 
-    -   Distribution of participant characteristics by case status
+    -   Distribution of participant characteristics by case and vaccination status
+
+    -   Epi curve index event dates
 
     -   VE model results
 
@@ -78,6 +80,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
                  lmerTest,  # p-values for MEMs based on the Satterthwaite approximation
                  report,    # mainly for an "report" function
                  emmeans,   # post-hoc analysis
+                 splines,
                  knitr,     # beautifying tables
                  sjstats,   # ICC - intraclass-correlation coefficient
                  caret,     # ML, model comparison & utility functions
@@ -145,6 +148,9 @@ mpoxve <- raw %>%
     filter(!if_all(c(elig_age, elig_sexuality, elig_gender,
                      elig_gender_msm, elig_sexual_partners,
                      elig_healthcare), is.na)) %>%
+    # filter(redcap_data_access_group == "nyc" & consent == 1) %>%
+    # select(pid, case_yesno, provider_dx, test_result_date, symptoms_yesno, symptoms_date, control_visit_date, dose1_yesno, dose1_date, dose2_yesno, dose2_date, clinic_yesno, clinic_date) %>% 
+    #     filter(is.na(case_yesno) & provider_dx == 1)
     left_join(mr, by = c("pid")) %>% 
     mutate(#! Variable name key: 
                #!  *_cat: indicates a categorical these are flags (0/1)
@@ -791,80 +797,49 @@ mpoxve <- raw %>%
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------
-      
-      
-  # aa <- mpoxve %>% 
-  #       #select(redcap_trans_date) %>% 
-  #       
-  #       mutate(
-  #              
-  #              
-  #              )
-  #     
-  #    
-  # bb <- aa %>% 
-  #       filter(valid_dates == 0) %>% 
-  #       select(valid_dates, pid, caco, index_date,  vax1_date, dose1_date, first_dose_date,
-  #              vax2_date, dose2_date, second_dose_date)
-  #     
-  # cc <- aa %>% 
-  #       filter((!is.na(dose1_date) & is.na(dose2_date)) & (!is.na(first_dose_date) & !is.na(second_dose_date))) %>% 
-  #       select(valid_dates, pid, caco, ends_with("_date"))
-  #     
-  # tt <- mpoxve %>%
-  #       filter(minset_vars == "Complete")%>% 
-  #       filter((!is.na(dose1_date) & is.na(dose2_date)) & (!is.na(first_dose_date) & !is.na(second_dose_date))) %>% 
-  #       mutate(dose_int_mix = first_dose_date - dose1_date,
-  #              dose_int_self = second_dose_date - first_dose_date) %>% 
-  #       select(pid, caco, first_dose_date, vax1_date, second_dose_date, dose_int_self, dose1_date, dose_int_mix, dose2_date, vax1_date, vax2_date, index_date)
-  # 
-  # ss <- mpoxve %>%
-  #       filter(minset_vars == "Complete") %>%
-  #   filter((index_date == control_visit_date) | (index_date == clinic_date) | 
-  #            (!is.na(control_visit_date) & !is.na(test_result_date))) %>% 
-  #       select(pid, caco, caco_stat_cat, index_date, test_result_date, symptoms_date, clinic_date, control_visit_date)
-  # 
-  # 
-  # 
-  # tt <- mpoxve %>%
-  #   filter(mr==1)%>%
-  #   mutate(mr_compare = ifelse(as.character(vax_stat_post_acip) == as.character(mr_review_vax_stat), 1, 0)) %>% 
-  #   filter(mr_compare == 0) %>% 
-  #   select(pid, caco, mr_caco, vax_stat_post_acip, mr_review_vax_stat, index_date, mr_index_date,
-  #          vax1_date, mr_dose1_date_coded,  vax2_date, mr_dose2_date_coded, dose1index_days,
-  #          mr_dose1index_days, dose2index_days, mr_dose2index_days, 
-  #          first_dose_date, mr_dose1_date_reported, second_dose_date, mr_dose2_date_reported,
-  #          dose1_date, mr_dose1_date_site, dose2_date, mr_dose2_date_site, dose_int,
-  #          mr_dose_int, dose_int_self, mr_dose_int_self,  dose_int_site,
-  #          mr_dose_int_site, test_result_date, mr_test_result_date,  symptoms_date, mr_symptoms_date, 
-  #          clinic_date, mr_clinic_date, control_visit_date, mr_control_visit_date) %>% 
-  #   arrange(pid, caco, vax_stat_post_acip)
-  #       clipr::write_clip(tt)
-  # vax_linelist <- mpoxve %>%
-  #       filter(minset_vars == "Complete") %>% 
-  #       pfreq(vax_stat, vax_stat_acip, vax1_yesno, vax1_date, index_date, dose1index_days, vax2_yesno,
-  #             vax2_date, dose2index_days, dose_int) %>% 
-  #       select(-n, -pct)
-  #     
-  #  write.csv(vax_linelist, "vax_linelist_2023-02-13.csv", na = "")
-   
-    # export as csv 
-      
-  # analysis_export <- mpoxve %>%
-  #       filter(minset_vars == "Complete")
-  #     
-  # write.csv(analysis_export, "data/mpoxve_analysis_2023-02-10_na_blanks.csv", na = "")
-   
-  #     tt <- mpoxve %>%
-  # filter(minset_vars == "Complete" & is.na(age_cat))%>% 
-  #       pfreq(pid, birth_year, age_cat)
-  #     
-  #     
-  #     tt <- mpoxve %>%
-  # filter(minset_vars == "Complete")%>% 
-  #       pfreq( elig_gender, elig_sexuality, elig_gender_msm)
+     
       
 ```
+
+### Distribution of complete minimum set of data elements
+
+**Table 1. Distribution of respondents with a minimum set of data elements**
+
+```{r}
+mpoxve %>% 
+  #filter(!is.na(caco_stat_cat)) %>% 
+  select(jid, minset_vars) %>% 
+  tbl_summary(
+    by = jid,
+    label = list(minset_vars ~ "Min data elements")
+    
+  )  %>% 
+  add_n() %>% 
+  add_overall() %>% 
+  bold_labels()
+
+```
+
+**Figure 1. Missingness patterns across a the set of minimum data elements**
+
+```{r}
+mpoxve %>% 
+  filter(jid == "NYC") %>%
+  pfreq(consent)
+  
+  
+mpoxve %>% 
+  filter(jid == "NYC") %>% 
+  select(case_yesno, index_date, vax1_yesno, vax1_date, vax2_yesno, vax2_date)%>%
+  gg_miss_upset()
+
+```
+
+### Distribution of case status
+
+**Figure 2. Case definition**
+
+![](screenshots/case_def_2023-03-10.png)
 
 ## **Vaccination status: post-manual review comparison**
 
@@ -901,15 +876,15 @@ mpoxve %>%
 
 ```
 
-## **Descriptive Statistics** 
+## **Descriptive Statistics**
 
-**Table 2. Variables for models**
+**Table 2. Distribution of variables under consideration in the models by case status**
 
 ```{r}
 mpoxve %>%
   filter(minset_vars == "Complete") %>%
   select(caco, age_cat, race_ethn_cat, race_ethn, immunocompromised, sex_part_num_cat, sex_part_num_mod,
-         close_contact_dx_cat_og, close_contact_dx_cat, vax_stat_ve_main, vax_stat_ve_s6_full, vax_stat_ve_s6_excl) %>%
+         close_contact_dx_cat_og, close_contact_dx_cat, vax_stat_post_acip, vax_stat_ve_main, vax_stat_ve_s6_full, vax_stat_ve_s6_excl) %>%
   tbl_summary(
     by = caco,
     label = list(age_cat ~ "Age categories",
@@ -920,6 +895,7 @@ mpoxve %>%
                  sex_part_num_mod ~ "Number of sexual partners: model",
                  close_contact_dx_cat_og ~ "Close contact w/mpox case: Original \U1d47",
                  close_contact_dx_cat ~ "Close contact w/mpox case: ACIP model\U1d9c",
+                 vax_stat_post_acip ~ "Scenarios: coded"
                  vax_stat_ve_main ~ "Vax status: M1\U1d48",
                  vax_stat_ve_s6_full ~ "Vax status: M2-S6 full\U1d48",
                  vax_stat_ve_s6_excl ~ "Vax status: M3-S6 excl\U1d49"),
@@ -1017,6 +993,42 @@ mpoxve %>%
 
 ```
 
+**Figure 1. Distribution of index event dates**
+
+If there a better we way to operationalize the 4-week time period? Should we recode it differently?
+
+```{r}
+
+ mpoxve_ie_counts <- mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
+  drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised, sex_part_num_mod,
+          close_contact_dx_cat) %>%
+  mutate(n_count = 1) %>%
+  group_by(jid, caco, vax_stat_ve_main, vax_stat_post_acip, index_date) %>% 
+  summarise(across(c(n_count), sum, na.rm = TRUE))
+  
+  epi_counts_obj_day <- incidence(              # create weekly incidence object
+    mpoxve_ie_counts,                         # dataset with counts aggregated by week
+    date_index = index_date,  # column with dates
+    count = n_count,                    # column with counts
+    interval = "day"                  # aggregate daily counts up to weeks
+    #groups = surv_tot,                   # group by hospital
+  ) 
+  
+plot(epi_counts_obj_day)
+
+epi_counts_obj_wk <- incidence(              # create weekly incidence object
+    mpoxve_ie_counts,                         # dataset with counts aggregated by week
+    date_index = index_date,  # column with dates
+    count = n_count,                    # column with counts
+    interval = "week"                  # aggregate daily counts up to weeks
+    #groups = surv_tot,                   # group by hospital
+  ) 
+  
+plot(epi_counts_obj_wk)
+  
+```
+
 
 **Table 5. Study participant characteristics by case status (complete data in model 1)**
 
@@ -1072,43 +1084,107 @@ mpoxve %>%
 
 ## **Adjusted Models**
 
+```{r}
 
-**Model 1: main model (close contacts & number of sexual partners)**
+analysis <- mpoxve %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
+  filter(index_date <= ymd("2022-11-26")) %>% 
+  drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised,
+         close_contact_dx_cat) %>%
+  mutate(caco = fct_rev(caco),
+         vax_stat_ve_main = fct_rev(vax_stat_ve_main),
+         vax_stat_ve_s6_full = fct_rev(vax_stat_ve_s6_full),
+         vax_stat_ve_s6_excl = fct_rev(vax_stat_ve_s6_excl))
 
+mod1_unadj <- glmer(formula = caco ~ vax_stat_ve_main +
+                    (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+mod1_unadj_age_race_immu <- glmer(formula = caco ~ vax_stat_ve_main + 
+                                    age + race_ethn +  immunocompromised + 
+                                    (1 | jid),
+                                  family = binomial(link = "logit"),
+                                  control = glmerControl(optimizer = "bobyqa"),
+                                  data = analysis)
+
+mod1_adj_contact <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
+                            close_contact_dx_cat +
+                            (1 | jid),
+                          family = binomial(link = "logit"),
+                          control = glmerControl(optimizer = "bobyqa"),
+                          data = analysis)
+
+mod1_spline <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
+                       close_contact_dx_cat + 
+                       ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
+                       (1 | jid),
+                     family = binomial(link = "logit"),
+                     control = glmerControl(optimizer = "bobyqa"),
+                     data = analysis)
+
+mod1_s6f_spline <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
+                       close_contact_dx_cat + 
+                       ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
+                       (1 | jid),
+                     family = binomial(link = "logit"),
+                     control = glmerControl(optimizer = "bobyqa"),
+                     data = analysis)
+
+tab_model(mod1_unadj, mod1_adj, mod1_s6f_spline, show.aic = T, show.obs = T)
+
+```
+**Model 1: main model crude and adjusted without time period**
 
 ```{r}
 
 analysis <- mpoxve %>%
-
   filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-
+  filter(index_date <= ymd("2022-11-26")) %>% 
   drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised,
-
-         close_contact_dx_cat, index_epiyrwk_2, sex_part_num_mod
-         ) %>%
-
+         close_contact_dx_cat) %>%
   mutate(caco = fct_rev(caco),
+         vax_stat_ve_main = fct_rev(vax_stat_ve_main),
+         vax_stat_ve_s6_full = fct_rev(vax_stat_ve_s6_full),
+         vax_stat_ve_s6_excl = fct_rev(vax_stat_ve_s6_excl))
 
-         vax_stat_ve_main = fct_rev(vax_stat_ve_main))
-
-mod1_adj <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
-
-                    close_contact_dx_cat + index_epiyrwk_2 + sex_part_num_mod +
+mod1_unadj <- glmer(formula = caco ~ vax_stat_ve_main +
                     (1 | jid),
-
                  family = binomial(link = "logit"),
-
                  control = glmerControl(optimizer = "bobyqa"),
-
                  data = analysis)
 
-tab_model(mod1_adj,  show.aic = T, show.obs = T)
+mod1_unadj_age_race_immu <- glmer(formula = caco ~ vax_stat_ve_main + 
+                                    age + race_ethn +  immunocompromised + 
+                                    (1 | jid),
+                                  family = binomial(link = "logit"),
+                                  control = glmerControl(optimizer = "bobyqa"),
+                                  data = analysis)
+
+mod1_adj_contact <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
+                            close_contact_dx_cat +
+                            (1 | jid),
+                          family = binomial(link = "logit"),
+                          control = glmerControl(optimizer = "bobyqa"),
+                          data = analysis)
+
+mod1_spline <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
+                       close_contact_dx_cat + 
+                       ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
+                       (1 | jid),
+                     family = binomial(link = "logit"),
+                     control = glmerControl(optimizer = "bobyqa"),
+                     data = analysis)
+
+tab_model(mod1_unadj, mod1_adj, mod1_spline, show.aic = T, show.obs = T)
 
 ```
 
 **Model 1: main model (close contacts only)**
 
 As you can see, the partially vaccinated have higher VE than the fully vaccinated. The 4-week time period variable is have a major influence on the results.
+
 ```{r}
 
 analysis <- mpoxve %>%
@@ -1139,26 +1215,14 @@ tab_model(mod1_adj,  show.aic = T, show.obs = T)
 
 ```
 
-**Model 1: main model (close contacts only, 4-week time period excluded)**
+**Model 1: main model (Splines - knots: "2022-09-11" and "2022-10-09")**
 
 ```{r}
 
-analysis <- mpoxve %>%
-
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-
-  drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised,
-
-         close_contact_dx_cat #, index_epiyrwk_4
-         ) %>%
-
-  mutate(caco = fct_rev(caco),
-
-         vax_stat_ve_main = fct_rev(vax_stat_ve_main))
 
 mod1_adj <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
-
-                    close_contact_dx_cat + #index_epiyrwk_4 + 
+                    close_contact_dx_cat + 
+                    ns(index_date, knots= c(ymd("2022-09-11"), ymd("2022-10-09")))+
                     (1 | jid),
 
                  family = binomial(link = "logit"),
@@ -1171,9 +1235,7 @@ tab_model(mod1_adj,  show.aic = T, show.obs = T)
 
 ```
 
-
 **Model 2: S6 included as full**
-
 
 ```{r}
 
@@ -1188,7 +1250,7 @@ analysis <- mpoxve %>%
 
   mutate(caco = fct_rev(caco),
 
-         vax_stat_ve_s6_full = fct_rev(vax_stat_ve_s6_full))
+         )
 
 mod1_adj <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
 
@@ -1205,7 +1267,6 @@ tab_model(mod1_adj,  show.aic = T, show.obs = T)
 
 ```
 
-
 **Model 3: S6 excluded**
 
 ```{r}
@@ -1220,7 +1281,7 @@ analysis <- mpoxve %>%
 
   mutate(caco = fct_rev(caco),
 
-         vax_stat_ve_s6_excl = fct_rev(vax_stat_ve_s6_excl))
+         )
 
 mod1_adj <- glmer(formula = caco ~ vax_stat_ve_s6_excl + age + race_ethn +  immunocompromised +
 
@@ -1235,6 +1296,7 @@ mod1_adj <- glmer(formula = caco ~ vax_stat_ve_s6_excl + age + race_ethn +  immu
 tab_model(mod1_adj,  show.aic = T, show.obs = T)
 
 ```
+
 <!-- **IC-Yes (left-side OR), IC-No (right-side OR)** -->
 
 <!-- ```{r} -->
