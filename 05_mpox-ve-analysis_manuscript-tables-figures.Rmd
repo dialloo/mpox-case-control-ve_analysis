@@ -1,5 +1,5 @@
 ---
-title: "Preliminary Results: Conditional Logistic Regression Model Results" 
+title: "Manuscript Tables and Figures" 
 subtitle: "2022 Mpox Multi-Jurisdictional Case-Control VE Public Health Evaluation"
 author: "Report by Case-Control Unit | VE Team | VTF | 2022 Multinational Monkeypox Response"
 date: "`r format(Sys.time(), '%d %B %Y')`" 
@@ -30,9 +30,8 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## **Report objectives**
 
-1.  Match cases to controls by state of residence and within 4-weeks of index event date with a 1 case : up to 4 control ratio.
+1.  Output manuscript tables and figures.
 
-2.  Output conditional logistic regression results using matched data.
 
 ```{r libraries, message = FALSE, warning = FALSE}
 
@@ -98,6 +97,21 @@ give_two_a_zero <- function(x){
   x
 }
 
+turn_to_2Lfactor <- function(x){
+  x = fct_relevel(as_factor(case_when(x == 1 ~ "Yes",
+                                      x == 0 ~ "No",
+                                      TRUE ~ as.character(NA))))
+  x
+}
+
+turn_to_3Lfactor <- function(x){
+  x = fct_relevel(as_factor(case_when(x == 1 ~ "Yes",
+                                      x == 2 ~ "No",
+                                      x == 3 ~ "Don't know",
+                                      TRUE ~ as.character(NA)),
+                            "Yes", "No", "Don't know"))
+  x
+}
 
 # Source data and define environment variables ---------------------------------------------------------------------
 
@@ -114,17 +128,8 @@ give_two_a_zero <- function(x){
       mutate(mr = 1) %>% 
       select(mr, pid, everything())
 
-  # Environment variables for Rmarkdown purpose
-    # This the date of the earliest symptom per the study protocol
-    
-      eligibility_date_v2 <- "19 Aug 2022"
-  
-    # This date represent the most recent data transfer from jurisdictions
-    
-      redcap_trans_date_v2 <- "20 Mar 2023"
-
 # Tidy data ----------------------------------------------------------------------
-mpoxve <- raw %>%
+mpoxve <- raw %>%    
     # Restrict to eligible respondents (i.e., those that passed the eligibility screening)
     filter(inelig_stop ==  1) %>% 
     # exclude those who did not give consent in NYC
@@ -133,9 +138,7 @@ mpoxve <- raw %>%
     filter(!if_all(c(elig_age, elig_sexuality, elig_gender,
                      elig_gender_msm, elig_sexual_partners,
                      elig_healthcare), is.na)) %>%
-    # filter(redcap_data_access_group == "nyc" & consent == 1) %>%
-    # select(pid, case_yesno, provider_dx, test_result_date, symptoms_yesno, symptoms_date, control_visit_date, dose1_yesno, dose1_date, dose2_yesno, dose2_date, clinic_yesno, clinic_date) %>% 
-    #     filter(is.na(case_yesno) & provider_dx == 1)
+    # Join manual review dataset
     left_join(mr, by = c("pid")) %>% 
     mutate(#! Variable name key: 
                #!  *_cat: indicates a categorical these are flags (0/1)
@@ -145,6 +148,12 @@ mpoxve <- raw %>%
                #!  pd: an abbreviation for period
           
             mr = ifelse(is.na(mr), 0, mr),
+    #==== Key dates to modify ----
+          eligibility_date        = ymd("2022-08-19"),
+    
+          redcap_trans_date       = ymd("2023-03-28"),
+    
+          mmwr_data_closing_date  = ymd("2022-04-30"),
           
     #==== General variable cleaning ----
            # Format all yes/no variables with 1(Yes)/2(No) values as 1(Yes)/0(No).
@@ -156,16 +165,13 @@ mpoxve <- raw %>%
            # Format all date variables as YYYY-MM-DD
            across(contains("_date", ignore.case = TRUE), ymd),
 
-    
-           # Check the presence of a jurisdiction ID
-           juris_detect = case_when(str_detect(pid, "CA_|CO_| CT_|DC_|GA_|LAC_|MD_|MN_|NYC_|NYS_|NYR_|OR_|TN_") ~ 1,
-                           TRUE ~ as.numeric(0)),
-
            # Rename REDCap Data Access Group variable and capitalize the letters
            jid = fct_relevel(as_factor(toupper(redcap_data_access_group)),
                              "CA", "LAC", "CO", "CT", "GA", "MD", "MN",
                              "NYS", "NYC", "OR", "TN", "DC"),
-          sid = fct_relevel(factor(case_when(jid == "LAC" ~ "CA",
+    
+           # State ID
+           sid = fct_relevel(factor(case_when(jid == "LAC" ~ "CA",
                                              jid %in% c("NYS", "NYC") ~ "NY", 
                                              jid == "DC" ~ "MD", 
                                              TRUE ~ as.character(jid)))),
@@ -173,51 +179,40 @@ mpoxve <- raw %>%
     #==== Index date (mpox symptom onset [for cases] or clinic visit date [for controls]) ----
     
          # Create a study period variable to store mpox symptoms date within 2022-08-19 and most recent data transfer 
-          eligibility_date = ymd("2022-08-19"),
-          redcap_trans_date = ymd("2023-03-20"),
-    
           study_pd_int = interval(eligibility_date, redcap_trans_date),
     
-    # address invalid dates for self-reported symptoms and clinic dates
+        # address invalid dates for self-reported symptoms and clinic dates
           test_yr = case_when(test_result_date > redcap_trans_date ~ 2022,
                                            year(test_result_date) == 2021 ~ 2022,
-                                           test_result_date < ymd("2022-04-30") ~ 2023,
+                                           test_result_date < mmwr_data_closing_date ~ 2023,
                                            TRUE ~ as.numeric(year(test_result_date))),
+    
           test_result_date = make_date(year = test_yr, month = month(test_result_date),
                                                     day = day(test_result_date)),
                   
           symptoms_yr = case_when(symptoms_date > redcap_trans_date ~ 2022,
                                                year(symptoms_date) == 2021 ~ 2022,
-                                               symptoms_date < ymd("2022-04-30") ~ 2023,
+                                               symptoms_date < mmwr_data_closing_date ~ 2023,
                                                TRUE ~ as.numeric(year(symptoms_date))),
                   
           symptoms_date = make_date(year = symptoms_yr, month = month(symptoms_date),
                                                  day = day(symptoms_date)),
                        
-         clinic_date_aod = case_when(clinic_date == ymd("2012-10-02") ~ ymd("2012-10-02"),
-                                     clinic_date == ymd("2013-05-10") ~ ymd("2022-10-05"),
-                                     clinic_date == ymd("2018-11-20") ~ ymd("2022-11-20"),
-                                     clinic_date == ymd("2019-02-19") ~ ymd("2023-02-19"),
-                                     TRUE ~ as.Date(clinic_date)),
+          clinic_date_aod = case_when(clinic_date == ymd("2012-10-02") ~ ymd("2012-10-02"),
+                                      clinic_date == ymd("2013-05-10") ~ ymd("2022-10-05"),
+                                      clinic_date == ymd("2018-11-20") ~ ymd("2022-11-20"),
+                                      clinic_date == ymd("2019-02-19") ~ ymd("2023-02-19"),
+                                      TRUE ~ as.Date(clinic_date)),
                   
          self_clinic_yr = case_when(clinic_date_aod > redcap_trans_date ~ 2022,
                                     year(clinic_date_aod) == 2021 ~ 2022,
-                                    clinic_date_aod < ymd("2022-04-30") ~ 2023,
+                                    clinic_date_aod < mmwr_data_closing_date ~ 2023,
                                     TRUE ~ as.numeric(year(clinic_date_aod))),
                   
-        clinic_date = make_date(year = self_clinic_yr, month = month(clinic_date_aod),
+         clinic_date = make_date(year = self_clinic_yr, month = month(clinic_date_aod),
                                                day = day(clinic_date_aod)),
 
-              
-          # site_clinic_yr = case_when(control_visit_date > redcap_trans_date ~ 2022,
-          #                            year(control_visit_date) == 2021 ~ 2022,
-          #                            control_visit_date < ymd("2022-04-30") ~ 2023,
-          #                            TRUE ~ as.numeric(year(control_visit_date))),
-          #         
-          # control_visit_date = make_date(year = site_clinic_yr, month = month(control_visit_date),
-          #                                             day = day(control_visit_date)),
-  
-          index_date = case_when(test_result_date %within% study_pd_int ~ test_result_date,
+         index_date = case_when(test_result_date %within% study_pd_int ~ test_result_date,
                                   ((is.na(test_result_date) | #if incomplete or
                                      (test_result_date < eligibility_date)) & # before Aug 19 
                                        (symptoms_date %within% study_pd_int)) ~ symptoms_date,
@@ -301,7 +296,7 @@ mpoxve <- raw %>%
                                                TRUE ~ as.character(NA))),
                            "Case", "Control"),
     
-  # Re assign index dates 
+  # Re assign index dates based on case status
   index_date = case_when((caco_stat_cat == "Control-site, Case-self" &
                                        (symptoms_date %within% study_pd_int)) ~ symptoms_date,
                                      (caco_stat_cat == "Case-site, Control-self" &
@@ -314,13 +309,13 @@ mpoxve <- raw %>%
          # address invalid dates for self-reported vaccination dates
          d1_yr = case_when(first_dose_date > redcap_trans_date ~ 2022,
                            year(first_dose_date) == 2021 ~ 2022,
-                           first_dose_date < ymd("2022-04-30") ~ 2023,
+                           first_dose_date < mmwr_data_closing_date ~ 2023,
                            TRUE ~ as.numeric(year(first_dose_date))),
          first_dose_date = make_date(year = d1_yr, month = month(first_dose_date), day = day(first_dose_date)),
                
          d2_yr = case_when(second_dose_date > redcap_trans_date ~ 2022,
                            year(second_dose_date) == 2021 ~ 2022,
-                           second_dose_date < ymd("2022-04-30") ~ 2023,
+                           second_dose_date < mmwr_data_closing_date ~ 2023,
                            TRUE ~ as.numeric(year(second_dose_date))),
          second_dose_date = make_date(year = d2_yr, month = month(second_dose_date), day = day(second_dose_date)),
   
@@ -355,21 +350,21 @@ mpoxve <- raw %>%
           
           # Vax status: Site
           vax_stat_na = as.character(NA),
-          vax_stat_acip = fct_relevel(as_factor(case_when(!is.na(index_date) & 
+          vax_stat_acip = fct_relevel(as_factor(case_when(!is.na(index_date) &
                                                             (vax1_yesno == 0 &  # no documented vaccination OR Post index event vax
                                                                  (vax2_yesno == 0 | is.na(vax2_yesno))) ~ "S1",
                                                           vax1_date >= index_date ~ "S2",
-                                                          vax1_yesno == 1 &                 
+                                                          vax1_yesno == 1 &
                                                              dose1index_days <= 13    ~ "S3",
-                                                          (vax1_yesno == 1 & vax2_yesno != 1 & 
+                                                          (vax1_yesno == 1 & vax2_yesno != 1 &
                                                             dose1index_days >= 14)   ~ "S4",
-                                                          (vax1_yesno == 1 & vax2_yesno == 1 &  
+                                                          (vax1_yesno == 1 & vax2_yesno == 1 &
                                                              dose1index_days >= 14 & dose_int <24) ~ "S5",
-                                                          (vax2_yesno == 1 &                 
-                                                             dose1index_days >= 14 &          
+                                                          (vax2_yesno == 1 &
+                                                             dose1index_days >= 14 &
                                                              dose_int >=24 & dose2index_days < 14) ~ "S6",
                                                      (vax2_yesno == 1 &
-                                                        dose_int >=24 & dose2index_days >= 14) ~ "S7",  
+                                                        dose_int >=24 & dose2index_days >= 14) ~ "S7",
                                                      TRUE ~ as.character(vax_stat_na))),
                                  "S1", "S2", "S3", "S4", "S5", "S6", "S7"),
   
@@ -379,7 +374,7 @@ mpoxve <- raw %>%
                                        "S1", "S2", "S3", "S4", "S5",
                                        "S6", "S7", "Exclude/investigate"),
   
-        vax_stat_post_acip = fct_relevel(as_factor(case_when(!is.na(index_date) &
+        vax_scenario = fct_relevel(as_factor(case_when(!is.na(index_date) &
                                                             (vax1_yesno == 0 &  # no documented vaccination OR Post index event vax
                                                                  (vax2_yesno == 0 | is.na(vax2_yesno))) ~ "S1",
                                                           vax1_date >= index_date ~ "S2",
@@ -433,21 +428,21 @@ mpoxve <- raw %>%
                                 TRUE ~ as.character(vax_stat)),
   
         # Model 1 (main model):
-        vax_stat_ve_main = case_when(vax_stat_post_acip %in% c("S1", "S2") ~ "Unvaccinated",
-                                     vax_stat_post_acip %in% c("S4", "S6") ~ "Partially vaccinated",
-                                     vax_stat_post_acip %in% c("S7") ~ "Fully vaccinated",
+        vax_stat_ve_main = case_when(vax_scenario %in% c("S1", "S2") ~ "Unvaccinated",
+                                     vax_scenario %in% c("S4", "S6") ~ "Partially vaccinated",
+                                     vax_scenario %in% c("S7") ~ "Fully vaccinated",
                                   TRUE ~ as.character(NA)),
   
         # Sensitivity Model 2 (include S6 as fully vaccinated): 
-        vax_stat_ve_s6full = case_when(vax_stat_post_acip %in% c("S1", "S2") ~ "Unvaccinated",
-                                           vax_stat_post_acip %in% c("S4") ~ "Partially vaccinated",
-                                           vax_stat_post_acip %in% c("S7", "S6") ~ "Fully vaccinated",
+        vax_stat_ve_s6full = case_when(vax_scenario %in% c("S1", "S2") ~ "Unvaccinated",
+                                           vax_scenario %in% c("S4") ~ "Partially vaccinated",
+                                           vax_scenario %in% c("S7", "S6") ~ "Fully vaccinated",
                                         TRUE ~ as.character(NA)),
   
         #Sensitivity Model 3 (exclude S6 all together)
-        vax_stat_ve_s6excl = case_when(vax_stat_post_acip %in% c("S1", "S2") ~ "Unvaccinated",
-                                           vax_stat_post_acip %in% c("S4") ~ "Partially vaccinated",
-                                           vax_stat_post_acip %in% c("S7") ~ "Fully vaccinated",
+        vax_stat_ve_s6excl = case_when(vax_scenario %in% c("S1", "S2") ~ "Unvaccinated",
+                                           vax_scenario %in% c("S4") ~ "Partially vaccinated",
+                                           vax_scenario %in% c("S7") ~ "Fully vaccinated",
                                         TRUE ~ as.character(NA)),
   
          # Post-exposure prophylaxis
@@ -455,6 +450,62 @@ mpoxve <- raw %>%
                                                         vax_stat == "Unvaccinated" ~ "Unvaccinated",
                                                         TRUE ~as.character(NA))),
                                     "PEP-Vaccinated", "Unvaccinated"),
+  # Combine site- and self-reported vaccination dose administration route variables
+         
+          vax1_adminroute = case_when(!is.na(vax1_date) &
+                                        (dose1_adminroute == 3 & first_dose_site == 1) ~ 2,
+                                      !is.na(vax1_date) &
+                                        (dose1_adminroute == 3 & first_dose_site == 2) ~ 1,
+                                      is.na(dose1_adminroute) ~ first_dose_site,
+                                      TRUE ~ as.numeric(dose1_adminroute)),
+          
+          vax1_adminroute_cat = fct_relevel(as_factor(case_when(vax1_adminroute == 1 ~ "Intradermal",
+                                                                vax1_adminroute == 2 ~ "Subcutaneous",
+                                                                TRUE ~ as.character("Don't know"))),
+                                            "Intradermal", "Subcutaneous", "Don't know"),
+          
+          vax2_adminroute = case_when(!is.na(vax2_date) &
+                                        (dose2_adminroute == 3 & second_dose_site == 1) ~ 2,
+                                      !is.na(vax2_date) &
+                                        (dose2_adminroute == 3 & second_dose_site == 2) ~ 1,
+                                      is.na(dose2_adminroute) ~ second_dose_site,
+                                      TRUE ~ as.numeric(dose2_adminroute)),
+          
+          vax2_adminroute_cat = fct_relevel(as_factor(case_when(vax2_adminroute == 1 ~ "Intradermal",
+                                                                vax2_adminroute == 2 ~ "Subcutaneous",
+                                                                TRUE ~ as.character("Don't know"))),
+                                            
+                                            "Intradermal", "Subcutaneous", "Don't know"),
+          
+          fully_adminroute_cat = fct_relevel(as_factor(case_when(vax_stat_ve_main == "Fully vaccinated" &
+                                                                  vax1_adminroute_cat == "Intradermal" &
+                                                                  vax2_adminroute_cat == "Intradermal" ~ "Intradermal",
+                                                                vax_stat_ve_main == "Fully vaccinated" &
+                                                                  vax1_adminroute_cat == "Subcutaneous" &
+                                                                  vax2_adminroute_cat == "Subcutaneous" ~ "Subcutaneous",
+                                                                vax_stat_ve_main == "Fully vaccinated" &
+                                                                  vax1_adminroute_cat == "Don't know" &
+                                                                  vax2_adminroute_cat == "Don't know" ~ "Don't know",
+                                                                vax_stat_ve_main == "Fully vaccinated" &
+                                                                  vax1_adminroute_cat == "Subcutaneous" &
+                                                                  vax2_adminroute_cat == "Intradermal" ~ "Heterologous: D1 S, D2 I",
+                                                                vax_stat_ve_main == "Fully vaccinated" &
+                                                                  vax1_adminroute_cat == "Intradermal" &
+                                                                  vax2_adminroute_cat == "Subcutaneous" ~ "Heterologous: D1 I, D2 S",
+                                                                vax_stat_ve_main == "Fully vaccinated" &
+                                                                  vax1_adminroute_cat != vax2_adminroute_cat ~ "Heterologous: other",
+                                                                   
+                                                                    TRUE ~ as.character(NA))),
+                                             "Intradermal", "Subcutaneous", "Don't know",
+                                             "Heterologous: D1 S, D2 I", "Heterologous: D1 I, D2 S", "Heterologous: other"),
+          partially_adminroute_cat = fct_relevel(as_factor(case_when(vax_stat_ve_main == "Partially vaccinated" &
+                                                                  vax1_adminroute_cat == "Intradermal" ~ "Intradermal",
+                                                                vax_stat_ve_main == "Partially vaccinated" &
+                                                                  vax1_adminroute_cat == "Subcutaneous" ~ "Subcutaneous",
+                                                                vax_stat_ve_main == "Partially vaccinated" &
+                                                                  vax1_adminroute_cat == "Don't know" ~ "Don't know",
+                                                                TRUE ~ as.character(NA))),
+                                             "Intradermal", "Subcutaneous", "Don't know"),
     
     #==== Minimum set variables ----
     # Create indicator vars to help flag records missing minimum set of data elements need for VE  variables
@@ -652,6 +703,12 @@ mpoxve <- raw %>%
         immunocompromised = fct_relevel(as_factor(case_when(hiv_status == 1 | immune_response ==  1 ~ "Yes",
                                                             TRUE ~ as.character("No"))),
                                         "Yes", "No"),
+  
+        immune_response_cat = fct_relevel(as_factor(case_when(immune_response == 1 ~ "Yes",
+                                                              immune_response == 2 ~ "No",
+                                                              immune_response == 3 ~ "Don't know",
+                                                              TRUE ~ as.character(NA))),
+                                         "Yes", "No","Don't know"),
     # Number of sexual partners - Examine distribution of number of sexual partners for any implausible values
           #                   AOD: what would be considered implausible values?  Range: 0-15 for cases; 0-20 for controls                     
           sex_part_num = ifelse(caco == "Case", sex_part_num_case, 
@@ -715,14 +772,21 @@ mpoxve <- raw %>%
                                                              close_contact_dx == 3 ~ "Don't know",
                                                              TRUE ~ as.character(NA))),
                                          "Yes", "No","Don't know"),
-  elig_gender_cat = fct_relevel(as_factor(case_when(elig_gender == 1 ~ "Male",
-                                                                 elig_gender == 2 ~ "Female",
-                                                                 elig_gender == 3 ~ "Transgender male",
-                                                                 elig_gender == 4 ~ "Transgender female",
-                                                                 elig_gender == 5 ~ "Another gender identity",
-                                                                 TRUE ~ as.character(NA))),
-                                             "Male", "Female", "Transgender male", "Transgender female",
-                                             "Another gender identity"),
+      elig_gender_cat = fct_relevel(as_factor(case_when(elig_gender == 1 ~ "Male",
+                                                                     elig_gender == 2 ~ "Female",
+                                                                     elig_gender == 3 ~ "Transgender male",
+                                                                     elig_gender == 4 ~ "Transgender female",
+                                                                     elig_gender == 5 ~ "Another gender identity",
+                                                                     TRUE ~ as.character(NA))),
+                                                 "Male", "Female", "Transgender male", "Transgender female",
+                                                 "Another gender identity"),
+      elig_sexuality_cat = fct_relevel(as_factor(case_when(elig_sexuality == 1 ~ "Gay or lesbian",
+                                                                   elig_sexuality == 2 ~ "Bisexual",
+                                                                   elig_sexuality == 3 ~ "Straight",
+                                                                   elig_sexuality == 4 ~ "A different term",
+                                                                   TRUE ~ as.character("Prefer not to answer"))),
+                                               "Gay or lesbian", "Bisexual", "Straight", "A different term",
+                                               "Prefer not to answer"),
                health_ins_cat = fct_relevel(as_factor(case_when(health_ins == 1 ~ "Public",
                                                                 health_ins == 2 ~ "Private",
                                                                 health_ins == 3 ~ "Public & private",
@@ -758,7 +822,27 @@ mpoxve <- raw %>%
                                                                 sex_work == 2 ~ "No",
                                                                 sex_work == 3 ~ "Don't know",
                                                                 TRUE ~ as.character(NA))),
-                                             "Yes", "No", "Don't know")
+                                             "Yes", "No", "Don't know"),
+  
+              #STIs
+               sti_gonorrhea = case_when(sti_case___1 == 1 | sti_control___1 == 1 ~ 1,
+                               TRUE ~ as.numeric(0)),
+               sti_chlamydia = case_when(sti_case___2 == 1 | sti_control___2 == 1 ~ 1,
+                                     TRUE ~ as.numeric(0)),
+               sti_syphilis = case_when(sti_case___3 == 1 | sti_control___3 == 1 ~ 1,
+                                     TRUE ~ as.numeric(0)),
+               sti_other = case_when(sti_case___4 == 1 | sti_control___4 == 1 ~ 1,
+                                     TRUE ~ as.numeric(0)),
+               sti_none = case_when(sti_case___5 == 1 | sti_control___5 == 1 ~ 1,
+                                     TRUE ~ as.numeric(0)),
+               sti_any = ifelse(if_any(c("sti_gonorrhea", "sti_chlamydia",
+                                             "sti_syphilis", "sti_other"), ~ . == 1), 1, 0),
+               sti_sum = rowSums(across(c(sti_gonorrhea, sti_chlamydia,
+                                              sti_syphilis, sti_other))),
+               sti_sum_cat = fct_relevel(as_factor(case_when(sti_sum >= 2 ~ "\u22652",
+                                                             TRUE ~ as.character(sti_sum))),
+                                                   "0", "1", "\u22652")
+  
   
       # time period matching
       # close ------
@@ -768,42 +852,6 @@ mpoxve <- raw %>%
         mutate(index_yrmo = format_ISO8601(index_date, precision = "ym"),
                index_epiyr   = epiyear(index_date),
                index_epiwk   = epiweek(index_date),
-               index_epiyrwk_2 = fct_inorder(as_factor(case_when(index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(33, 34)~ "2022: 33-34",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(35, 36)~ "2022: 35-36",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(37, 38)~ "2022: 37-38",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(39, 40)~ "2022: 39-40",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(41, 42)~ "2022: 41-42",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(43, 44)~ "2022: 43-44",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(45, 46)~ "2022: 45-46",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(47, 48)~ "2022: 47-48",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(49, 50)~ "2022: 49-50",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(51, 52)~ "2022: 51-52",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(1, 2)  ~  "2023: 1-2",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(3, 4)  ~  "2023: 3-4",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(5, 6)  ~  "2023: 5-6",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(7, 8)  ~  "2023: 7-8",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(9, 10)  ~ "2023: 9-10",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(11, 12)  ~ "2023: 11-12",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(13, 14)  ~ "2023: 13-14",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(15, 16)  ~ "2023: 15-16"))),
                index_epiyrwk_4 = fct_inorder(as_factor(case_when(index_epiyr == 2022 &
                                                                  index_epiwk %in% c(33, 34, 35, 36)~ "2022: 33-36",
                                                                index_epiyr == 2022 &
@@ -825,125 +873,49 @@ mpoxve <- raw %>%
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------
-  aa <- mpoxve %>% 
-        mutate(  # Case status categories
-           caco_stat_cat2 = fct_relevel(as_factor(case_when(
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    provider_dx == 1 &
-                                                    is.na(index_date)      ~ "Case: invalid date",
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    (provider_dx == 0 &
-                                                       clinic_yesno == 1) ~ "Case-site, Control-self",
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    (provider_dx == 0 &
-                                                       clinic_yesno != 1) ~ "Case: self-no dx & clinic visit",
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    (provider_dx == 1 | is.na(provider_dx)) &
-                                                    !is.na(index_date)     ~ "Case",
-                                                  
-                                                  case_yesno == 3 & # Site-reported as control
-                                                    provider_dx == 1     ~ "Control-site, Case-self",
-                                                  
-                                                 case_yesno == 3 & # Site-reported as confirmed or probable case
-                                                    provider_dx != 1 &
-                                                    is.na(index_date) ~ "Control: invalid date",
-                                                  
-                                                  case_yesno == 3 & # Site-reported as control
-                                                    is.na(clinic_date) &
-                                                    !is.na(index_date)  ~ "Control: no clinic visit-self",
-                                                 
-                                                  case_yesno == 3 & # Site-reported as control
-                                                   clinic_yesno == 1 &
-                                                    #provider_dx != 1 &
-                                                    !is.na(index_date)    ~ "Control",
-                                                
-                                                  
-                                                  is.na(case_yesno) ~ "Site-report missing",
-                                                  
-                                                  TRUE ~ as.character(NA))),
-                              "Case", 
-                              "Case: invalid date",
-                              "Case: self-no dx & clinic visit",
-                              "Control",
-                              "Control: no clinic visit-self",
-                              "Control: invalid date",
-                              "Case-site, Control-self",
-                              "Control-site, Case-self", 
-                              "Site-report missing"),
-    
-    # binary case status: main analysis
-    caco = fct_relevel(as_factor(case_when(caco_stat_cat %in% c("Case",
-                                                                "Control-site, Case-self",
-                                                                "Case-site, Control-self",
-                                                                "Case: self-no dx & clinic visit") ~ "Case",
-                                           caco_stat_cat %in% c("Control",
-                                                                
-                                                                "Control: no clinic visit-self") ~ "Control",
-                                           TRUE ~ as.character(NA))),
-                       "Case", "Control"))
-
-    # bb <- aa %>% pfreq(symptoms_yr, symptoms_date, index_date)
-    #   
-    # cc <- aa %>%filter(minset_vars == "Incomplete") %>% filter(jid != "TN") %>% pfreq(self_clinic_yr, clinic_date, clinic_date2)
-      
-      tt <- aa %>% 
-        pfreq(caco_stat_cat2, caco_stat_cat)
-      
       
 ```
 
-## code for route of admin and sexuality
+## PEP distribution
 ```{r}
-aa <- mpoxve %>% 
-  mutate(
-# Combine site- and self-reported vaccination dose administration route variables
-         
-          vax1_adminroute = case_when(dose1_adminroute == 3 |
-                                              is.na(dose1_adminroute) ~ first_dose_site,
-                                            TRUE ~ as.numeric(dose1_adminroute)),
-          vax1_adminroute_cat = fct_relevel(as_factor(case_when(vax1_adminroute == 1 ~ "Intradermal",
-                                                                vax1_adminroute == 2 ~ "Subcutaneous",
-                                                                TRUE ~ as.character("Don't know"))),
-                                            "Intradermal", "Subcutaneous", "Don't know"),
-          vax2_adminroute = case_when(dose2_adminroute == 3 |
-                                              is.na(dose2_adminroute) ~ second_dose_site,
-                                            TRUE ~ as.numeric(dose2_adminroute)),
-          vax2_adminroute_cat = fct_relevel(as_factor(case_when(vax2_adminroute == 1 ~ "Intradermal",
-                                                                vax2_adminroute == 2 ~ "Subcutaneous",
-                                                                TRUE ~ as.character("Don't know"))),
-                                            "Intradermal", "Subcutaneous", "Don't know"),
-          elig_sexuality_cat = fct_relevel(as_factor(case_when(elig_sexuality == 1 ~ "Gay or lesbian",
-                                                               elig_sexuality == 2 ~ "Bisexual",
-                                                               elig_sexuality == 3 & elig_gender == 1 ~ "Straight, male & MSM",
-                                                               elig_sexuality == 3 & elig_gender == 4 ~ "Straight, fransgender female",
-                                                               elig_sexuality == 4 ~ "A different term",
-                                                               TRUE ~ as.character("Prefer not to answer"))),
-                                           "Gay or lesbian", "Bisexual", "Straight, male & MSM",
-                                           "Straight, fransgender female", "A different term",
-                                           "Prefer not to answer")
-          )
-sexuality <- aa %>%
-  filter(minset_vars == "Complete") %>% 
-  pfreq(elig_sexuality_cat, elig_gender_cat, elig_gender_msm)%>% 
-  select(-pct)
 
 
-vax1_adminroute_cat <- aa %>%
-  filter(minset_vars == "Complete" & vax1_yesno == 1) %>% 
-  pfreq(vax1_adminroute_cat, vax1_adminroute, dose1_adminroute, 
-        dose1_adminroute_other, first_dose_site) %>% 
-  select(-pct)
+ tt <- mpoxve %>%
+  mutate(across(contains(c("sti_any", "sti_gonorrhea", "sti_chlamydia", "elig_sexual_partners",
+                             "sti_syphilis", "sti_other"), ignore.case = TRUE), turn_to_2Lfactor))  %>% 
+  pfreq(sti_tt, sti_any, sti_gonorrhea, sti_chlamydia, sti_syphilis, sti_other, sti_none, sti_sum, sti_sum_cat)
+  
+across(contains(c("sti_any", "sti_gonorrhea", "sti_chlamydia", "elig_sexual_partners",
+                             "sti_syphilis", "sti_other"), ignore.case = TRUE), turn_to_2Lfactor)
 
- 
-vax2_adminroute_cat <- aa %>%
-  filter(minset_vars == "Complete" & vax2_yesno == 1) %>% 
-  pfreq(vax2_adminroute_cat, vax2_adminroute, dose2_adminroute, 
-        dose2_adminroute_other, second_dose_site)%>% 
-  select(-pct)
+
+# pep <- mpoxve %>%
+#   filter(minset_vars == "Complete") %>% 
+#   group_by(caco, vax_stat_ve_main, pep_stat_ve, vax_scenario) %>% 
+#   summarise(n = n())%>% 
+#   mutate(tot = 1040,
+#          pct = round(100*(n/tot), 1)) %>% 
+#   select(-tot)
+# 
+# clipr::write_clip(pep)
+
+# vax_stat_adminroute_cat <- aa %>%
+#   filter(minset_vars == "Complete") %>% 
+#   pfreq(vax_stat_ve_main, fully_adminroute_cat, partially_adminroute_cat) %>% 
+#   select(-pct)
+# 
+# vax1_adminroute_cat <- aa %>%
+#   filter(minset_vars == "Complete" & vax1_yesno == 1) %>% 
+#   pfreq(vax1_adminroute_cat, vax1_adminroute, dose1_adminroute, 
+#         dose1_adminroute_other, first_dose_site) %>% 
+#   select(-pct)
+# 
+# 
+# vax2_adminroute_cat <- aa %>%
+#   filter(minset_vars == "Complete" & vax2_yesno == 1) %>% 
+#   pfreq(vax2_adminroute_cat, vax2_adminroute, dose2_adminroute, 
+#         dose2_adminroute_other, second_dose_site)%>% 
+#   select(-pct)
 
 
 ```
@@ -962,8 +934,6 @@ mpoxve %>%
   add_n() %>% 
   add_overall() %>% 
   bold_labels()
-
-
 
 
 ```
@@ -998,9 +968,11 @@ mpoxve %>%
 ```{r}
 mpoxve %>%
   filter(minset_vars == "Complete") %>%
-  select(caco, sid, age_cat, race_ethn_cat, elig_gender_cat, health_ins_cat,
+  select(caco, sid, jid,age_cat, race_ethn_cat, elig_gender_cat, health_ins_cat,
          housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat, hiv_prep_cat,
-         immunocompromised, close_contact_dx_cat, sex_part_num_cat) %>%
+         immune_response_cat, immunocompromised, close_contact_dx_cat, sex_part_num_cat,
+         sti_gonorrhea, sti_chlamydia, sti_syphilis, sti_other, sti_any, sti_sum_cat,
+         vax_stat_ve_main, fully_adminroute_cat, partially_adminroute_cat) %>%
   tbl_summary(
     by = caco,
         label = list(sid ~ "Jurisdiction-States",
@@ -1013,7 +985,8 @@ mpoxve %>%
                  hiv_status_cat ~ "HIV status",
                  hiv_cd4_cat ~ "CD4 count\U1d47",
                  hiv_prep_cat ~ "HIV PrEP\U1d9c",
-                 immunocompromised ~ "Immunocompromised\U1d48",
+                 immune_response_cat ~ "Immunocompromising condition or medication (other than HIV)",
+                 immunocompromised ~ "Immunocompromising condition\U1d48",
                  sex_part_num_cat ~ "Number of sexual partners",
                  close_contact_dx_cat ~ "Close contact w/mpox case"),
     missing_text = "Missing"
@@ -1074,7 +1047,7 @@ mpoxve %>%
 <!-- mpoxve_mod_na <- mpoxve %>% -->
 <!--   filter(minset_vars == "Complete") %>% -->
 <!--   filter(sid == "MD" & !is.na(vax_stat_ve_main)) %>%  -->
-<!--   select(sid, jid, pid, caco, vax_stat_ve_main, vax_stat_post_acip, age, race_ethn, immunocompromised, -->
+<!--   select(sid, jid, pid, caco, vax_stat_ve_main, vax_scenario, age, race_ethn, immunocompromised, -->
 <!--          close_contact_dx_cat) -->
 
 <!-- gg_miss_var(mpoxve_mod_na, facet = jid) -->
@@ -1099,7 +1072,7 @@ mpoxve_main <- mpoxve %>%
   filter(minset_vars == "Complete")  %>%
   select(pid, caco, sid, age, age_cat, race_ethn_cat, race_ethn, elig_gender_cat,
          health_ins_cat, housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat,
-         hiv_prep_cat, immunocompromised, close_contact_dx_cat, sex_part_num_cat, vax_stat_post_acip,
+         hiv_prep_cat, immunocompromised, close_contact_dx_cat, sex_part_num_cat, vax_scenario,
          vax_stat_ve_main, vax_stat_ve_s6full, vax_stat_ve_s6excl, index_date,
          index_yrmo, index_epiyrwk_4) %>% 
   drop_na(caco, vax_stat_ve_main, age, race_ethn, immunocompromised,
@@ -1110,7 +1083,7 @@ mpoxve_s6excl <- mpoxve %>%
   filter(minset_vars == "Complete")  %>%
   select(pid, caco, sid, age, age_cat, race_ethn_cat, race_ethn, elig_gender_cat,
          health_ins_cat, housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat,
-         hiv_prep_cat, immunocompromised, close_contact_dx_cat, sex_part_num_cat, vax_stat_post_acip,
+         hiv_prep_cat, immunocompromised, close_contact_dx_cat, sex_part_num_cat, vax_scenario,
          vax_stat_ve_main, vax_stat_ve_s6full, vax_stat_ve_s6excl, index_date,
          index_yrmo, index_epiyrwk_4) %>% 
   drop_na(caco, vax_stat_ve_main, age, race_ethn, immunocompromised,

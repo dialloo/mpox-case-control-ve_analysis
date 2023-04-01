@@ -281,58 +281,6 @@ mpoxve <- raw %>%
                                      !caco_stat_cat %in%c("Control-site, Case-self", "Case-site, Control-self") ~ index_date,
                                      TRUE ~ as.Date(NA)),
   
-  index_yrmo = format_ISO8601(index_date, precision = "ym"),
-  index_epiyr   = epiyear(index_date),
-  index_epiwk   = epiweek(index_date),
-  index_epiyrwk_2 = fct_relevel(as_factor(case_when(index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(33, 34)~ "2022: 33-34",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(35, 36)~ "2022: 35-36",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(37, 38)~ "2022: 37-38",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(39, 40)~ "2022: 39-40",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(41, 42)~ "2022: 41-42",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(43, 44)~ "2022: 43-44",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(45, 46)~ "2022: 45-46",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(47, 48)~ "2022: 47-48",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(49, 50)~ "2022: 49-50",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(51, 52)~ "2022: 51-52",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(1, 2)  ~  "2023: 1-2",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(3, 4)  ~  "2023: 3-4",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(5, 6)  ~  "2023: 5-6",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(7, 8)  ~  "2023: 7-8",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(9, 10)  ~ "2023: 9-10"))),
-  
-  index_epiyrwk_4 = fct_relevel(as_factor(case_when(index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(33, 34, 35, 36)~ "2022: 33-36",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(37, 38, 39, 40)~ "2022: 37-40",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(41, 42, 43, 44)~ "2022: 41-44",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(45, 46, 47, 48)~ "2022: 45-48",
-                                                               index_epiyr == 2022 &
-                                                                 index_epiwk %in% c(49, 50, 51, 52)~ "2022: 49-52",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(1, 2, 3, 4)  ~  "2023: 1-4",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(5, 6, 7, 8)  ~  "2023: 5-8",
-                                                               index_epiyr == 2023 &
-                                                                 index_epiwk %in% c(9, 10, 11, 12)  ~ "2023: 9-12"))),
-  
-  
   #==== Vaccination Status ----
           
          # address invalid dates for self-reported vaccination dates
@@ -788,12 +736,56 @@ mpoxve <- raw %>%
       # close ------
        
             ) %>% 
-        # select(-redcap_trans_date) %>% 
-        # mutate(
-        #        
-        #        valid_dates = case_when(if_any(c(vax1_date, vax2_date, index_date,)ends_with("_date"),  ~ .x >= ymd("2023-03-06")) ~ 0,
-        #                                TRUE ~ as.numeric(1))
-        #        )%>% 
+        arrange(index_date) %>%
+        mutate(index_yrmo = format_ISO8601(index_date, precision = "ym"),
+               index_epiyr   = epiyear(index_date),
+               index_epiwk   = epiweek(index_date),
+               index_epiyrwk_2 = fct_inorder(as_factor(case_when(index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(33, 34)~ "2022: 33-34",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(35, 36)~ "2022: 35-36",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(37, 38)~ "2022: 37-38",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(39, 40)~ "2022: 39-40",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(41, 42)~ "2022: 41-42",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(43, 44)~ "2022: 43-44",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(45, 46)~ "2022: 45-46",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(47, 48)~ "2022: 47-48",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(49, 50)~ "2022: 49-50",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(51, 52)~ "2022: 51-52",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(1, 2)  ~  "2023: 1-2",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(3, 4)  ~  "2023: 3-4",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(5, 6)  ~  "2023: 5-6",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(7, 8)  ~  "2023: 7-8",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(9, 10)  ~ "2023: 9-10"))),
+               index_epiyrwk_4 = fct_inorder(as_factor(case_when(index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(33, 34, 35, 36)~ "2022: 33-36",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(37, 38, 39, 40)~ "2022: 37-40",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(41, 42, 43, 44)~ "2022: 41-44",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(45, 46, 47, 48)~ "2022: 45-48",
+                                                               index_epiyr == 2022 &
+                                                                 index_epiwk %in% c(49, 50, 51, 52)~ "2022: 49-52",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(1, 2, 3, 4)  ~  "2023: 1-4",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(5, 6, 7, 8)  ~  "2023: 5-8",
+                                                               index_epiyr == 2023 &
+                                                                 index_epiwk %in% c(9, 10, 11, 12)  ~ "2023: 9-12"))))%>%
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------
@@ -801,7 +793,7 @@ mpoxve <- raw %>%
       
 ```
 
-### Distribution of complete minimum set of data elements
+## **Distribution of complete minimum set of data elements**
 
 **Table 1. Distribution of respondents with a minimum set of data elements**
 
@@ -820,16 +812,14 @@ mpoxve %>%
 
 ```
 
+
 **Figure 1. Missingness patterns across a the set of minimum data elements**
 
+I will look further into the group that is missing vax2_date only (column 2) to see if we can recapture them with help from the sites and reclassify them as having a complete set of minimum data elements.
+
 ```{r}
-mpoxve %>% 
-  filter(jid == "NYC") %>%
-  pfreq(consent)
-  
-  
-mpoxve %>% 
-  filter(jid == "NYC") %>% 
+mpoxve %>%
+ # filter(jid == "NYC") %>%
   select(case_yesno, index_date, vax1_yesno, vax1_date, vax2_yesno, vax2_date)%>%
   gg_miss_upset()
 
@@ -843,7 +833,7 @@ mpoxve %>%
 
 ## **Vaccination status: post-manual review comparison**
 
-**Table 1. comparison of manual review and coded scenarios**
+**Table 2. comparison of manual review and coded scenarios**
 
 ```{r}
 mpoxve %>%
@@ -878,7 +868,7 @@ mpoxve %>%
 
 ## **Descriptive Statistics**
 
-**Table 2. Distribution of variables under consideration in the models by case status**
+**Table 3. Distribution of variables under consideration in the models by case status**
 
 ```{r}
 mpoxve %>%
@@ -895,7 +885,7 @@ mpoxve %>%
                  sex_part_num_mod ~ "Number of sexual partners: model",
                  close_contact_dx_cat_og ~ "Close contact w/mpox case: Original \U1d47",
                  close_contact_dx_cat ~ "Close contact w/mpox case: ACIP model\U1d9c",
-                 vax_stat_post_acip ~ "Scenarios: coded"
+                 vax_stat_post_acip ~ "Scenarios: coded",
                  vax_stat_ve_main ~ "Vax status: M1\U1d48",
                  vax_stat_ve_s6_full ~ "Vax status: M2-S6 full\U1d48",
                  vax_stat_ve_s6_excl ~ "Vax status: M3-S6 excl\U1d49"),
@@ -915,7 +905,7 @@ mpoxve %>%
 
 ```
 
-**Table 3. Participant characteristics by case status**
+**Table 4. Participant characteristics by case status**
 
 ```{r}
 mpoxve %>%
@@ -954,7 +944,7 @@ mpoxve %>%
 
 ```
 
-**Table 4. Participant characteristics by vaccination status (M1)**
+**Table 5. Participant characteristics by vaccination status as defined for the main model**
 
 ```{r}
 mpoxve %>%
@@ -993,14 +983,60 @@ mpoxve %>%
 
 ```
 
-**Figure 1. Distribution of index event dates**
 
-If there a better we way to operationalize the 4-week time period? Should we recode it differently?
+**Table 6. Distribution of variables included in model by case status (complete data in model 1)**
 
 ```{r}
 
+mpoxve %>%
+
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC")) %>%
+
+  drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised, sex_part_num_mod,  close_contact_dx_cat, index_epiyrwk_4, index_epiyrwk_2, index_yrmo) %>%
+
+  select(caco, vax_stat_ve_main, age_cat, race_ethn, immunocompromised,
+
+         close_contact_dx_cat) %>%
+
+  tbl_summary(
+
+    by = caco,
+
+    label = list(age_cat ~ "Age categories",
+
+                 race_ethn ~ "Ethnicity, race",
+
+                 immunocompromised ~ "Immunocompromised",
+
+                 close_contact_dx_cat ~ "Close contact mpox case*"),
+
+    #missing = "always",
+
+    missing_text = "Missing"
+
+  )  %>%
+
+  add_n() %>%
+
+  add_overall() %>%
+
+  bold_labels() %>%
+
+  as_gt()%>%
+
+  gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
+
+  gt::tab_source_note(gt::md("**Missing represent scenarios 3, 5, & 6."))
+
+```
+
+**Figure 3. Distribution of index event dates for spline-knots decision**
+
+We splines knots were at 2022-09-15 and 2022-10-15
+```{r}
+
  mpoxve_ie_counts <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC")) %>%
   drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised, sex_part_num_mod,
           close_contact_dx_cat) %>%
   mutate(n_count = 1) %>%
@@ -1029,38 +1065,26 @@ plot(epi_counts_obj_wk)
   
 ```
 
+**Table 7. Distribution of index event (IE) dates by case status for data restriction**
 
-**Table 5. Study participant characteristics by case status (complete data in model 1)**
-
-If there a better we way to operationalize the 4-week time period? Should we recode it differently?
-
+Because of the lack of cases in 2023, the models were predominately restricted to 2022 index event dates.
 ```{r}
 
 mpoxve %>%
 
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC")) %>%
 
   drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised, sex_part_num_mod,  close_contact_dx_cat, index_epiyrwk_4, index_epiyrwk_2, index_yrmo) %>%
 
-  select(caco, vax_stat_ve_main, age_cat, race_ethn, immunocompromised,
-
-         close_contact_dx_cat, index_epiyrwk_4, index_epiyrwk_2, index_yrmo) %>%
+  select(caco, index_yrmo,index_epiyrwk_4, index_epiyrwk_2) %>%
 
   tbl_summary(
 
     by = caco,
 
-    label = list(age_cat ~ "Age categories",
-
-                 race_ethn ~ "Ethnicity, race",
-
-                 immunocompromised ~ "Immunocompromised",
-
-                 close_contact_dx_cat ~ "Close contact mpox case*",
-                 index_epiyrwk_4 ~ "4-week time period",
+    label = list(index_epiyrwk_4 ~ "4-week time period",
                  index_epiyrwk_2 ~ "2-week time period (not in models)",
-                 index_yrmo ~ "Month time period (not in models)",
-                 vax_stat_ve_main ~ "Vaccination status**"),
+                 index_yrmo ~ "Month time period (not in models)"),
 
     #missing = "always",
 
@@ -1072,23 +1096,17 @@ mpoxve %>%
 
   add_overall() %>%
 
-  bold_labels() %>%
-
-  as_gt()%>%
-
-  gt::tab_source_note(gt::md("*Three weeks before diagnosis (case) or clinic visit (controls)."))%>%
-
-  gt::tab_source_note(gt::md("**Missing represent scenarios 3, 5, & 6."))
+  bold_labels()
 
 ```
 
-## **Adjusted Models**
+
+## **Model 1 results**
 
 ```{r}
 
 analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-  filter(index_date <= ymd("2022-11-26")) %>% 
+  filter(minset_vars == "Complete" & !jid %in% c("CA", "DC")) %>%
   drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised,
          close_contact_dx_cat) %>%
   mutate(caco = fct_rev(caco),
@@ -1096,25 +1114,42 @@ analysis <- mpoxve %>%
          vax_stat_ve_s6_full = fct_rev(vax_stat_ve_s6_full),
          vax_stat_ve_s6_excl = fct_rev(vax_stat_ve_s6_excl))
 
-mod1_unadj <- glmer(formula = caco ~ vax_stat_ve_main +
+analysis_restricted <- analysis %>% 
+  filter(index_date <= ymd("2022-12-31")) 
+  
+
+mod1_unadj_alldata <- glmer(formula = caco ~ vax_stat_ve_main +
                     (1 | jid),
                  family = binomial(link = "logit"),
                  control = glmerControl(optimizer = "bobyqa"),
                  data = analysis)
 
-mod1_unadj_age_race_immu <- glmer(formula = caco ~ vax_stat_ve_main + 
+mod1_unadj_alldata_spline <- glmer(formula = caco ~ vax_stat_ve_main + 
+                       ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
+                    (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis)
+
+mod1_unadj <- glmer(formula = caco ~ vax_stat_ve_main +
+                    (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis_restricted)
+
+mod1_adj_age_race_immu <- glmer(formula = caco ~ vax_stat_ve_main + 
                                     age + race_ethn +  immunocompromised + 
                                     (1 | jid),
                                   family = binomial(link = "logit"),
                                   control = glmerControl(optimizer = "bobyqa"),
-                                  data = analysis)
+                                  data = analysis_restricted)
 
 mod1_adj_contact <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
                             close_contact_dx_cat +
                             (1 | jid),
                           family = binomial(link = "logit"),
                           control = glmerControl(optimizer = "bobyqa"),
-                          data = analysis)
+                          data = analysis_restricted)
 
 mod1_spline <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
                        close_contact_dx_cat + 
@@ -1122,52 +1157,116 @@ mod1_spline <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immu
                        (1 | jid),
                      family = binomial(link = "logit"),
                      control = glmerControl(optimizer = "bobyqa"),
-                     data = analysis)
+                     data = analysis_restricted)
 
-mod1_s6f_spline <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
+#tab_model(mod1_unadj, mod1_adj, mod1_s6f_spline, show.aic = T, show.obs = T)
+
+```
+
+**Crude -- 2022 & 2023 IE data: left OR VS. 2022 IE only: right OR**
+
+```{r}
+
+tab_model(mod1_unadj_alldata, mod1_unadj, show.aic = T, show.obs = T)
+
+```
+
+**Crude: left OR VS. adjusted (age, race & immunocompromised): middle OR VS. adjusted + close contacts: right OR**
+
+_*Note:*_ Based on data restricted to 2022 index event dates.
+
+```{r}
+
+tab_model(mod1_unadj, mod1_adj_age_race_immu, mod1_adj_contact, show.aic = T, show.obs = T)
+
+```
+
+**Adjusted + close contacts: left OR VS. Adjusted + close contacts + splines (2 knots): right**
+
+_*Note:*_ Based on data restricted to 2022 index event dates and splines knots were at 2022-09-15 and 2022-10-15.
+
+```{r}
+
+tab_model(mod1_adj_contact, mod1_spline, show.aic = T, show.obs = T)
+
+```
+
+
+## **Model 1 vs 2 results (restricted to 2022 IE dates)**
+
+```{r}
+
+mod2_unadj <- glmer(formula = caco ~ vax_stat_ve_s6_full +
+                    (1 | jid),
+                 family = binomial(link = "logit"),
+                 control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis_restricted)
+
+mod2_adj_contact <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
+                            close_contact_dx_cat +
+                            (1 | jid),
+                          family = binomial(link = "logit"),
+                          control = glmerControl(optimizer = "bobyqa"),
+                          data = analysis_restricted)
+
+mod2_spline <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
                        close_contact_dx_cat + 
                        ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
                        (1 | jid),
                      family = binomial(link = "logit"),
                      control = glmerControl(optimizer = "bobyqa"),
-                     data = analysis)
-
-tab_model(mod1_unadj, mod1_adj, mod1_s6f_spline, show.aic = T, show.obs = T)
+                     data = analysis_restricted)
 
 ```
-**Model 1: main model crude and adjusted without time period**
+
+**Crude -- model 1: left OR VS. model 2: right OR**
 
 ```{r}
 
-analysis <- mpoxve %>%
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-  filter(index_date <= ymd("2022-11-26")) %>% 
-  drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised,
-         close_contact_dx_cat) %>%
-  mutate(caco = fct_rev(caco),
-         vax_stat_ve_main = fct_rev(vax_stat_ve_main),
-         vax_stat_ve_s6_full = fct_rev(vax_stat_ve_s6_full),
-         vax_stat_ve_s6_excl = fct_rev(vax_stat_ve_s6_excl))
+tab_model(mod1_unadj, mod2_unadj, show.aic = T, show.obs = T)
 
+```
+
+
+**Adjusted (w/o time period) -- model 1: left OR VS. model 2: right OR**
+
+```{r}
+
+tab_model(mod1_adj_contact, mod2_adj_contact, show.aic = T, show.obs = T)
+
+```
+
+**Adjusted (splines) -- model 1: left OR VS. model 2: right OR**
+
+_*Note:*_ Please note that OR patterns for fully and partially vaccinated for Model 2 reflect what we expect.  
+
+```{r}
+
+tab_model(mod1_spline, mod2_spline, show.aic = T, show.obs = T)
+
+```
+
+## **Model 1 vs 2 vs 3 results (restricted to 2022 IE dates)**
+
+```{r}
+
+analysis_s6_excl <- analysis_restricted %>% 
+  drop_na(vax_stat_ve_s6_excl) 
+  
+
+# model 1
 mod1_unadj <- glmer(formula = caco ~ vax_stat_ve_main +
                     (1 | jid),
                  family = binomial(link = "logit"),
                  control = glmerControl(optimizer = "bobyqa"),
-                 data = analysis)
-
-mod1_unadj_age_race_immu <- glmer(formula = caco ~ vax_stat_ve_main + 
-                                    age + race_ethn +  immunocompromised + 
-                                    (1 | jid),
-                                  family = binomial(link = "logit"),
-                                  control = glmerControl(optimizer = "bobyqa"),
-                                  data = analysis)
+                 data = analysis_s6_excl)
 
 mod1_adj_contact <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
                             close_contact_dx_cat +
                             (1 | jid),
                           family = binomial(link = "logit"),
                           control = glmerControl(optimizer = "bobyqa"),
-                          data = analysis)
+                          data = analysis_s6_excl)
 
 mod1_spline <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
                        close_contact_dx_cat + 
@@ -1175,162 +1274,77 @@ mod1_spline <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immu
                        (1 | jid),
                      family = binomial(link = "logit"),
                      control = glmerControl(optimizer = "bobyqa"),
-                     data = analysis)
+                     data = analysis_s6_excl)
 
-tab_model(mod1_unadj, mod1_adj, mod1_spline, show.aic = T, show.obs = T)
-
-```
-
-**Model 1: main model (close contacts only)**
-
-As you can see, the partially vaccinated have higher VE than the fully vaccinated. The 4-week time period variable is have a major influence on the results.
-
-```{r}
-
-analysis <- mpoxve %>%
-
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-
-  drop_na(caco, vax_stat_ve_main, age, age_cat, race_ethn, immunocompromised,
-
-         close_contact_dx_cat , index_epiyrwk_2
-         ) %>%
-
-  mutate(caco = fct_rev(caco),
-
-         vax_stat_ve_main = fct_rev(vax_stat_ve_main))
-
-mod1_adj <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
-
-                    close_contact_dx_cat + index_epiyrwk_2 + 
+# model 2
+mod2_unadj <- glmer(formula = caco ~ vax_stat_ve_s6_full +
                     (1 | jid),
-
                  family = binomial(link = "logit"),
-
                  control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis_s6_excl)
 
-                 data = analysis)
+mod2_adj_contact <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
+                            close_contact_dx_cat +
+                            (1 | jid),
+                          family = binomial(link = "logit"),
+                          control = glmerControl(optimizer = "bobyqa"),
+                          data = analysis_s6_excl)
 
-tab_model(mod1_adj,  show.aic = T, show.obs = T)
+mod2_spline <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
+                       close_contact_dx_cat + 
+                       ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
+                       (1 | jid),
+                     family = binomial(link = "logit"),
+                     control = glmerControl(optimizer = "bobyqa"),
+                     data = analysis_s6_excl)
 
-```
 
-**Model 1: main model (Splines - knots: "2022-09-11" and "2022-10-09")**
-
-```{r}
-
-
-mod1_adj <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn +  immunocompromised +
-                    close_contact_dx_cat + 
-                    ns(index_date, knots= c(ymd("2022-09-11"), ymd("2022-10-09")))+
+# model 3
+mod3_unadj <- glmer(formula = caco ~ vax_stat_ve_s6_excl +
                     (1 | jid),
-
                  family = binomial(link = "logit"),
-
                  control = glmerControl(optimizer = "bobyqa"),
+                 data = analysis_s6_excl)
 
-                 data = analysis)
+mod3_adj_contact <- glmer(formula = caco ~ vax_stat_ve_s6_excl + age + race_ethn +  immunocompromised +
+                            close_contact_dx_cat +
+                            (1 | jid),
+                          family = binomial(link = "logit"),
+                          control = glmerControl(optimizer = "bobyqa"),
+                          data = analysis_s6_excl)
 
-tab_model(mod1_adj,  show.aic = T, show.obs = T)
+mod3_spline <- glmer(formula = caco ~ vax_stat_ve_s6_excl + age + race_ethn +  immunocompromised +
+                       close_contact_dx_cat + 
+                       ns(index_date, knots= c(ymd("2022-09-15"), ymd("2022-10-15")))+
+                       (1 | jid),
+                     family = binomial(link = "logit"),
+                     control = glmerControl(optimizer = "bobyqa"),
+                     data = analysis_s6_excl)
 
 ```
 
-**Model 2: S6 included as full**
+**Crude -- model 1: left OR VS. model 2: middle OR VS. model 3: right OR**
 
 ```{r}
 
-analysis <- mpoxve %>%
-
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-
-  drop_na(caco, vax_stat_ve_s6_full, age, age_cat, race_ethn, immunocompromised,
-
-         close_contact_dx_cat , index_epiyrwk_4
-         ) %>%
-
-  mutate(caco = fct_rev(caco),
-
-         )
-
-mod1_adj <- glmer(formula = caco ~ vax_stat_ve_s6_full + age + race_ethn +  immunocompromised +
-
-                    close_contact_dx_cat + index_epiyrwk_4 + 
-                    (1 | jid),
-
-                 family = binomial(link = "logit"),
-
-                 control = glmerControl(optimizer = "bobyqa"),
-
-                 data = analysis)
-
-tab_model(mod1_adj,  show.aic = T, show.obs = T)
+tab_model(mod1_unadj, mod2_unadj, mod3_unadj, show.aic = T, show.obs = T)
 
 ```
 
-**Model 3: S6 excluded**
+
+**Adjusted (w/o time period) -- model 1: left OR VS. model 2: middle OR VS. model 3: right OR**
 
 ```{r}
 
-analysis <- mpoxve %>%
-
-  filter(minset_vars == "Complete" & !jid %in% c("CA", "NYC", "DC")) %>%
-
-  drop_na(caco, vax_stat_ve_s6_excl, age, age_cat, race_ethn, immunocompromised,
-
-         close_contact_dx_cat, index_epiyrwk_4) %>%
-
-  mutate(caco = fct_rev(caco),
-
-         )
-
-mod1_adj <- glmer(formula = caco ~ vax_stat_ve_s6_excl + age + race_ethn +  immunocompromised +
-
-                    close_contact_dx_cat + index_epiyrwk_4 + (1 | jid),
-
-                 family = binomial(link = "logit"),
-
-                 control = glmerControl(optimizer = "bobyqa"),
-
-                 data = analysis)
-
-tab_model(mod1_adj,  show.aic = T, show.obs = T)
+tab_model(mod1_adj_contact, mod2_adj_contact, mod3_adj_contact, show.aic = T, show.obs = T)
 
 ```
 
-<!-- **IC-Yes (left-side OR), IC-No (right-side OR)** -->
+**Adjusted (splines) -- model 1: left OR VS. model 2: middle OR VS. model 3: right OR**
 
-<!-- ```{r} -->
 
-<!-- analysis_ic_yes <- analysis %>% -->
+```{r}
 
-<!--   filter(immunocompromised == "Yes") -->
+tab_model(mod1_spline, mod2_spline, mod3_spline, show.aic = T, show.obs = T)
 
-<!-- analysis_ic_no <- analysis %>% -->
-
-<!--   filter(immunocompromised == "No") -->
-
-<!-- mod1_adj_ic_yes <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn + -->
-
-<!--                            close_contact_dx_cat + index_epiyrwk_4 + (1 | jid), -->
-
-<!--                          family = binomial(link = "logit"), -->
-
-<!--                          control = glmerControl(optimizer = "bobyqa"), -->
-
-<!--                          data = analysis_ic_yes) -->
-
-<!-- mod1_adj_ic_no <- glmer(formula = caco ~ vax_stat_ve_main + age + race_ethn + -->
-
-<!--                           close_contact_dx_cat + index_epiyrwk_4 + (1 | jid), -->
-
-<!--                         family = binomial(link = "logit"), -->
-
-<!--                         control = glmerControl(optimizer = "bobyqa"), -->
-
-<!--                         data = analysis_ic_no) -->
-
-<!-- tab_model(mod1_adj_ic_yes, mod1_adj_ic_no, show.aic = T, show.obs = T) -->
-
-<!-- ``` -->
-
-<!-- ## -->
+```
