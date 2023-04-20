@@ -121,7 +121,7 @@ give_two_a_zero <- function(x){
   
     # This date represent the most recent data transfer from jurisdictions
     
-      redcap_trans_date_v2 <- "20 Mar 2023"
+      redcap_trans_date_v2 <- "3 Apr 2023"
 
 # Tidy data ----------------------------------------------------------------------
 mpoxve <- raw %>%
@@ -174,7 +174,7 @@ mpoxve <- raw %>%
     
          # Create a study period variable to store mpox symptoms date within 2022-08-19 and most recent data transfer 
           eligibility_date = ymd("2022-08-19"),
-          redcap_trans_date = ymd("2023-03-20"),
+          redcap_trans_date = ymd("2023-04-03"),
     
           study_pd_int = interval(eligibility_date, redcap_trans_date),
     
@@ -825,74 +825,74 @@ mpoxve <- raw %>%
   select(pid, jid, everything(), -redcap_data_access_group)
 
 # checks ----------
-  aa <- mpoxve %>% 
-        mutate(  # Case status categories
-           caco_stat_cat2 = fct_relevel(as_factor(case_when(
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    provider_dx == 1 &
-                                                    is.na(index_date)      ~ "Case: invalid date",
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    (provider_dx == 0 &
-                                                       clinic_yesno == 1) ~ "Case-site, Control-self",
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    (provider_dx == 0 &
-                                                       clinic_yesno != 1) ~ "Case: self-no dx & clinic visit",
-                                                  
-                                                  case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
-                                                    (provider_dx == 1 | is.na(provider_dx)) &
-                                                    !is.na(index_date)     ~ "Case",
-                                                  
-                                                  case_yesno == 3 & # Site-reported as control
-                                                    provider_dx == 1     ~ "Control-site, Case-self",
-                                                  
-                                                 case_yesno == 3 & # Site-reported as confirmed or probable case
-                                                    provider_dx != 1 &
-                                                    is.na(index_date) ~ "Control: invalid date",
-                                                  
-                                                  case_yesno == 3 & # Site-reported as control
-                                                    is.na(clinic_date) &
-                                                    !is.na(index_date)  ~ "Control: no clinic visit-self",
-                                                 
-                                                  case_yesno == 3 & # Site-reported as control
-                                                   clinic_yesno == 1 &
-                                                    #provider_dx != 1 &
-                                                    !is.na(index_date)    ~ "Control",
-                                                
-                                                  
-                                                  is.na(case_yesno) ~ "Site-report missing",
-                                                  
-                                                  TRUE ~ as.character(NA))),
-                              "Case", 
-                              "Case: invalid date",
-                              "Case: self-no dx & clinic visit",
-                              "Control",
-                              "Control: no clinic visit-self",
-                              "Control: invalid date",
-                              "Case-site, Control-self",
-                              "Control-site, Case-self", 
-                              "Site-report missing"),
-    
-    # binary case status: main analysis
-    caco = fct_relevel(as_factor(case_when(caco_stat_cat %in% c("Case",
-                                                                "Control-site, Case-self",
-                                                                "Case-site, Control-self",
-                                                                "Case: self-no dx & clinic visit") ~ "Case",
-                                           caco_stat_cat %in% c("Control",
-                                                                
-                                                                "Control: no clinic visit-self") ~ "Control",
-                                           TRUE ~ as.character(NA))),
-                       "Case", "Control"))
-
-    # bb <- aa %>% pfreq(symptoms_yr, symptoms_date, index_date)
-    #   
-    # cc <- aa %>%filter(minset_vars == "Incomplete") %>% filter(jid != "TN") %>% pfreq(self_clinic_yr, clinic_date, clinic_date2)
-      
-      tt <- aa %>% 
-        pfreq(caco_stat_cat2, caco_stat_cat)
-      
+  # aa <- mpoxve %>% 
+  #       mutate(  # Case status categories
+  #          caco_stat_cat2 = fct_relevel(as_factor(case_when(
+  #                                                 
+  #                                                 case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
+  #                                                   provider_dx == 1 &
+  #                                                   is.na(index_date)      ~ "Case: invalid date",
+  #                                                 
+  #                                                 case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
+  #                                                   (provider_dx == 0 &
+  #                                                      clinic_yesno == 1) ~ "Case-site, Control-self",
+  #                                                 
+  #                                                 case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
+  #                                                   (provider_dx == 0 &
+  #                                                      clinic_yesno != 1) ~ "Case: self-no dx & clinic visit",
+  #                                                 
+  #                                                 case_yesno %in% c(1,2) & # Site-reported as confirmed or probable case
+  #                                                   (provider_dx == 1 | is.na(provider_dx)) &
+  #                                                   !is.na(index_date)     ~ "Case",
+  #                                                 
+  #                                                 case_yesno == 3 & # Site-reported as control
+  #                                                   provider_dx == 1     ~ "Control-site, Case-self",
+  #                                                 
+  #                                                case_yesno == 3 & # Site-reported as confirmed or probable case
+  #                                                   provider_dx != 1 &
+  #                                                   is.na(index_date) ~ "Control: invalid date",
+  #                                                 
+  #                                                 case_yesno == 3 & # Site-reported as control
+  #                                                   is.na(clinic_date) &
+  #                                                   !is.na(index_date)  ~ "Control: no clinic visit-self",
+  #                                                
+  #                                                 case_yesno == 3 & # Site-reported as control
+  #                                                  clinic_yesno == 1 &
+  #                                                   #provider_dx != 1 &
+  #                                                   !is.na(index_date)    ~ "Control",
+  #                                               
+  #                                                 
+  #                                                 is.na(case_yesno) ~ "Site-report missing",
+  #                                                 
+  #                                                 TRUE ~ as.character(NA))),
+  #                             "Case", 
+  #                             "Case: invalid date",
+  #                             "Case: self-no dx & clinic visit",
+  #                             "Control",
+  #                             "Control: no clinic visit-self",
+  #                             "Control: invalid date",
+  #                             "Case-site, Control-self",
+  #                             "Control-site, Case-self", 
+  #                             "Site-report missing"),
+  #   
+  #   # binary case status: main analysis
+  #   caco = fct_relevel(as_factor(case_when(caco_stat_cat %in% c("Case",
+  #                                                               "Control-site, Case-self",
+  #                                                               "Case-site, Control-self",
+  #                                                               "Case: self-no dx & clinic visit") ~ "Case",
+  #                                          caco_stat_cat %in% c("Control",
+  #                                                               
+  #                                                               "Control: no clinic visit-self") ~ "Control",
+  #                                          TRUE ~ as.character(NA))),
+  #                      "Case", "Control"))
+  # 
+  #   # bb <- aa %>% pfreq(symptoms_yr, symptoms_date, index_date)
+  #   #   
+  #   # cc <- aa %>%filter(minset_vars == "Incomplete") %>% filter(jid != "TN") %>% pfreq(self_clinic_yr, clinic_date, clinic_date2)
+  #     
+  #     tt <- aa %>% 
+  #       pfreq(caco_stat_cat2, caco_stat_cat)
+  #     
       
 ```
 

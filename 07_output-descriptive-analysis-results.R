@@ -83,7 +83,7 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
                               
                               # Covariates included in table 1
                                 age_cat, race_ethn, elig_gender_cat, health_ins_cat,
-                                housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat, hiv_meds_2moredays,
+                                housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat, hiv_cd4_200_cat, hiv_meds_2moredays,
                                 hiv_prep_cat, immunocompromised, close_contact_dx_cat, 
                                 sex_part_num_cat, sti_gonorrhea, sti_chlamydia, sti_syphilis, sti_other, 
                                 sti_any,
@@ -117,12 +117,14 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
     select(model, match_ratio, tbl_characteristic) %>% 
     unnest(cols = c(model, match_ratio, tbl_characteristic)) %>% 
     filter((model == "s6excl") == FALSE) %>% 
-    mutate(dataset = fct_relevel(as_factor(case_when(model == "Main" &
-                                                       match_ratio == "None"  ~ "m0",
-                                TRUE ~ as.character("m1"))),
-                                "m1", "m0"))  %>% 
+    mutate(dataset = case_when(model == "Main" &
+                                 match_ratio == "None"  ~ "m0",
+                               model == "Main" &
+                                 match_ratio == "1 case:4 controls"  ~ "m1",
+                                TRUE ~ as.character(NA))) %>% 
     ungroup() %>% 
-    select(-test, -SMD, -model, -match_ratio)%>% 
+    filter(!is.na(dataset)) %>% 
+    select(-test, -SMD, -model, -match_ratio) %>% 
     pivot_wider(id_cols = covariates,
                 names_from = dataset,
                 values_from = c(Case, Control, p)) 
@@ -156,7 +158,6 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
     filter((model == "s6excl") == FALSE)  %>% 
     ungroup() %>% 
     select(-test, -SMD, -model)
-  
   
   
   tbl2_characteristic_out <- tbl2 %>% 

@@ -13,7 +13,7 @@
 # Task: Output VE estimates 
 # Data in: analysis_mpoxve_mmwr.RDS
 # Initial program date: 2023-03-29
-# Last modified date: 2023-03-31
+# Last modified date: 2023-04-05
 #==========================================================================================================
 
 
@@ -90,16 +90,7 @@ mpoxve <- here("data","analysis_mpoxve_mmwr.RDS") %>%
          close_contact_dx_mod = case_when(close_contact_dx_cat == "No" ~ 0,
                                           close_contact_dx_cat == "Yes" ~ 1,
                                           close_contact_dx_cat == "Don't know" ~ 2,
-                                          TRUE ~ as.numeric(NA)),
-         
-         fully_adminroute_mod = fct_rev(fct_relevel(as_factor(case_when(vax_main == "Unvaccinated" ~ "Unvaccinated",
-                                                                TRUE ~ as.character(fully_adminroute_cat))),
-                                            "Heterologous", "Intradermal", "Subcutaneous", "Unvaccinated")),
-         
-         partially_adminroute_mod = fct_rev(fct_relevel(as_factor(case_when(vax_main == "Unvaccinated" ~ "Unvaccinated",
-                                                                        TRUE ~ as.character(partially_adminroute_cat))),
-                                                "Intradermal", "Subcutaneous", "Unvaccinated"))
-         
+                                          TRUE ~ as.numeric(NA))
          )
 
 
@@ -184,8 +175,7 @@ mpoxve <- here("data","analysis_mpoxve_mmwr.RDS") %>%
 
   #==== Fully vaccinated ----
     analysis_full_route <- mpoxve %>% 
-      filter(model == "Main") %>% 
-      drop_na(fully_adminroute_mod)
+      filter(model == "roa_full")
     
     mod_unadj_fullroute <- clogit(caco ~ fully_adminroute_mod,
                               strata(matched_id),
@@ -210,8 +200,7 @@ mpoxve <- here("data","analysis_mpoxve_mmwr.RDS") %>%
   
   #==== Partially vaccinated ----
    analysis_partial_route <- mpoxve %>% 
-      filter(model == "Main") %>% 
-      drop_na(partially_adminroute_mod)
+      filter(model == "roa_partial")
     
     
     mod_unadj_partialroute <- clogit(caco ~ partially_adminroute_mod,
@@ -235,7 +224,7 @@ mpoxve <- here("data","analysis_mpoxve_mmwr.RDS") %>%
       mutate(model = "M1-s6 partial",
              stratified = "ROA-Partially") %>% 
       rename(term = partially_adminroute_mod)
-    
+
 # Sensitivity Analysis: restricting to S6 excluded ------------------------------------------------------------------
 
     analysis_s6excl <- mpoxve %>%
@@ -389,4 +378,14 @@ mpoxve <- here("data","analysis_mpoxve_mmwr.RDS") %>%
   saveRDS(ve_tidy, file = "results_output/tbl_ve-results.RDS")
   write.csv(ve_tidy, file = "results_output/tbl_ve-results.csv")
 
+# Examine the negative VE issue for ROA partially vaccinated issue ------------------------------------------------------------------
   
+  tt <- analysis_partial_route %>%
+    #filter(sid == "GA") %>% 
+    select(pid, matched_id, caco, vax_main, partially_adminroute_mod,
+           age, race_ethn, immunocompromised, close_contact_dx_cat) %>% 
+    arrange(matched_id, pid, caco)
+  
+  
+  
+    
