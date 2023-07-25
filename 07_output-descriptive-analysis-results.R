@@ -75,7 +75,6 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
     read_excel(sheet = "Table 2")
 # Prep descriptive vars ----------------------------------------------------------------------
 
-
   cov_names <- names(mpoxve %>% 
                        # Select the variables for table 1:
                        select(# Outcome: case status
@@ -83,7 +82,8 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
                               
                               # Covariates included in table 1
                                 age_cat, race_ethn, elig_gender_cat, health_ins_cat,
-                                housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat, hiv_cd4_200_cat, hiv_meds_2moredays,
+                                housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat, 
+                                hiv_cd4_200_cat, hiv_meds_2moredays,
                                 hiv_prep_cat, immunocompromised, close_contact_dx_cat, 
                                 sex_part_num_cat, sti_gonorrhea, sti_chlamydia, sti_syphilis, sti_other, 
                                 sti_any,
@@ -129,7 +129,7 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
                 names_from = dataset,
                 values_from = c(Case, Control, p)) 
   
-  clipr::write_clip(tbl_characteristic)
+  #clipr::write_clip(tbl_characteristic)
   
   tbl_characteristic_out <- tbl1 %>% 
       left_join(tbl_characteristic, by = c("covariates")) %>% 
@@ -138,7 +138,7 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
    
   clipr::write_clip(tbl_characteristic_out)
     
-  write.csv(tbl_characteristic_out, file = "results_output/tbl_characteristic.csv")
+  write.csv(tbl_characteristic_out, file = "results_output/tbl_characteristic.csv", na = "")
   
 
 
@@ -164,7 +164,7 @@ gen_tbl1 <- function(df, tbl_strata = tbl_strata) {
     left_join(tbl2_characteristic, by = c("covariates")) %>% 
     select(characteristics, covariates, everything())
   
-  clipr::write_clip(tbl2_characteristic_out)
+  #clipr::write_clip(tbl2_characteristic_out)
   
   tbl2_caco <- mpoxve %>%
     filter((model == "Main" &

@@ -22,8 +22,8 @@ pacman::p_load(here,        # file paths relative to R project root folder
                rio,         # import/export
                readxl,      # read excel files
                tidyverse,   # data management and visualization
-               stringr,     # manipulate text strings 
-               purrr,       # loop over objects in a tidy way
+               #stringr,     # manipulate text strings 
+               #purrr,       # loop over objects in a tidy way
                #data.table,  # Provides a high-performance version of base R's data.frame
                tableone,    # Study participant descriptive statistics
                survival,    # conditional logistic regression
