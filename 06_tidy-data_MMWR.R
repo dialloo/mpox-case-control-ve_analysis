@@ -66,15 +66,16 @@ turn_to_3Lfactor <- function(x){
 
 # Source data and define environment variables ---------------------------------------------------------------------
 
-# source("00_REDCap-API-linkage.R")
-
-raw <- here("data", "MultiJurisdictionalM_DATA_2023-04-14_1533.csv") %>%
-read_csv()
+raw <- here("data", "MultiJurisdictionalM_DATA_2023-04-28_1028.csv") %>%
+  read_csv()
 
 #MultiJurisdictionalM_DATA_2023-03-31_1922
 #MultiJurisdictionalM_DATA_2023-04-14_1533
 #MultiJurisdictionalM_DATA_2023-04-20_1605
-#MultiJurisdictionalM_DATA_2023-04-28_1028
+#MultiJurisdictionalM_DATA_2023-04-21_0828
+#MultiJurisdictionalM_DATA_2023-04-28_1028 (we used this data for the MMWR report published on 18 May 2023 
+# PMID: 37200229; DOI: 10.15585/mmwr.mm7220a3
+# https://www.cdc.gov/mmwr/volumes/72/wr/mm7220a3.htm?s_cid=mm7220a3_w)
 
 # Manual review results 
 mr <- here("data", "mpoxve_manual_review_combined_aod.xlsx") %>% 
@@ -87,7 +88,7 @@ mr <- here("data", "mpoxve_manual_review_combined_aod.xlsx") %>%
 # Tidy data -------------------------------------------------------------------------------------------------------------
 mpoxve <- raw %>%    
   # Restrict to eligible respondents (i.e., those that passed the eligibility screening)
-  #filter(inelig_stop ==  1) %>% 
+  filter(inelig_stop ==  1) %>% 
   # exclude those who did not give consent in NYC
   filter(is.na(consent) | consent == 1) %>% 
   # Restrict to those who have data for relevant eligibility screening questions 
@@ -110,7 +111,7 @@ mpoxve <- raw %>%
     #==== Key dates to modify ----
     eligibility_date        = ymd("2022-08-19"),
     
-    redcap_trans_date       = ymd("2023-04-21"),
+    redcap_trans_date       = ymd("2023-04-28"),
     
     mmwr_data_closing_date  = ymd("2023-04-31"),
     
@@ -708,7 +709,6 @@ mpoxve <- raw %>%
     
   ) %>% 
   arrange(index_date) %>%
-  
   mutate(la_mhfs = str_detect(pid, "MHFS"),
          index_yrmo = format_ISO8601(index_date, precision = "ym"),
          
@@ -735,21 +735,13 @@ mpoxve <- raw %>%
                                                            index_epiyr == 2023 &
                                                              index_epiwk %in% c(13, 14, 15, 16)  ~ "2023: 13-16"))))%>%
   select(pid, sid, jid, everything(), -redcap_data_access_group)
-# tt <- mpoxve %>%
-#   filter(minset_vars == "Complete")  %>% 
-#   drop_na(caco, vax_stat_ve_main, age, race_ethn, immunocompromised,
-#           close_contact_dx_cat, vax_stat_ve_main, vax_stat_ve_s6full) %>%
-#   pfreq(caco, vax_stat_ve_main)
 
-# tt <- mpoxve %>%
-#   filter(minset_vars == "Complete") %>%
-#   pfreq(partially_adminroute_mod, partially_adminroute_cat, vax_stat_ve_main)
-# 
-# 
-# 
-# tt <- mpoxve %>%
-#   filter(minset_vars == "Complete") %>%
-#   pfreq(vax_stat_ve_main, fully_adminroute_cat, partially_adminroute_cat)
+#==== Output: mpox ve cleaned data ----
+saveRDS(mpoxve, "data/mmwr-publication-dataset/mpoxve-cleaned.RDS")
+
+write.csv(mpoxve, "data/mmwr-publication-dataset/mpoxve-cleaned.csv", na = "")
+
+
 # Case and control matching by state and within 4-weeks of index event (IE) date ----------------------------------------------
 
 
@@ -943,103 +935,10 @@ caco_match_counts_r <- caco_match_counts %>%
   arrange(Model, #jid,
           `Case status`)
 
-clipr::write_clip(caco_match_counts_r)
+#clipr::write_clip(caco_match_counts_r)
 # Save analysis data ------------------------------------------------------------------
 
 #==== MMWR analysis ----
-saveRDS(mpoxve_matched, "data/analysis_mpoxve_mmwr.RDS")
+saveRDS(mpoxve_matched, "data/mmwr-publication-dataset/mpoxve_matched_mmwr.RDS")
 
-write.csv(mpoxve_matched, "data/analysis_mpoxve_mmwr.csv", na = "")
-
-
-#==== Homelessness/sex work in mpox vax case control study ----    
-  # In addition to meeting the inclusion criteria, respondents needed
-  # to have a complete set of minimum data elements to calculate unadjusted
-  # vaccine effectiveness. These data elements were the index event date, 
-  # vaccination status, and case status. The special populations dataset is
-  # limited to those with a complete set of minimum data elements.
-
-  # spop <- mpoxve_main %>% 
-  #   left_join((m_data_r4 %>% 
-  #                select(pid,
-  #                       matched_id)), by = "pid") %>% 
-  #   select(pid, caco, matched_id,
-  #          vax_stat_ve_main, index_date,
-  #          jid, sid, age, age_cat, race_ethn_8_cat, race_ethn, elig_gender_cat, health_ins_cat,
-  #          housing_cat, sex_work_cat, hiv_status_cat, hiv_cd4_cat, hiv_cd4_200_cat, hiv_meds_2moredays, hiv_prep_cat,
-  #          immune_response_cat, immunocompromised, close_contact_dx_cat, sex_part_num_cat,
-  #          sti_gonorrhea, sti_chlamydia, sti_syphilis, sti_other, sti_any, sti_sum_cat,
-  #          everything(), 
-  #          # Variables excluded
-  #          -eligibility_date,-redcap_trans_date,-mmwr_data_closing_date,-study_pd_int,
-  #          -test_yr,-symptoms_yr,-clinic_date_mod,-self_clinic_yr,-caco_stat_cat,
-  #          -caco_sen,-d1_yr,-d2_yr,-vax1_yrmo,-vax2_yrmo,
-  #          -vax_stat_na,-vax_stat_acip,-vax_stat,-vax_stat_ve,
-  #          -vax_stat_ve_acip,-vax_stat_ve_s6full,-vax_stat_ve_s6excl,-pep_stat_ve,
-  #          -la_mhfs,-starts_with("mr_"),
-  #          -fully_adminroute_cat, -fully_adminroute_mod,
-  #          -partially_adminroute_cat, -partially_adminroute_mod) %>% 
-  # arrange(matched_id, caco, pid)
-  # 
-  # 
-  # saveRDS(spop, "data/spop/spop_mpox_ve.RDS")
-  # 
-  # write.csv(spop, "data/spop/spop_mpox_ve.csv", na = "")
-
-
-#==== Misc code ------------------
-
-# tt <- create_dictionary(spop)
-# 
-# clipr::write_clip(tt)
-
-# mpoxve_main <- mpoxve %>% 
-#   filter(minset_vars == "Complete")  %>% 
-#   drop_na(caco, vax_stat_ve_main, age, race_ethn, immunocompromised,
-#           close_contact_dx_cat, vax_stat_ve_main, vax_stat_ve_s6full)
-# 
-# 
-# mpoxve %>% 
-#   filter(jid == "LAC") %>% 
-#   pfreq(minset_vars, caco)
-# 
-# library(naniar)
-# mpoxve %>% 
-#   filter(minset_vars == "Complete") %>%
-#   filter(jid == "CA") %>% 
-#   select(vax_stat_ve_main, age, race_ethn, immunocompromised,
-#          close_contact_dx_cat)%>%
-#   gg_miss_upset()
-
-# 
-# co_raw <- raw %>%  
-#   filter(redcap_data_access_group=="co")
-# 
-# co_rawdist <- co_raw %>% 
-#   group_by(inelig_stop, case_yesno) %>% 
-#   summarise(n = n(),
-#             pct = round(100*(n/nrow(co_raw)),1))
-# 
-# co_complete_caco <- mpoxve %>% 
-#   filter(jid=="CO") %>% 
-#   pfreq(minset_vars, caco) 
-# 
-# co_main <- mpoxve_main %>% 
-#   filter(jid=="CO") %>% 
-#   pfreq(caco) 
-# 
-# 
-# co_vax_na <- mpoxve %>%
-#   filter(minset_vars == "Complete") %>%
-#   filter(jid == "CO") %>%
-#   pfreq(caco, vax_stat_ve_main)
-# 
-# co_match_dist <- mpoxve_main %>% 
-#   left_join((m_data_r4 %>%
-#                select(pid,
-#                       matched_id)),
-#             by = "pid") %>%
-#   filter(jid == "CO") %>%
-#   select(pid, caco, matched_id, index_date) %>% 
-#   arrange(matched_id, caco, pid) %>% 
-#   filter(is.na(matched_id) & index_date >= ymd("2022-10-29"))
+write.csv(mpoxve_matched, "data/mmwr-publication-dataset/mpoxve_matched_mmwr.csv", na = "")
